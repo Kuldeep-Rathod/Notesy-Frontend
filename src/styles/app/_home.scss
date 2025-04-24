@@ -1,0 +1,168 @@
+// Variables for consistent theming
+$primary-bg: #000;
+$text-primary: #fff;
+$text-secondary: #d1d5db;
+$accent-color: #3b82f6; // A nice blue for CTAs
+$border-color: rgba(255, 255, 255, 0.1);
+$badge-border: #4b5563;
+$transition-speed: 0.3s;
+
+.hero-wrapper {
+    background-color: $primary-bg;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.hero-content-wrapper {
+    position: relative;
+    padding: 0 1.5rem;
+    padding-top: 56px; // navbar height
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    isolation: isolate; // Creates new stacking context for gradients
+}
+
+.hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2.5rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+    z-index: 2; // Ensure content stays above gradients
+}
+
+.hero-badge {
+    display: none;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease-out;
+
+    @media (min-width: 640px) {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+.hero-badge-text {
+    border-radius: 9999px;
+    padding: 0.5rem 1rem; // Slightly larger padding
+    font-size: 0.875rem;
+    color: $text-secondary;
+    background-color: transparent;
+    border: 1px solid $badge-border;
+    transition: all $transition-speed;
+    backdrop-filter: blur(4px); // Subtle glass effect
+    background-color: rgba(15, 23, 42, 0.3); // Slight tint
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: $text-primary;
+        transform: translateY(-1px);
+    }
+}
+
+.text-container {
+    text-align: center;
+    color: $text-primary;
+    animation: fadeIn 0.8s ease-out 0.2s both;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 5vw, 3.75rem); // Responsive clamp
+    font-weight: 800; // Slightly bolder
+    line-height: 1.2;
+    letter-spacing: -0.025em; // Tighter letter spacing
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #fff, #d1d5db);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-wrap: balance; // Better text wrapping
+
+    @media (min-width: 768px) {
+        margin-bottom: 1.5rem;
+    }
+}
+
+.hero-description {
+    margin-top: 1.5rem;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: $text-secondary;
+    max-width: 80ch;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.9;
+    animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+.cta-buttons {
+    margin-top: 2.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap; // Allow wrapping on small screens
+    animation: fadeIn 0.8s ease-out 0.6s both;
+
+    a {
+        font-weight: 600;
+        transition: all $transition-speed;
+    }
+}
+
+.cta-primary {
+    background-color: $accent-color;
+    border-color: $accent-color;
+
+    &:hover {
+        background-color: darken($accent-color, 10%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($accent-color, 0.2);
+    }
+}
+
+// Animations
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+    .hero-content {
+        padding: 1.5rem 0;
+    }
+
+    .cta-buttons {
+        gap: 1rem;
+
+        button {
+            flex: 1 1 100%; // Full width buttons on mobile
+            min-width: 120px;
+        }
+    }
+}

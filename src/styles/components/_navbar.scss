@@ -1,0 +1,95 @@
+.navbar {
+    position: absolute;
+    inset: 0 auto auto 0;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+
+        @media (min-width: 1024px) {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .navbar__logo {
+            display: flex;
+        }
+
+        .navbar__links {
+            display: none;
+
+            @media (min-width: 1024px) {
+                display: flex;
+                gap: 3rem;
+
+                a {
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    line-height: 1.5rem;
+                    color: white;
+                    text-decoration: none;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+
+        .navbar__mobile {
+            display: flex;
+
+            @media (min-width: 1024px) {
+                display: none;
+            }
+
+            .menu-btn {
+                padding: 0.625rem;
+                color: white;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+            }
+
+            .sheet-content {
+                padding: 1.5rem;
+                width: 100%;
+
+                @media (min-width: 640px) {
+                    max-width: 24rem;
+                }
+
+                .sheet-header {
+                    display: flex;
+                    justify-content: space-between;
+                }
+
+                .sheet-links {
+                    margin-top: 1.5rem;
+
+                    a {
+                        display: block;
+                        padding: 0.5rem 0.75rem;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        color: white;
+                        border-radius: 0.5rem;
+                        text-decoration: none;
+
+                        &:hover {
+                            background-color: #f0f0f0;
+                            color: black;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
