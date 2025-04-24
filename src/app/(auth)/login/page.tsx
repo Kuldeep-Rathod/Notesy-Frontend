@@ -7,103 +7,49 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { auth, googleProvider } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import '@/styles/app/_login.scss';
-import axios, { AxiosError } from 'axios';
+import {
+    useCheckAuthStateQuery,
+    useLoginWithEmailMutation,
+    useLoginWithGoogleMutation,
+} from '@/redux/api/authAPI';
+
+type LoginFormData = {
+    email: string;
+    password: string;
+};
 
 export default function Login() {
     const router = useRouter();
     const [firebaseError, setFirebaseError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loginWithEmail, { isLoading, error }] = useLoginWithEmailMutation();
+    const [loginWithGoogle] = useLoginWithGoogleMutation();
+    const { data: user } = useCheckAuthStateQuery();
 
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm();
+    } = useForm<LoginFormData>();
 
-    const createMongoUser = async (firebaseUser: any, name?: string) => {
+    const onSubmit = async (data: LoginFormData) => {
         try {
-            const response = await axios.post(
-                'http://localhost:3005/api/v1/auth/register',
-                {
-                    email: firebaseUser.email,
-                    name:
-                        name ||
-                        firebaseUser.displayName ||
-                        firebaseUser.email.split('@')[0],
-                    firebaseUid: firebaseUser.uid,
-                }
-            );
-
-            return response.data;
-        } catch (error) {
-            console.error('Error creating MongoDB user:', error);
-            throw error;
-        }
-    };
-
-    const onSubmit = async (data: any) => {
-        setIsLoading(true);
-        setFirebaseError('');
-
-        try {
-            await signInWithEmailAndPassword(auth, data.email, data.password);
-            router.push('/dashboard'); // Redirect after successful login
-        } catch (error: any) {
-            setFirebaseError(getFirebaseErrorMessage(error.code));
-        } finally {
-            setIsLoading(false);
+            const { email, password } = data;
+            await loginWithEmail({ email, password }).unwrap();
+            // Success - user will be in cache
+            router.push('/dashboard');
+        } catch (err) {
+            console.error('Login failed:', err);
         }
     };
 
     const signInWithGoogle = async () => {
-        setIsLoading(true);
-        setFirebaseError('');
-
         try {
-            // 1. Google auth with Firebase
-            const userCredential = await signInWithPopup(auth, googleProvider);
-
-            // 2. Check if user exists in MongoDB
-            try {
-                await axios.get(
-                    `/api/auth/check?email=${userCredential.user.email}`
-                );
-            } catch (err) {
-                const error = err as AxiosError;
-                if (error.response?.status === 404) {
-                    await createMongoUser(userCredential.user);
-                } else {
-                    throw error;
-                }
-            }
-
-            router.push('/dashboard');
-        } catch (error: any) {
-            setFirebaseError(getFirebaseErrorMessage(error.code));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const getFirebaseErrorMessage = (code: string) => {
-        switch (code) {
-            case 'auth/invalid-email':
-                return 'Please enter a valid email address.';
-            case 'auth/user-disabled':
-                return 'This account has been disabled.';
-            case 'auth/user-not-found':
-                return 'No account found with this email.';
-            case 'auth/wrong-password':
-                return 'Incorrect password. Please try again.';
-            case 'auth/too-many-requests':
-                return 'Too many attempts. Please try again later.';
-            case 'auth/popup-closed-by-user':
-                return 'Sign in popup was closed before completing.';
-            default:
-                return 'An error occurred. Please try again.';
+            const result = await loginWithGoogle().unwrap();
+            console.log('Logged in user:', result);
+            // Maybe navigate to dashboard or store user in state
+        } catch (err) {
+            console.error('Google login failed:', err);
         }
     };
 
