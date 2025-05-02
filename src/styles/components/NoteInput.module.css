@@ -1,0 +1,576 @@
+/* components/NoteInput.module.css */
+.mainContainer {
+    margin: 24px auto 16px auto;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 60%), 0 2px 6px 2px rgb(0 0 0 / 30%);
+    position: relative;
+}
+
+.disabled {
+    cursor: not-allowed !important;
+    opacity: 0.25 !important;
+}
+
+/* Placeholder */
+.placeholder {
+    position: relative;
+}
+
+.placeholder .input {
+    padding: 21px 6px 11px 16px;
+    font-family: 'Google Sans Light 2';
+    height: 46px;
+    width: 100%;
+    background-color: #202124;
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+}
+
+.placeholder .input:focus-visible {
+    outline-width: 0;
+}
+
+.placeholder .input::placeholder {
+    letter-spacing: 0.00625em;
+    font-family: 'Google Sans';
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    color: rgba(255, 255, 255, 0.702);
+}
+
+/* Icons */
+.H {
+    cursor: pointer;
+}
+
+.pop {
+    position: relative;
+}
+
+.pop:hover::before {
+    content: attr(data-pop);
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+}
+
+.check,
+.paint,
+.picture {
+    height: 46px;
+    position: absolute;
+    top: 1px;
+    width: 46px;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+}
+
+.check:hover,
+.paint:hover,
+.picture:hover {
+    opacity: 0.87;
+}
+
+.pop::before {
+    top: 45px;
+}
+
+.check {
+    background-image: url(/assets/images/svg/check.svg);
+    right: 121px;
+}
+
+.paint {
+    background-image: url(/assets/images/svg/paint.svg);
+    right: 67px;
+}
+
+.picture {
+    background-image: url(/assets/images/svg/picture.svg);
+    right: 13px;
+}
+
+/* New note */
+.noteMain {
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+    background-color: #202124;
+    position: relative;
+}
+
+.noteContainer {
+    background-position-x: right;
+    background-position-y: bottom;
+    background-size: cover;
+    padding: 10px 15px;
+}
+
+/* Title */
+.noteTitle {
+    letter-spacing: 0.00625em;
+    font-family: 'Google Sans';
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    outline: none;
+}
+
+.noteTitle.ph {
+    color: rgba(255, 255, 255, 0.6);
+    position: absolute;
+    width: calc(100% - 30px);
+    pointer-events: none;
+}
+
+/* Note body */
+.noteBody {
+    letter-spacing: 0.01428571em;
+    font-family: 'Google Sans';
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+    min-height: 46px;
+    max-height: 70vh;
+    overflow: auto;
+    outline: none;
+}
+
+.noteBody.ph {
+    color: rgba(255, 255, 255, 0.702);
+    font-weight: 500;
+    position: absolute;
+    width: calc(100% - 30px);
+    pointer-events: none;
+}
+
+/* Close button */
+.closeBtn {
+    margin-right: 15px;
+    color: #dadce0;
+    letter-spacing: 0.01785714em;
+    font-family: 'Google Sans';
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    height: 36px;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    background-color: rgba(154, 160, 166, 0.039);
+}
+
+/* Checkboxes */
+.cboxContainer {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.cboxMoveIcon {
+    width: 24px;
+    height: 24px;
+    background-image: url(/assets/images/svg/move.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+}
+
+.cboxIcon {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #5f6368;
+    border-radius: 4px;
+    margin: 0 8px;
+    cursor: pointer;
+}
+
+.cboxIcon.done {
+    background-image: url(/assets/images/svg/check.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.cboxNoteContainer {
+    flex: 1;
+}
+
+.cboxNote {
+    min-height: 24px;
+    outline: none;
+}
+
+.cboxNote.ph {
+    color: rgba(255, 255, 255, 0.6);
+    position: absolute;
+    pointer-events: none;
+}
+
+.cboxDone {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.cboxCancelIcon {
+    width: 24px;
+    height: 24px;
+    background-image: url(/assets/images/svg/cancel.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+}
+
+.cboxCancelIcon:hover {
+    opacity: 0.87;
+}
+
+.cboxPhContainer {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.cboxPlusIcon {
+    width: 24px;
+    height: 24px;
+    background-image: url(/assets/images/svg/plus.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+    margin-right: 8px;
+}
+
+.hr {
+    height: 1px;
+    background-color: #5f6368;
+    margin: 8px 0;
+}
+
+.cboxDoneContainer {
+    display: flex;
+    align-items: center;
+    color: #5f6368;
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.cboxArrow {
+    width: 24px;
+    height: 24px;
+    background-image: url(/assets/images/svg/arrow.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+    margin-right: 8px;
+    transition: transform 0.2s;
+}
+
+.cboxArrow.rotate {
+    transform: rotate(90deg);
+}
+
+/* Labels */
+.labelsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.labelContainer {
+    margin: 0 8px 8px 0;
+}
+
+.label {
+    display: flex;
+    align-items: center;
+    background-color: rgba(154, 160, 166, 0.16);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    color: #e8eaed;
+}
+
+.label span {
+    margin-right: 8px;
+}
+
+.cancelIcon {
+    width: 16px;
+    height: 16px;
+    background-image: url(/assets/images/svg/cancel.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+    cursor: pointer;
+}
+
+.cancelIcon:hover {
+    opacity: 0.87;
+}
+
+/* Pin icon */
+.pinIcon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    background-image: url(/assets/images/svg/pin.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+}
+
+.pinIcon:hover {
+    opacity: 0.87;
+}
+
+.pinIcon.pinned {
+    opacity: 0.87;
+}
+
+/* Icons container */
+.iconsContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.iconsContainer.min {
+    justify-content: flex-end;
+}
+
+.icons {
+    display: flex;
+}
+
+.alarm,
+.colab,
+.color,
+.image,
+.archive,
+.more,
+.undo,
+.delete,
+.restore {
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+    margin: 0 4px;
+    cursor: pointer;
+}
+
+.alarm {
+    background-image: url(/assets/images/svg/alarm.svg);
+}
+
+.colab {
+    background-image: url(/assets/images/svg/colab.svg);
+}
+
+.color {
+    background-image: url(/assets/images/svg/color.svg);
+}
+
+.image {
+    background-image: url(/assets/images/svg/image.svg);
+}
+
+.archive {
+    background-image: url(/assets/images/svg/archive.svg);
+}
+
+.more {
+    background-image: url(/assets/images/svg/more.svg);
+}
+
+.undo {
+    background-image: url(/assets/images/svg/undo.svg);
+}
+
+.undo.r {
+    background-image: url(/assets/images/svg/redo.svg);
+}
+
+.delete {
+    background-image: url(/assets/images/svg/delete.svg);
+}
+
+.restore {
+    background-image: url(/assets/images/svg/restore.svg);
+}
+
+/* Tooltips */
+.moreMenu,
+.colorMenu,
+.labelMenu {
+    position: absolute;
+    background-color: #202124;
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 60%), 0 2px 6px 2px rgb(0 0 0 / 30%);
+    z-index: 100;
+    padding: 8px 0;
+    min-width: 200px;
+}
+
+.moreMenu div,
+.labelMenu div {
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.moreMenu div:hover,
+.labelMenu div:hover {
+    background-color: rgba(154, 160, 166, 0.16);
+}
+
+.colorMenu {
+    padding: 8px;
+}
+
+.firstRow,
+.secondRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.firstRow div,
+.secondRow div {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid #5f6368;
+}
+
+.firstRow div.nocolor,
+.secondRow div.noimage {
+    background-color: transparent;
+    background-image: url(/assets/images/svg/transparent.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Label menu */
+.labelMenu {
+    min-width: 240px;
+}
+
+.labelMenu .title {
+    padding: 8px 16px;
+    font-weight: 500;
+    color: #e8eaed;
+    border-bottom: 1px solid #5f6368;
+    margin-bottom: 8px;
+}
+
+.labelMenu .search {
+    position: relative;
+    padding: 0 16px 8px;
+}
+
+.labelMenu .search input {
+    width: 100%;
+    background-color: transparent;
+    border: 1px solid #5f6368;
+    border-radius: 4px;
+    padding: 8px 8px 8px 32px;
+    color: #e8eaed;
+}
+
+.labelMenu .search input::placeholder {
+    color: #5f6368;
+}
+
+.labelMenu .searchIcon {
+    position: absolute;
+    left: 24px;
+    top: 8px;
+    width: 20px;
+    height: 20px;
+    background-image: url(/assets/images/svg/search.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.54;
+}
+
+.labelListContainer {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.labelList {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+}
+
+.checkIcon {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    background-image: url(/assets/images/svg/check.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+}
+
+.checkIcon.done {
+    opacity: 0.87;
+}
+
+.labelName {
+    flex: 1;
+    color: #e8eaed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .mainContainer {
+        margin: 16px 8px;
+    }
+
+    .placeholder .input {
+        padding: 16px 6px 10px 12px;
+    }
+
+    .check {
+        right: 100px;
+    }
+
+    .paint {
+        right: 55px;
+    }
+
+    .picture {
+        right: 10px;
+    }
+
+    .noteContainer {
+        padding: 8px 12px;
+    }
+
+    .closeBtn {
+        padding: 8px 16px;
+    }
+}
