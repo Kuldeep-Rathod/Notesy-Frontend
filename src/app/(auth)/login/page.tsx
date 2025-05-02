@@ -9,7 +9,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import '@/styles/app/_login.scss';
 import {
-    useCheckAuthStateQuery,
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
 } from '@/redux/api/authAPI';
@@ -21,10 +20,9 @@ type LoginFormData = {
 
 export default function Login() {
     const router = useRouter();
-    const [firebaseError, setFirebaseError] = useState('');
-    const [loginWithEmail, { isLoading, error }] = useLoginWithEmailMutation();
+    const [firebaseError, setFirebaseError] = useState<string>(''); // To store Firebase errors
+    const [loginWithEmail, { isLoading }] = useLoginWithEmailMutation();
     const [loginWithGoogle] = useLoginWithGoogleMutation();
-    const { data: user } = useCheckAuthStateQuery();
 
     const {
         register,
@@ -38,8 +36,15 @@ export default function Login() {
             await loginWithEmail({ email, password }).unwrap();
             // Success - user will be in cache
             router.push('/dashboard');
-        } catch (err) {
-            console.error('Login failed:', err);
+        } catch (err: any) {
+            // Handle error and set Firebase error message
+            if (err?.code) {
+                setFirebaseError(getFirebaseErrorMessage(err.code)); // Set error based on Firebase error code
+            } else {
+                setFirebaseError(
+                    'An unknown error occurred. Please try again.'
+                );
+            }
         }
     };
 
@@ -47,9 +52,37 @@ export default function Login() {
         try {
             const result = await loginWithGoogle().unwrap();
             console.log('Logged in user:', result);
-            // Maybe navigate to dashboard or store user in state
-        } catch (err) {
-            console.error('Google login failed:', err);
+            // Navigate to dashboard or store user in state
+            router.push('/dashboard');
+        } catch (err: any) {
+            // Handle error and set Firebase error message
+            if (err?.code) {
+                setFirebaseError(getFirebaseErrorMessage(err.code));
+            } else {
+                setFirebaseError(
+                    'An unknown error occurred during Google login.'
+                );
+            }
+        }
+    };
+
+    // Firebase error messages
+    const getFirebaseErrorMessage = (code: string) => {
+        switch (code) {
+            case 'auth/email-already-in-use':
+                return 'Email is already in use. Try logging in instead.';
+            case 'auth/invalid-email':
+                return 'Please enter a valid email address.';
+            case 'auth/weak-password':
+                return 'Password should be at least 6 characters.';
+            case 'auth/popup-closed-by-user':
+                return 'Sign-in popup was closed before completing.';
+            case 'auth/user-not-found':
+                return 'No account found with this email.';
+            case 'auth/wrong-password':
+                return 'Incorrect password. Please try again.';
+            default:
+                return 'An error occurred. Please try again.';
         }
     };
 

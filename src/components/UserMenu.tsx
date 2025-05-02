@@ -1,5 +1,5 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -11,19 +11,24 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { User2, LogOut } from 'lucide-react';
-import { logout } from '@/redux/slices/authSlice';
-import { axiosInstance } from '@/utils/axiosInstance';
+import { useLogoutMutation } from '@/redux/api/authAPI';
 
 export default function UserMenu() {
-    const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
     const { user } = useSelector((state: RootState) => state.auth);
 
+    const [logout] = useLogoutMutation();
+
     const handleLogout = async () => {
-        const response = await axiosInstance.post('/auth/logout');
-        dispatch(logout());
-        toast.success(response.data.message);
-        router.push('/login');
+        try {
+            await logout().unwrap();
+            // Optional: redirect or update UI
+            console.log('User logged out');
+            toast.success('User Logged out');
+            await router.push('/login');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
     };
 
     return (

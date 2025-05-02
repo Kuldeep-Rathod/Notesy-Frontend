@@ -13,8 +13,9 @@ import {
     signInWithPopup,
     updateProfile,
 } from 'firebase/auth';
-import axios, { AxiosError } from 'axios';
 import '@/styles/app/_signup.scss';
+import { axiosInstance } from '@/utils/axiosInstance';
+import axios from 'axios';
 
 export default function Signup() {
     const router = useRouter();
@@ -30,17 +31,14 @@ export default function Signup() {
 
     const createMongoUser = async (firebaseUser: any, name?: string) => {
         try {
-            const response = await axios.post(
-                'http://localhost:3005/api/v1/auth/register',
-                {
-                    email: firebaseUser.email,
-                    name:
-                        name ||
-                        firebaseUser.displayName ||
-                        firebaseUser.email.split('@')[0],
-                    firebaseUid: firebaseUser.uid,
-                }
-            );
+            const response = await axiosInstance.post('/api/v1/auth/register', {
+                email: firebaseUser.email,
+                name:
+                    name ||
+                    firebaseUser.displayName ||
+                    firebaseUser.email.split('@')[0],
+                firebaseUid: firebaseUser.uid,
+            });
 
             return response.data;
         } catch (error) {
@@ -82,24 +80,22 @@ export default function Signup() {
         setFirebaseError('');
 
         try {
-            // 1. Google auth with Firebase
             const userCredential = await signInWithPopup(auth, googleProvider);
+            const email = userCredential.user.email;
 
-            // 2. Check if user exists in MongoDB
+            if (!email) throw new Error('Email not found in user credential');
+
             try {
-                await axios.get(
-                    `http://localhost:3005/api/v1/auth/check?email=${userCredential.user.email}`
-                );
+                await axiosInstance.get(`/api/v1/auth/check?email=${email}`);
             } catch (err) {
-                const error = err as AxiosError;
-                if (error.response?.status === 404) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
                     await createMongoUser(userCredential.user);
                 } else {
-                    throw error;
+                    throw err;
                 }
             }
 
-            router.push('/dashboard');
+            await router.push('/dashboard');
         } catch (error: any) {
             setFirebaseError(getFirebaseErrorMessage(error.code));
         } finally {

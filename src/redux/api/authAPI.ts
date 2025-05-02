@@ -1,4 +1,5 @@
 import { auth, googleProvider } from '@/lib/firebase';
+import { axiosInstance } from '@/utils/axiosInstance';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
     signInWithEmailAndPassword,
@@ -25,11 +26,11 @@ export const authAPI = createApi({
                         email,
                         password
                     );
-                    const uid = userCredential.user.uid;
-                    // Call your backend API to get user data
 
                     //create this api in backend
-                    const response = await fetch(`/user/${uid}`);
+                    const response = await fetch(
+                        `http://localhost:3005/api/v1/auth/check?email=${userCredential.user.email}`
+                    );
                     const user = await response.json();
                     return { data: user };
                 } catch (error: any) {
@@ -46,9 +47,12 @@ export const authAPI = createApi({
                         auth,
                         googleProvider
                     );
-                    const uid = userCredential.user.uid;
-                    const response = await fetch(`/user/${uid}`);
-                    const user = await response.json();
+                    const email = userCredential.user.email;
+
+                    const response = await axiosInstance.get(
+                        `/api/v1/auth/check?email=${email}`
+                    );
+                    const user = response.data;
                     return { data: user };
                 } catch (error: any) {
                     return { error: error.message };
@@ -68,31 +72,47 @@ export const authAPI = createApi({
             },
         }),
 
-        // Check auth state
-        checkAuthState: builder.query<User, void>({
-            queryFn: async () => {
-                try {
-                    return new Promise((resolve) => {
-                        const unsubscribe = auth.onAuthStateChanged(
-                            async (firebaseUser) => {
-                                if (firebaseUser) {
-                                    const response = await fetch(
-                                        `/user/${firebaseUser.uid}`
-                                    );
-                                    const user = await response.json();
-                                    resolve({ data: user });
-                                } else {
-                                    resolve({ error: 'Not authenticated' });
-                                }
-                                unsubscribe();
-                            }
-                        );
-                    });
-                } catch (error: any) {
-                    return { error: error.message };
-                }
-            },
-        }),
+        // Check auth state and get ID token
+        // checkAuthState: builder.query<User, void>({
+        //     queryFn: async () => {
+        //         try {
+        //             return new Promise((resolve) => {
+        //                 const unsubscribe = auth.onAuthStateChanged(
+        //                     async (firebaseUser) => {
+        //                         if (firebaseUser) {
+        //                             try {
+        //                                 const idToken =
+        //                                     await firebaseUser.getIdToken(); // ✅ Get the ID token
+
+        //                                 // Pass the token to your backend for verification (or verify locally if needed)
+        //                                 const response =
+        //                                     await axiosInstance.get(
+        //                                         '/api/v1/auth/verify',
+        //                                         {
+        //                                             headers: {
+        //                                                 Authorization: `Bearer ${idToken}`, // ✅ Send as Bearer token
+        //                                             },
+        //                                         }
+        //                                     );
+
+        //                                 const user = response.data;
+        //                                 resolve({ data: user });
+        //                             } catch (err: any) {
+        //                                 resolve({ error: err.message });
+        //                             }
+        //                         } else {
+        //                             resolve({ error: 'Not authenticated' });
+        //                         }
+
+        //                         unsubscribe();
+        //                     }
+        //                 );
+        //             });
+        //         } catch (error: any) {
+        //             return { error: error.message };
+        //         }
+        //     },
+        // }),
     }),
 });
 
@@ -100,5 +120,5 @@ export const {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
     useLogoutMutation,
-    useCheckAuthStateQuery,
+    // useCheckAuthStateQuery,
 } = authAPI;
