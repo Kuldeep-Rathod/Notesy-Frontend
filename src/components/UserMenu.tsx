@@ -15,7 +15,11 @@ import { useLogoutMutation } from '@/redux/api/authAPI';
 
 export default function UserMenu() {
     const router = useRouter();
-    const { user } = useSelector((state: RootState) => state.auth);
+    const user = useSelector((state: RootState) => state.auth.user);
+
+    console.log('user:', user);
+    console.log('Profile Picture:', user?.profilePicture);
+
 
     const [logout] = useLogoutMutation();
 

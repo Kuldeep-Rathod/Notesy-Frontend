@@ -1,16 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronLeft, ChevronRight, User2, Menu, X } from 'lucide-react';
+import SidebarLink from '@/components/SidebarLink';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import Image from 'next/image';
-import logo from '../../../public/logo.svg';
-import icon from '../../../public/logo.svg';
 import UserMenu from '@/components/UserMenu';
+import { cn } from '@/lib/utils';
 import AuthGuard from '@/utils/authGuard';
+import {
+    Archive,
+    Bell,
+    ChevronLeft,
+    ChevronRight,
+    CircleUserRound,
+    LayoutDashboard,
+    Menu,
+    Pencil,
+    Trash2,
+    X,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { default as icon, default as logo } from '../../../public/logo.svg';
 
 export default function DashboardLayout({
     children,
@@ -19,7 +29,6 @@ export default function DashboardLayout({
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    const pathname = usePathname();
     const toggleSidebar = () => {
         setIsSidebarOpen((prev) => !prev);
     };
@@ -82,89 +91,47 @@ export default function DashboardLayout({
                     </div>
 
                     <nav className='space-y-1 mt-4 p-2'>
-                        <Link
+                        <SidebarLink
                             href='/dashboard'
-                            className={cn(
-                                'flex items-center p-3 rounded-md text-gray-700 hover:bg-gray-100',
-                                'transition-colors duration-200',
-                                pathname === '/dashboard'
-                                    ? 'bg-[#0004E8]/10 text-[#0004E8] font-medium'
-                                    : '',
-                                isSidebarOpen
-                                    ? 'justify-start'
-                                    : 'justify-center'
-                            )}
                             title='Dashboard'
-                        >
-                            <svg
-                                className='w-5 h-5'
-                                fill='none'
-                                stroke='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth='2'
-                                    d='M4 6h16M4 12h16M4 18h16'
-                                />
-                            </svg>
-                            {isSidebarOpen && (
-                                <span className='ml-3'>Dashboard</span>
-                            )}
-                        </Link>
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<LayoutDashboard className='w-5 h-5' />}
+                        />
 
-                        <Link
-                            href='/subscriptions'
-                            className={cn(
-                                'flex items-center p-3 rounded-md text-gray-700 hover:bg-gray-100',
-                                'transition-colors duration-200',
-                                pathname === '/subscriptions'
-                                    ? 'bg-[#0004E8]/10 text-[#0004E8] font-medium'
-                                    : '',
-                                isSidebarOpen
-                                    ? 'justify-start'
-                                    : 'justify-center'
-                            )}
-                            title='Subscriptions'
-                        >
-                            <svg
-                                className='w-5 h-5'
-                                fill='none'
-                                stroke='currentColor'
-                                viewBox='0 0 24 24'
-                            >
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth='2'
-                                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                                />
-                            </svg>
-                            {isSidebarOpen && (
-                                <span className='ml-3'>Reminders</span>
-                            )}
-                        </Link>
+                        <SidebarLink
+                            href='/reminders'
+                            title='Reminders'
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<Bell className='w-5 h-5' />}
+                        />
 
-                        <Link
+                        <SidebarLink
+                            href='/edit-labels'
+                            title='Edit labels'
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<Pencil className='w-5 h-5' />}
+                        />
+
+                        <SidebarLink
+                            href='/archive'
+                            title='Archive'
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<Archive className='w-5 h-5' />}
+                        />
+
+                        <SidebarLink
+                            href='/bin'
+                            title='Bin'
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<Trash2 className='w-5 h-5' />}
+                        />
+
+                        <SidebarLink
                             href='/profile'
-                            className={cn(
-                                'flex items-center p-3 rounded-md text-gray-700 hover:bg-gray-100',
-                                'transition-colors duration-200',
-                                pathname === '/profile'
-                                    ? 'bg-[#0004E8]/10 text-[#0004E8] font-medium'
-                                    : '',
-                                isSidebarOpen
-                                    ? 'justify-start'
-                                    : 'justify-center'
-                            )}
                             title='Profile'
-                        >
-                            <User2 className='w-5 h-5' />
-                            {isSidebarOpen && (
-                                <span className='ml-3'>Profile</span>
-                            )}
-                        </Link>
+                            isSidebarOpen={isSidebarOpen}
+                            icon={<CircleUserRound className='w-5 h-5' />}
+                        />
                     </nav>
                 </aside>
 
