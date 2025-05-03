@@ -27,9 +27,6 @@ export default function UserMenu() {
         );
     }
 
-    console.log('user:', user);
-    console.log('Profile Picture:', user?.profilePicture);
-
     const handleLogout = async () => {
         try {
             await logout().unwrap();

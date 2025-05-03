@@ -1,16 +1,18 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { authAPI } from './api/authAPI';
 import authReducer from './reducer/authReducer';
+import { notesAPI } from './api/notesAPI';
 
 export const rootReducer = combineReducers({
     auth: authReducer,
     [authAPI.reducerPath]: authAPI.reducer,
+    [notesAPI.reducerPath]: notesAPI.reducer,
 });
 
 export const store = configureStore({
     reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(authAPI.middleware),
+        getDefaultMiddleware().concat(authAPI.middleware, notesAPI.middleware),
     devTools: process.env.NODE_ENV !== 'production',
 });
 

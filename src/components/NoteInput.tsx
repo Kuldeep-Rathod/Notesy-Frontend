@@ -4,6 +4,10 @@
 import { LabelI } from '@/interfaces/labels';
 import { CheckboxI, NoteI } from '@/interfaces/notes';
 import { bgColors, bgImages } from '@/interfaces/tooltip';
+import {
+    useCreateNoteMutation,
+    useUpdateNoteMutation,
+} from '@/redux/api/notesAPI';
 import '@/styles/components/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import {
@@ -27,7 +31,11 @@ import { MdRestoreFromTrash } from 'react-icons/md';
 export default function NoteInput({
     isEditing = false,
     noteToEdit,
+    onSuccess,
 }: NoteInputProps) {
+    const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
+    const [updateNote, { isLoading: isUpdating }] = useUpdateNoteMutation();
+
     // Refs
     const mainRef = useRef<HTMLDivElement>(null);
     const notePlaceholderRef = useRef<HTMLDivElement>(null);
@@ -115,8 +123,6 @@ export default function NoteInput({
 
     // Save note
     const saveNote = useCallback(async () => {
-        cboxInputRef.current?.blur();
-
         if (
             !noteTitleRef.current ||
             !noteContainerRef.current ||
@@ -142,19 +148,36 @@ export default function NoteInput({
             noteObj.noteBody?.length ||
             checkBoxes.length
         ) {
-            if (isEditing) {
-                // Update note
-                console.log('Updating note:', noteObj);
-            } else {
-                // Add new note
-                console.log('Adding new note:', noteObj);
-                if (isArchived) {
-                    console.log('Note archived');
+            try {
+                if (isEditing && noteToEdit?.id) {
+                    // Update note using RTK Query
+                    await updateNote({
+                        id: noteToEdit.id.toString(),
+                        data: noteObj,
+                    }).unwrap();
+                    console.log('Note updated successfully');
+                    onSuccess?.();
+                } else {
+                    // Create new note using RTK Query
+                    await createNote(noteObj).unwrap();
+                    console.log('Note created successfully');
+                    onSuccess?.();
+
+                    if (isArchived) {
+                        console.log('Note archived');
+                    }
+                    if (isTrashed) {
+                        console.log('Note trashed');
+                    }
+
+                    if (!isEditing) {
+                        closeNote();
+                    }
                 }
-                if (isTrashed) {
-                    console.log('Note trashed');
-                }
-                closeNote();
+            } catch (error) {
+                console.error('Error saving note:', error);
+                // You can access the error details from RTK Query
+                // error.data will contain the server response
             }
         }
     }, [
@@ -165,6 +188,10 @@ export default function NoteInput({
         isTrashed,
         labels,
         closeNote,
+        noteToEdit?.id,
+        onSuccess,
+        createNote,
+        updateNote,
     ]);
 
     // Reset note

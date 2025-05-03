@@ -6,6 +6,7 @@ export interface NoteInputProps {
     noteToEdit?: NoteI;
     onSave?: (note: NoteI) => void;
     onClose?: () => void;
+    onSuccess?: () => void; // Add this line
 }
 
 export interface NoteInputState {
