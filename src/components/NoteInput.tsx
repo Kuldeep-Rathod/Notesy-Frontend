@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
-import styles from '../styles/components/NoteInput.module.css';
+// import styles from '../styles/components/NoteInput.module.css';
+import '@/styles/components/_noteInput.scss';
 
 export default function NoteInput({
     isEditing = false,
@@ -387,35 +388,35 @@ export default function NoteInput({
     return (
         <div
             ref={mainRef}
-            className={!isEditing ? styles.mainContainer : ''}
+            className={!isEditing ? 'note-input__container' : ''}
         >
             {/* Placeholder */}
             <div
                 ref={notePlaceholderRef}
                 onClick={notePhClick}
-                className={styles.placeholder}
+                className='note-input__placeholder'
             >
                 <input
-                    className={styles.input}
+                    className='note-input__placeholder-input'
                     placeholder='Take a note…'
                     type='text'
                 />
                 <div
-                    className={`${styles.check} ${styles.H} ${styles.pop}`}
-                    data-pop='New list'
+                    className={`note-input__action-icon note-input__action-icon--check H pop`}
+                    data-tooltip='New list'
                     onClick={() => setIsCbox(true)}
                 >
                     <SquareCheck style={{ color: 'white' }} />
                 </div>
                 <div
-                    className={`${styles.paint} ${styles.H} ${styles.disabled} ${styles.pop}`}
-                    data-pop='New note with drawing'
+                    className={`note-input__action-icon note-input__action-icon--paint H disabled pop`}
+                    data-tooltip='New note with drawing'
                 >
                     <Brush style={{ color: 'white' }} />
                 </div>
                 <div
-                    className={`${styles.picture} ${styles.H} ${styles.disabled}`}
-                    data-pop='New note with image'
+                    className={`note-input__action-icon note-input__action-icon--picture H disabled pop`}
+                    data-tooltip='New note with image'
                 >
                     <BookImage style={{ color: 'white' }} />
                 </div>
@@ -424,16 +425,16 @@ export default function NoteInput({
             {/* New note */}
             <div
                 ref={noteMainRef}
-                className={styles.noteMain}
+                className='note-input__editor'
                 hidden
             >
                 <div
                     ref={noteContainerRef}
-                    className={styles.noteContainer}
+                    className='note-input__editor-content'
                 >
                     <div
                         hidden={inputLength.title > 0}
-                        className={`${styles.noteTitle} ${styles.ph}`}
+                        className={`note-input__title note-input__title--placeholder`}
                     >
                         Title
                     </div>
@@ -445,7 +446,7 @@ export default function NoteInput({
                             })
                         }
                         onPaste={pasteEvent}
-                        className={styles.noteTitle}
+                        className='note-input__title'
                         contentEditable
                         spellCheck
                     ></div>
@@ -459,22 +460,20 @@ export default function NoteInput({
                                 .map((cb, index) => (
                                     <div
                                         key={cb.id}
-                                        className={styles.cboxContainer}
+                                        className='note-input__checkbox-container'
                                     >
+                                        <div className='note-input__checkbox-move-icon'></div>
                                         <div
-                                            className={styles.cboxMoveIcon}
-                                        ></div>
-                                        <div
-                                            className={`${styles.cboxIcon} ${
-                                                cb.done ? styles.done : ''
+                                            className={`note-input__checkbox-icon ${
+                                                cb.done
+                                                    ? 'note-input__checkbox-icon--checked'
+                                                    : ''
                                             }`}
                                             onClick={() =>
                                                 cboxTools(cb.id).check()
                                             }
                                         ></div>
-                                        <div
-                                            className={styles.cboxNoteContainer}
-                                        >
+                                        <div className='note-input__checkbox-content'>
                                             <div
                                                 ref={
                                                     index ===
@@ -486,11 +485,9 @@ export default function NoteInput({
                                                     index ===
                                                     checkBoxes.length - 1
                                                 }
-                                                className={`${
-                                                    styles.cboxNote
-                                                } ${
+                                                className={`note-input__checkbox-item ${
                                                     cb.done
-                                                        ? styles.cboxDone
+                                                        ? 'note-input__checkbox-item--completed'
                                                         : ''
                                                 }`}
                                                 contentEditable
@@ -509,7 +506,7 @@ export default function NoteInput({
                                             ></div>
                                         </div>
                                         <div
-                                            className={`${styles.cboxCancelIcon} ${styles.H}`}
+                                            className={`note-input__checkbox-remove H`}
                                             onClick={() =>
                                                 cboxTools(cb.id).remove()
                                             }
@@ -518,18 +515,18 @@ export default function NoteInput({
                                 ))}
 
                             {/* Checkbox placeholder */}
-                            <div className={styles.cboxPhContainer}>
-                                <div className={styles.cboxPlusIcon}></div>
-                                <div className={styles.cboxNoteContainer}>
+                            <div className='note-input__checkbox-placeholder'>
+                                <div className='note-input__checkbox-placeholder-icon'></div>
+                                <div className='note-input__checkbox-content'>
                                     <div
-                                        className={`${styles.cboxNote} ${styles.ph}`}
+                                        className={`note-input__checkbox-item note-input__checkbox-item--placeholder`}
                                     >
                                         List item
                                     </div>
                                     <div
                                         ref={cboxPhRef}
                                         onKeyDown={cboxPhKeyDown}
-                                        className={styles.cboxNote}
+                                        className='note-input__checkbox-item'
                                         contentEditable
                                         spellCheck
                                     ></div>
@@ -539,9 +536,9 @@ export default function NoteInput({
                             {/* Completed checkboxes */}
                             {checkBoxes.filter((cb) => cb.done).length > 0 && (
                                 <>
-                                    <div className={styles.hr}></div>
+                                    <div className='note-input__checkbox-divider'></div>
                                     <div
-                                        className={styles.cboxDoneContainer}
+                                        className='note-input__checkbox-completed-header'
                                         onClick={() =>
                                             setIsCboxCompletedListCollapsed(
                                                 (prev) => !prev
@@ -549,9 +546,9 @@ export default function NoteInput({
                                         }
                                     >
                                         <div
-                                            className={`${styles.cboxArrow} ${
+                                            className={`note-input__checkbox-toggle ${
                                                 !isCboxCompletedListCollapsed
-                                                    ? styles.rotate
+                                                    ? 'note-input__checkbox-toggle--expanded'
                                                     : ''
                                             }`}
                                         ></div>
@@ -577,28 +574,22 @@ export default function NoteInput({
                                     .map((cb, index) => (
                                         <div
                                             key={`done-${cb.id}`}
-                                            className={styles.cboxContainer}
+                                            className='note-input__checkbox-container'
                                         >
+                                            <div className='note-input__checkbox-move-icon'></div>
                                             <div
-                                                className={styles.cboxMoveIcon}
-                                            ></div>
-                                            <div
-                                                className={`${styles.cboxIcon} ${styles.done}`}
+                                                className={`note-input__checkbox-icon note-input__checkbox-icon--checked`}
                                                 onClick={() =>
                                                     cboxTools(cb.id).check()
                                                 }
                                             ></div>
-                                            <div
-                                                className={
-                                                    styles.cboxNoteContainer
-                                                }
-                                            >
+                                            <div className='note-input__checkbox-content'>
                                                 <div
                                                     data-cbox-last={
                                                         index ===
                                                         checkBoxes.length - 1
                                                     }
-                                                    className={`${styles.cboxNote} ${styles.cboxDone}`}
+                                                    className={`note-input__checkbox-item note-input__checkbox-item--completed`}
                                                     contentEditable
                                                     spellCheck
                                                     onBlur={(e) =>
@@ -615,7 +606,7 @@ export default function NoteInput({
                                                 ></div>
                                             </div>
                                             <div
-                                                className={`${styles.cboxCancelIcon} ${styles.H}`}
+                                                className={`note-input__checkbox-remove H`}
                                                 onClick={() =>
                                                     cboxTools(cb.id).remove()
                                                 }
@@ -628,7 +619,7 @@ export default function NoteInput({
                             {/* Regular note body */}
                             <div
                                 hidden={inputLength.body > 0}
-                                className={`${styles.noteBody} ${styles.ph}`}
+                                className={`note-input__body note-input__body--placeholder`}
                             >
                                 Take a note…
                             </div>
@@ -640,7 +631,7 @@ export default function NoteInput({
                                     })
                                 }
                                 onPaste={pasteEvent}
-                                className={styles.noteBody}
+                                className='note-input__body'
                                 contentEditable
                                 spellCheck
                             ></div>
@@ -648,18 +639,18 @@ export default function NoteInput({
                     )}
 
                     {/* Labels */}
-                    <div className={styles.labelsContainer}>
+                    <div className='note-input__labels'>
                         {labels
                             .filter((label) => label.added)
                             .map((label) => (
                                 <div
                                     key={label.name}
-                                    className={styles.labelContainer}
+                                    className='note-input__labels-item'
                                 >
-                                    <div className={styles.label}>
+                                    <div className='note-input__labels-badge'>
                                         <span>{label.name}</span>
                                         <div
-                                            className={styles.cancelIcon}
+                                            className='note-input__labels-remove'
                                             onClick={() =>
                                                 setLabels((prev) =>
                                                     prev.map((l) =>
@@ -683,9 +674,9 @@ export default function NoteInput({
                 <div
                     ref={notePinRef}
                     data-pinned='false'
-                    className={`${styles.pinIcon} ${styles.H} ${styles.pop} ${
+                    className={`note-input__pin H pop ${
                         notePinRef.current?.dataset.pinned === 'true'
-                            ? styles.pinned
+                            ? 'note-input__pin--active'
                             : ''
                     }`}
                     onClick={() => {
@@ -696,7 +687,7 @@ export default function NoteInput({
                                     : 'false';
                         }
                     }}
-                    data-pop={
+                    data-tooltip={
                         notePinRef.current?.dataset.pinned === 'false'
                             ? 'Pin note'
                             : 'Unpin note'
@@ -707,77 +698,85 @@ export default function NoteInput({
 
                 {/* Icons */}
                 {!isTrashed ? (
-                    <div className={styles.iconsContainer}>
-                        <div className={styles.icons}>
+                    <div className='note-input__toolbar'>
+                        <div className='note-input__toolbar-icons'>
                             <div
-                                className={`${styles.alarm} ${styles.H} ${styles.disabled} ${styles.pop}`}
-                                data-pop='Remind me'
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--alarm H disabled pop`}
+                                data-tooltip='Remind me'
                             >
                                 <Bell style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.colab} ${styles.H} ${styles.disabled} ${styles.pop}`}
-                                data-pop='Collaborator'
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--collaborator H disabled pop`}
+                                data-tooltip='Collaborator'
                             >
                                 <UserPlus style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.color} ${styles.H} ${styles.pop}`}
-                                data-pop='Background Options'
-                                onClick={() => setColorMenuOpen(true)}
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop`}
+                                data-tooltip='Background Options'
+                                onClick={() =>
+                                    setColorMenuOpen((prev) => !prev)
+                                }
                             >
                                 <Palette style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.image} ${styles.H} ${styles.disabled} ${styles.pop}`}
-                                data-pop='Add image'
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--image H disabled pop`}
+                                data-tooltip='Add image'
                             >
                                 <ImagePlus style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.archive} ${styles.H} ${styles.pop}`}
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop`}
                                 onClick={() => {
                                     setIsArchived(true);
                                     saveNote();
                                 }}
-                                data-pop='Archive'
+                                data-tooltip='Archive'
                             >
                                 <Archive style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.more} ${styles.H} ${styles.pop}`}
-                                data-pop='More'
-                                onClick={() => setMoreMenuOpen(true)}
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--more H pop`}
+                                data-tooltip='More'
+                                onClick={() => setMoreMenuOpen((prev) => !prev)}
                             >
                                 <EllipsisVertical style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.undo} ${styles.disabled} ${styles.pop}`}
-                                data-pop='Undo'
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--undo disabled pop`}
+                                data-tooltip='Undo'
                             >
                                 <Undo2 style={{ color: 'white' }} />
                             </div>
                             <div
-                                className={`${styles.undo} ${styles.r} ${styles.disabled}`}
-                                data-pop='Redo'
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--redo disabled`}
+                                data-tooltip='Redo'
                             >
                                 <Redo2 style={{ color: 'white' }} />
                             </div>
                         </div>
                         <div
-                            className={styles.closeBtn}
+                            className='note-input__button--close'
                             onClick={saveNote}
                         >
                             Close
                         </div>
                     </div>
                 ) : (
-                    <div className={`${styles.iconsContainer} ${styles.min}`}>
-                        <div className={styles.icons}>
-                            <div className={`${styles.delete} ${styles.H}`}>
+                    <div
+                        className={`note-input__toolbar note-input__toolbar--minimal`}
+                    >
+                        <div className='note-input__toolbar-icons'>
+                            <div
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--delete H`}
+                            >
                                 <Trash2 style={{ color: 'white' }} />
                             </div>
-                            <div className={`${styles.restore} ${styles.H}`}>
+                            <div
+                                className={`note-input__toolbar-icon note-input__toolbar-icon--restore H`}
+                            >
                                 <MdRestoreFromTrash />
                             </div>
                         </div>
@@ -788,7 +787,7 @@ export default function NoteInput({
             {/* Tooltips */}
             {moreMenuOpen && (
                 <div
-                    className={styles.moreMenu}
+                    className='note-input__menu'
                     data-tooltip='true'
                     data-is-tooltip-open='true'
                 >
@@ -829,11 +828,11 @@ export default function NoteInput({
 
             {colorMenuOpen && (
                 <div
-                    className={styles.colorMenu}
+                    className='note-input__color-menu'
                     data-tooltip='true'
                     data-is-tooltip-open='true'
                 >
-                    <div className={styles.firstRow}>
+                    <div className='note-input__color-menu-row'>
                         {Object.entries(bgColors).map(([key, value]) => (
                             <div
                                 key={key}
@@ -843,11 +842,15 @@ export default function NoteInput({
                                     colorMenu.bgColor(value);
                                     setColorMenuOpen(false);
                                 }}
-                                className={value === '' ? styles.nocolor : ''}
+                                className={
+                                    value === ''
+                                        ? 'note-input__color-menu-option--transparent'
+                                        : 'note-input__color-menu-option'
+                                }
                             ></div>
                         ))}
                     </div>
-                    <div className={styles.secondRow}>
+                    <div className='note-input__color-menu-row'>
                         {Object.entries(bgImages).map(([key, value]) => (
                             <div
                                 key={key}
@@ -857,7 +860,11 @@ export default function NoteInput({
                                     colorMenu.bgImage(value);
                                     setColorMenuOpen(false);
                                 }}
-                                className={value === '' ? styles.noimage : ''}
+                                className={
+                                    value === ''
+                                        ? 'note-input__color-menu-option--transparent'
+                                        : 'note-input__color-menu-option'
+                                }
                             ></div>
                         ))}
                     </div>
@@ -866,24 +873,26 @@ export default function NoteInput({
 
             {labelMenuOpen && (
                 <div
-                    className={styles.labelMenu}
+                    className='note-input__label-menu'
                     data-tooltip='true'
                     data-is-tooltip-open='true'
                 >
-                    <div className={styles.title}>Label note</div>
-                    <div className={styles.search}>
+                    <div className='note-input__label-menu-title'>
+                        Label note
+                    </div>
+                    <div className='note-input__label-menu-search'>
                         <input
                             type='text'
                             maxLength={50}
                             placeholder='Enter label name'
                         />
-                        <div className={styles.searchIcon}></div>
+                        <div className='note-input__label-menu-search-icon'></div>
                     </div>
-                    <div className={styles.labelListContainer}>
+                    <div className='note-input__label-menu-list'>
                         {labels.map((label) => (
                             <div
                                 key={label.name}
-                                className={styles.labelList}
+                                className='note-input__label-menu-item'
                                 onClick={() =>
                                     setLabels((prev) =>
                                         prev.map((l) =>
@@ -895,11 +904,13 @@ export default function NoteInput({
                                 }
                             >
                                 <div
-                                    className={`${styles.checkIcon} ${
-                                        label.added ? styles.done : ''
+                                    className={`note-input__label-menu-check ${
+                                        label.added
+                                            ? 'note-input__label-menu-check--active'
+                                            : ''
                                     }`}
                                 ></div>
-                                <div className={styles.labelName}>
+                                <div className='note-input__label-menu-name'>
                                     {label.name}
                                 </div>
                             </div>
