@@ -1,10 +1,10 @@
-import NoteInput from '@/components/NoteInput';
-import React from 'react';
+import Notes from '@/components/NoteCard';
 
 function page() {
     return (
         <div>
-            <NoteInput />
+            {/* <NoteInput /> */}
+            <Notes />
         </div>
     );
 }

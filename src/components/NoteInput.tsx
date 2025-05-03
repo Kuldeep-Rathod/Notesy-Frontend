@@ -4,6 +4,8 @@
 import { LabelI } from '@/interfaces/labels';
 import { CheckboxI, NoteI } from '@/interfaces/notes';
 import { bgColors, bgImages } from '@/interfaces/tooltip';
+import '@/styles/components/_noteInput.scss';
+import { NoteInputProps } from '@/types/types';
 import {
     Archive,
     Bell,
@@ -21,16 +23,11 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
-// import styles from '../styles/components/NoteInput.module.css';
-import '@/styles/components/_noteInput.scss';
 
 export default function NoteInput({
     isEditing = false,
     noteToEdit,
-}: {
-    isEditing?: boolean;
-    noteToEdit?: NoteI;
-}) {
+}: NoteInputProps) {
     // Refs
     const mainRef = useRef<HTMLDivElement>(null);
     const notePlaceholderRef = useRef<HTMLDivElement>(null);

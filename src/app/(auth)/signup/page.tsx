@@ -29,7 +29,11 @@ export default function Signup() {
         watch,
     } = useForm();
 
-    const createMongoUser = async (firebaseUser: any, name?: string) => {
+    const createMongoUser = async (
+        firebaseUser: any,
+        name?: string,
+        photo?: string
+    ) => {
         try {
             const response = await axiosInstance.post('/api/v1/auth/register', {
                 email: firebaseUser.email,
@@ -37,6 +41,7 @@ export default function Signup() {
                     name ||
                     firebaseUser.displayName ||
                     firebaseUser.email.split('@')[0],
+                photo: firebaseUser.photoURL || photo,
                 firebaseUid: firebaseUser.uid,
             });
 

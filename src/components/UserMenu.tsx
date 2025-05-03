@@ -17,11 +17,18 @@ export default function UserMenu() {
     const router = useRouter();
     const user = useSelector((state: RootState) => state.auth.user);
 
+    const [logout] = useLogoutMutation();
+
+    if (!user) {
+        return (
+            <div className='flex items-center justify-center h-screen'>
+                <span className='text-gray-500'>Loading...</span>
+            </div>
+        );
+    }
+
     console.log('user:', user);
     console.log('Profile Picture:', user?.profilePicture);
-
-
-    const [logout] = useLogoutMutation();
 
     const handleLogout = async () => {
         try {
