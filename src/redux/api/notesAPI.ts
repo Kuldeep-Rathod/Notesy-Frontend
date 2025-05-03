@@ -26,8 +26,15 @@ export const notesAPI = createApi({
             }),
             invalidatesTags: (result, error, { id }) => [{ type: 'Note', id }],
         }),
+        getAllNotes: builder.query<NoteI[], string>({
+            query: (firebaseUid) => `note/${firebaseUid}`,
+        }),
         // Add other endpoints as needed
     }),
 });
 
-export const { useCreateNoteMutation, useUpdateNoteMutation } = notesAPI;
+export const {
+    useCreateNoteMutation,
+    useUpdateNoteMutation,
+    useGetAllNotesQuery,
+} = notesAPI;
