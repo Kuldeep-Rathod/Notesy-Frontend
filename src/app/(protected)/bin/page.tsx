@@ -1,0 +1,71 @@
+'use client';
+
+import { useSelector } from 'react-redux';
+import {
+    useGetTrashedNotesQuery,
+    useDeleteNoteMutation,
+} from '@/redux/api/notesAPI';
+import { RootState } from '@/redux/store';
+import '@/styles/components/_noteCard.scss';
+import { NoteI } from '@/interfaces/notes';
+import NoteCard from '@/components/notes/NoteCard';
+
+const BinNotesPage = () => {
+    const user = useSelector((state: RootState) => state.auth.user);
+    const uid = user?.uid;
+
+    const {
+        data: notes = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useGetTrashedNotesQuery();
+
+    // const [restoreNote] = useRestoreNoteMutation();
+    const [deleteNote] = useDeleteNoteMutation();
+
+    const handleRestore = async (id: string) => {
+        //     try {
+        //         await restoreNote(id).unwrap();
+        //         refetch();
+        //     } catch (error) {
+        //         console.error('Failed to restore note:', error);
+        //     }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteNote(id).unwrap();
+            refetch();
+        } catch (error) {
+            console.error('Failed to delete note:', error);
+        }
+    };
+
+    if (isLoading)
+        return <div className='loading'>Loading deleted notes...</div>;
+    if (isError)
+        return <div className='error'>Error loading deleted notes</div>;
+
+    return (
+        <div className='notes-container'>
+            <h1 className='page-title'>Bin</h1>
+            {notes.length === 0 ? (
+                <p className='empty-message'>No notes in bin</p>
+            ) : (
+                <div className='notes-list grid'>
+                    {notes.map((note: NoteI) => (
+                        <NoteCard
+                            key={note._id}
+                            note={note}
+                            onRestore={() => handleRestore(note._id!)}
+                            onDelete={() => handleDelete(note._id!)}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default BinNotesPage;

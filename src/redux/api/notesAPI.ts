@@ -6,7 +6,7 @@ import customBaseQuery from './customBaseQuery';
 export const notesAPI = createApi({
     reducerPath: 'notesApi',
     baseQuery: customBaseQuery,
-    tagTypes: ['Note', 'TrashedNote'],
+    tagTypes: ['Note', 'TrashedNote', 'ArchivedNote'],
     endpoints: (builder) => ({
         createNote: builder.mutation<NoteI, Partial<NoteI>>({
             query: (noteData) => ({
@@ -43,6 +43,20 @@ export const notesAPI = createApi({
                           { type: 'TrashedNote', id: 'LIST' },
                       ]
                     : [{ type: 'TrashedNote', id: 'LIST' }],
+        }),
+
+        getArchivedNotes: builder.query<NoteI[], void>({
+            query: () => 'note/archived',
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ _id }) => ({
+                              type: 'ArchivedNote' as const,
+                              _id,
+                          })),
+                          { type: 'ArchivedNote', id: 'LIST' },
+                      ]
+                    : [{ type: 'ArchivedNote', id: 'LIST' }],
         }),
 
         updateNote: builder.mutation<
@@ -88,6 +102,7 @@ export const {
     useCreateNoteMutation,
     useGetUserNotesQuery,
     useGetTrashedNotesQuery,
+    useGetArchivedNotesQuery,
     useUpdateNoteMutation,
     useMoveNoteToBinMutation,
     useDeleteNoteMutation,
