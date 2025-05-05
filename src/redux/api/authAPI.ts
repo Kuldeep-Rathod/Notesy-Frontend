@@ -52,10 +52,14 @@ export const authAPI = createApi({
                     const response = await axiosInstance.get(
                         `/api/v1/auth/check?email=${email}`
                     );
-                    const user = response.data;
-                    return { data: user };
-                } catch (error: any) {
-                    return { error: error.message };
+                    return { data: response.data };
+                } catch (err: any) {
+                    return {
+                        error: {
+                            status: err?.response?.status || 500,
+                            data: err?.response?.data || err.message,
+                        },
+                    };
                 }
             },
         }),

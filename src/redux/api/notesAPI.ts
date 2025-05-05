@@ -1,10 +1,10 @@
-// features/api/notesApiSlice.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { NoteI } from '@/interfaces/notes';
+import customBaseQuery from './customBaseQuery';
 
 export const notesAPI = createApi({
     reducerPath: 'notesApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:3005/api/v1/' }),
+    baseQuery: customBaseQuery,
     tagTypes: ['Note'],
     endpoints: (builder) => ({
         createNote: builder.mutation<NoteI, Partial<NoteI>>({

@@ -14,6 +14,7 @@ export const authReducer = createSlice({
         setUser: (state, action: PayloadAction<AppUser | null>) => {
             state.user = action.payload;
             state.isAuthenticated = !!action.payload;
+            state.loading = false;
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;
