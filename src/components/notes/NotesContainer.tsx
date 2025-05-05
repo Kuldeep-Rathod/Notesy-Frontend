@@ -23,9 +23,7 @@ const NotesContainer = () => {
         isLoading,
         isError,
         refetch,
-    } = useGetUserNotesQuery(uid!, {
-        skip: !uid,
-    });
+    } = useGetUserNotesQuery();
 
     const [createNote] = useCreateNoteMutation();
     const [updateNote] = useUpdateNoteMutation();

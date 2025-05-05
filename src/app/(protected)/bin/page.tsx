@@ -1,19 +1,15 @@
 'use client';
 
-import { useSelector } from 'react-redux';
 import {
     useGetTrashedNotesQuery,
     useDeleteNoteMutation,
+    useRestoreNoteMutation,
 } from '@/redux/api/notesAPI';
-import { RootState } from '@/redux/store';
 import '@/styles/components/_noteCard.scss';
 import { NoteI } from '@/interfaces/notes';
 import NoteCard from '@/components/notes/NoteCard';
 
 const BinNotesPage = () => {
-    const user = useSelector((state: RootState) => state.auth.user);
-    const uid = user?.uid;
-
     const {
         data: notes = [],
         isLoading,
@@ -21,16 +17,16 @@ const BinNotesPage = () => {
         refetch,
     } = useGetTrashedNotesQuery();
 
-    // const [restoreNote] = useRestoreNoteMutation();
+    const [restoreNote] = useRestoreNoteMutation();
     const [deleteNote] = useDeleteNoteMutation();
 
     const handleRestore = async (id: string) => {
-        //     try {
-        //         await restoreNote(id).unwrap();
-        //         refetch();
-        //     } catch (error) {
-        //         console.error('Failed to restore note:', error);
-        //     }
+        try {
+            await restoreNote(id).unwrap();
+            refetch();
+        } catch (error) {
+            console.error('Failed to restore note:', error);
+        }
     };
 
     const handleDelete = async (id: string) => {

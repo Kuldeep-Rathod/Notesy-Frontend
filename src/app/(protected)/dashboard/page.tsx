@@ -1,7 +1,7 @@
 'use client';
 
 import NoteInput from '@/components/NoteInput';
-import DummyNotes from '@/components/notes/NotesContainer';
+import NotesContainer from '@/components/notes/NotesContainer';
 import { useState } from 'react';
 
 function Page() {
@@ -14,7 +14,7 @@ function Page() {
     return (
         <div>
             <NoteInput onSuccess={handleSuccess} />
-            <DummyNotes />
+            <NotesContainer />
         </div>
     );
 }

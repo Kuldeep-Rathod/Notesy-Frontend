@@ -1,5 +1,5 @@
 // features/api/notesApiSlice.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { NoteI } from '@/interfaces/notes';
 import customBaseQuery from './customBaseQuery';
 
@@ -17,8 +17,8 @@ export const notesAPI = createApi({
             invalidatesTags: ['Note'],
         }),
 
-        getUserNotes: builder.query<NoteI[], string>({
-            query: (firebaseUid) => `note/${firebaseUid}`,
+        getUserNotes: builder.query<NoteI[], void>({
+            query: () => `note`,
             providesTags: (result) =>
                 result
                     ? [
@@ -68,10 +68,7 @@ export const notesAPI = createApi({
                 method: 'PUT',
                 body: updates,
             }),
-            invalidatesTags: (result, error, { id }) => [
-                { type: 'Note', id },
-                { type: 'TrashedNote', id },
-            ],
+            invalidatesTags: ['Note', 'TrashedNote'],
         }),
 
         moveNoteToBin: builder.mutation<NoteI, string>({
@@ -79,10 +76,7 @@ export const notesAPI = createApi({
                 url: `note/${id}/trash`,
                 method: 'PUT',
             }),
-            invalidatesTags: (result, error, id) => [
-                { type: 'Note', id },
-                { type: 'TrashedNote', id },
-            ],
+            invalidatesTags: ['Note', 'TrashedNote'],
         }),
 
         deleteNote: builder.mutation<void, string>({
@@ -90,10 +84,15 @@ export const notesAPI = createApi({
                 url: `note/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: (result, error, id) => [
-                { type: 'Note', id },
-                { type: 'TrashedNote', id },
-            ],
+            invalidatesTags: ['Note', 'TrashedNote'],
+        }),
+
+        restoreNote: builder.mutation<NoteI, string>({
+            query: (id) => ({
+                url: `note/${id}/restore`,
+                method: 'PUT',
+            }),
+            invalidatesTags: ['Note', 'TrashedNote'],
         }),
     }),
 });
@@ -106,4 +105,5 @@ export const {
     useUpdateNoteMutation,
     useMoveNoteToBinMutation,
     useDeleteNoteMutation,
+    useRestoreNoteMutation,
 } = notesAPI;

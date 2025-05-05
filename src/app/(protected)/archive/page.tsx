@@ -1,16 +1,11 @@
 'use client';
 
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
 import '@/styles/components/_noteCard.scss';
 import { NoteI } from '@/interfaces/notes';
 import NoteCard from '@/components/notes/NoteCard';
 import { useGetArchivedNotesQuery } from '@/redux/api/notesAPI';
 
 const ArchivedNotesPage = () => {
-    const user = useSelector((state: RootState) => state.auth.user);
-    const uid = user?.uid;
-
     const { data: notes = [], isLoading, isError } = useGetArchivedNotesQuery();
 
     if (isLoading)
