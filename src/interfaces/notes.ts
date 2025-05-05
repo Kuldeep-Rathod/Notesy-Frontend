@@ -1,22 +1,29 @@
 import { LabelI } from './labels';
 
 export interface NoteI {
-    id?: number;
-    noteTitle: string;
+    _id?: string;
+    firebaseUid: string;
+    noteTitle?: string;
     noteBody?: string;
-    pinned: boolean;
-    bgColor: string;
-    bgImage: string;
-    checkBoxes?: CheckboxI[];
-    isCbox: boolean;
-    labels: LabelI[];
-    archived: boolean;
-    trashed: boolean;
+    audio?: {
+        url?: string;
+        transcription?: string;
+    };
+    checklists?: CheckboxI[];
+    bgColor?: string;
+    labels?: string[] | LabelI[];
+    pinned?: boolean;
+    reminder?: string | Date;
+    sharedWith?: string[];
+    trashed?: boolean;
+    archived?: boolean;
+    bgImage?: string;
+    isCbox?: boolean;
 }
 
 export interface CheckboxI {
-    done: boolean;
-    data: any;
+    checked: boolean;
+    text: any;
     id: number;
 }
 

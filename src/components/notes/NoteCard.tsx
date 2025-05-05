@@ -9,6 +9,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { MdRestoreFromTrash } from 'react-icons/md';
+import { NoteI } from '@/interfaces/notes';
 
 const colorOptions = [
     '#ffffff',
@@ -24,27 +25,16 @@ const colorOptions = [
     '#e8eaed',
 ];
 
-interface Note {
-    id: number;
-    noteTitle: string;
-    noteBody: string;
-    pinned: boolean;
-    archived: boolean;
-    trashed: boolean;
-    color?: string;
-    labels?: string[];
-}
-
 interface NoteCardProps {
-    note: Note;
-    onPinToggle?: (id: number) => void;
-    onArchiveToggle?: (id: number) => void;
-    onTrash?: (id: number) => void;
-    onRestore?: (id: number) => void;
-    onDelete?: (id: number) => void;
-    onEdit?: (note: Note) => void;
-    onChangeColor?: (id: number, color: string) => void;
-    onClone?: (id: number) => void;
+    note: NoteI;
+    onPinToggle?: (id: string) => void;
+    onArchiveToggle?: (id: string) => void;
+    onTrash?: (id: string) => void;
+    onRestore?: (id: string) => void;
+    onDelete?: (id: string) => void;
+    onEdit?: (note: NoteI) => void;
+    onChangeColor?: (id: string, color: string) => void;
+    onClone?: (id: string) => void;
 }
 
 const NoteCard = ({
@@ -66,21 +56,21 @@ const NoteCard = ({
     };
 
     const handleColorChange = (color: string) => {
-        if (onChangeColor) onChangeColor(note.id, color);
+        if (onChangeColor && note._id) onChangeColor(note._id, color);
         setColorMenuOpen(false);
     };
 
     return (
         <div
             className='note-card'
-            style={{ backgroundColor: note.color || '#ffffff' }}
+            style={{ backgroundColor: note.bgColor || '#ffffff' }}
         >
             <div className='note-header'>
                 <h4 onClick={handleEditClick}>{note.noteTitle}</h4>
-                {onPinToggle && (
+                {onPinToggle && note._id && (
                     <button
                         className='pin-button'
-                        onClick={() => onPinToggle(note.id)}
+                        onClick={() => onPinToggle(note._id!)}
                         aria-label={note.pinned ? 'Unpin note' : 'Pin note'}
                     >
                         {note.pinned ? (
@@ -114,6 +104,28 @@ const NoteCard = ({
                 onClick={handleEditClick}
             >
                 <p>{note.noteBody}</p>
+                {note.checklists && note.checklists.length > 0 && (
+                    <div className='checklist-preview'>
+                        {note.checklists.slice(0, 3).map((item, index) => (
+                            <div
+                                key={index}
+                                className='checklist-item'
+                            >
+                                <input
+                                    type='checkbox'
+                                    checked={item.checked}
+                                    readOnly
+                                />
+                                <span>{item.text}</span>
+                            </div>
+                        ))}
+                        {note.checklists.length > 3 && (
+                            <div className='more-items'>
+                                +{note.checklists.length - 3} more
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
             <div className='note-actions'>
                 {!note.trashed ? (
@@ -121,7 +133,9 @@ const NoteCard = ({
                         <button
                             className='action-button'
                             onClick={() =>
-                                onArchiveToggle && onArchiveToggle(note.id)
+                                onArchiveToggle &&
+                                note._id &&
+                                onArchiveToggle(note._id)
                             }
                             aria-label={note.archived ? 'Unarchive' : 'Archive'}
                         >
@@ -133,7 +147,9 @@ const NoteCard = ({
                         </button>
                         <button
                             className='action-button'
-                            onClick={() => onTrash && onTrash(note.id)}
+                            onClick={() =>
+                                onTrash && note._id && onTrash(note._id)
+                            }
                             aria-label='Move to trash'
                         >
                             <Trash2 size={18} />
@@ -174,7 +190,8 @@ const NoteCard = ({
                                 <div className='more-menu'>
                                     <button
                                         onClick={() => {
-                                            if (onClone) onClone(note.id);
+                                            if (onClone && note._id)
+                                                onClone(note._id);
                                             setMoreMenuOpen(false);
                                         }}
                                     >
@@ -196,14 +213,18 @@ const NoteCard = ({
                     <>
                         <button
                             className='action-button restore'
-                            onClick={() => onRestore && onRestore(note.id)}
+                            onClick={() =>
+                                onRestore && note._id && onRestore(note._id)
+                            }
                             aria-label='Restore note'
                         >
                             <MdRestoreFromTrash size={18} />
                         </button>
                         <button
                             className='action-button delete'
-                            onClick={() => onDelete && onDelete(note.id)}
+                            onClick={() =>
+                                onDelete && note._id && onDelete(note._id)
+                            }
                             aria-label='Delete permanently'
                         >
                             <Trash2 size={18} />

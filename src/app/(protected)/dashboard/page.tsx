@@ -1,7 +1,7 @@
 'use client';
 
 import NoteInput from '@/components/NoteInput';
-import DummyNotes from '@/components/notes/DummyNotes';
+import DummyNotes from '@/components/notes/NotesContainer';
 import { useState } from 'react';
 
 function Page() {

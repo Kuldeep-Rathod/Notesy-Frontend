@@ -1,11 +1,12 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
+// features/api/notesApiSlice.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { NoteI } from '@/interfaces/notes';
 import customBaseQuery from './customBaseQuery';
 
 export const notesAPI = createApi({
     reducerPath: 'notesApi',
     baseQuery: customBaseQuery,
-    tagTypes: ['Note'],
+    tagTypes: ['Note', 'TrashedNote'],
     endpoints: (builder) => ({
         createNote: builder.mutation<NoteI, Partial<NoteI>>({
             query: (noteData) => ({
@@ -15,26 +16,79 @@ export const notesAPI = createApi({
             }),
             invalidatesTags: ['Note'],
         }),
+
+        getUserNotes: builder.query<NoteI[], string>({
+            query: (firebaseUid) => `note/${firebaseUid}`,
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ _id }) => ({
+                              type: 'Note' as const,
+                              _id,
+                          })),
+                          { type: 'Note', id: 'LIST' },
+                      ]
+                    : [{ type: 'Note', id: 'LIST' }],
+        }),
+
+        getTrashedNotes: builder.query<NoteI[], void>({
+            query: () => 'note/trashed',
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ _id }) => ({
+                              type: 'TrashedNote' as const,
+                              _id,
+                          })),
+                          { type: 'TrashedNote', id: 'LIST' },
+                      ]
+                    : [{ type: 'TrashedNote', id: 'LIST' }],
+        }),
+
         updateNote: builder.mutation<
             NoteI,
-            { id: string; data: Partial<NoteI> }
+            { id: string; updates: Partial<NoteI> }
         >({
-            query: ({ id, data }) => ({
+            query: ({ id, updates }) => ({
                 url: `note/${id}`,
                 method: 'PUT',
-                body: data,
+                body: updates,
             }),
-            invalidatesTags: (result, error, { id }) => [{ type: 'Note', id }],
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Note', id },
+                { type: 'TrashedNote', id },
+            ],
         }),
-        getAllNotes: builder.query<NoteI[], string>({
-            query: (firebaseUid) => `note/${firebaseUid}`,
+
+        moveNoteToBin: builder.mutation<NoteI, string>({
+            query: (id) => ({
+                url: `note/${id}/trash`,
+                method: 'PUT',
+            }),
+            invalidatesTags: (result, error, id) => [
+                { type: 'Note', id },
+                { type: 'TrashedNote', id },
+            ],
         }),
-        // Add other endpoints as needed
+
+        deleteNote: builder.mutation<void, string>({
+            query: (id) => ({
+                url: `note/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, id) => [
+                { type: 'Note', id },
+                { type: 'TrashedNote', id },
+            ],
+        }),
     }),
 });
 
 export const {
     useCreateNoteMutation,
+    useGetUserNotesQuery,
+    useGetTrashedNotesQuery,
     useUpdateNoteMutation,
-    useGetAllNotesQuery,
+    useMoveNoteToBinMutation,
+    useDeleteNoteMutation,
 } = notesAPI;
