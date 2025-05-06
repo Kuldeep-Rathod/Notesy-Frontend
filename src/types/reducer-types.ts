@@ -10,3 +10,13 @@ export interface AuthState {
     loading: boolean;
     isAuthenticated: boolean;
 }
+
+export interface DbUser {
+    name: string;
+    email: string;
+    firebaseUid: string;
+    labels: string[];
+    photo: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
