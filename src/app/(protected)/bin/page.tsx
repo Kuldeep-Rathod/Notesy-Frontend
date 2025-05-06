@@ -7,7 +7,7 @@ import {
     useGetTrashedNotesQuery,
     useRestoreNoteMutation,
 } from '@/redux/api/notesAPI';
-import '@/styles/components/_noteCard.scss';
+import '@/styles/components/notes/_noteCard.scss';
 
 const BinNotesPage = () => {
     const {

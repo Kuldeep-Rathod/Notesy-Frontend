@@ -1,0 +1,67 @@
+@import './variables';
+
+.profileHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+.profilePhotoContainer {
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    @media (max-width: 768px) {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+
+.profilePhoto {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: $box-shadow;
+}
+
+.editPhotoButton {
+    background: none;
+    border: none;
+    color: $primary-color;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 5px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.profileInfo {
+    flex: 1;
+}
+
+.profileName {
+    margin-bottom: 5px;
+    color: $dark-color;
+}
+
+.profileEmail {
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.profileMeta {
+    color: #666;
+    margin-bottom: 5px;
+    font-size: 14px;
+}

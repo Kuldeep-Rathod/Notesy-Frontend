@@ -8,13 +8,13 @@ import {
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
-import '@/styles/components/_noteCard.scss';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import NoteCard from './NoteCard';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
+import NoteCard from './NoteCard';
+import '@/styles/components/notes/_noteCard.scss';
 
 const NotesContainer = () => {
     const user = useSelector((state: RootState) => state.auth.user);

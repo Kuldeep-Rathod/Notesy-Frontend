@@ -8,7 +8,7 @@ import {
     useCreateNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
-import '@/styles/components/_noteInput.scss';
+import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';

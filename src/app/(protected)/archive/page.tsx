@@ -3,7 +3,7 @@
 import NoteCard from '@/components/notes/NoteCard';
 import { NoteI } from '@/interfaces/notes';
 import { useGetArchivedNotesQuery } from '@/redux/api/notesAPI';
-import '@/styles/components/_noteCard.scss';
+import '@/styles/components/notes/_noteCard.scss';
 
 const ArchivedNotesPage = () => {
     const { data: notes = [], isLoading, isError } = useGetArchivedNotesQuery();

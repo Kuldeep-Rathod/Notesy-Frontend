@@ -1,0 +1,27 @@
+@import './variables';
+
+.labelItem {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.deleteButton {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 12px;
+    padding: 0;
+    line-height: 1;
+
+    &:hover {
+        color: $danger-color;
+    }
+}
