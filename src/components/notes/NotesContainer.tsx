@@ -9,13 +9,20 @@ import {
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
 import '@/styles/components/_noteCard.scss';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
+import SpeechRecognition, {
+    useSpeechRecognition,
+} from 'react-speech-recognition';
 
 const NotesContainer = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
+
+    // Refs for speech recognition
+    const noteTitleRef = useRef<HTMLInputElement>(null);
+    const noteBodyRef = useRef<HTMLTextAreaElement>(null);
 
     // API hooks
     const {
@@ -29,11 +36,20 @@ const NotesContainer = () => {
     const [updateNote] = useUpdateNoteMutation();
     const [moveToBin] = useMoveNoteToBinMutation();
 
+    // UI state
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
     const [editingNote, setEditingNote] = useState<NoteI | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeField, setActiveField] = useState<'title' | 'body' | null>(
+        null
+    );
 
-    // Memoize categorized notes with proper typing
+    // Speech recognition
+    const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
+        useSpeechRecognition();
+    const [isListening, setIsListening] = useState(false);
+
+    // Memoize categorized notes
     const { pinnedNotes, unpinnedNotes } = useMemo(() => {
         const active = notes.filter((n: NoteI) => !n.trashed && !n.archived);
         return {
@@ -42,7 +58,45 @@ const NotesContainer = () => {
         };
     }, [notes]);
 
-    // API operations with proper typing
+    // Speech recognition handlers
+    const startListening = () => {
+        try {
+            setIsListening(true);
+            SpeechRecognition.startListening({
+                continuous: true,
+                language: 'en-IN',
+            });
+        } catch (error) {
+            console.error('Speech recognition error:', error);
+            setIsListening(false);
+        }
+    };
+
+    const stopListening = () => {
+        setIsListening(false);
+        SpeechRecognition.stopListening();
+    };
+
+    // Update fields with speech input
+    useEffect(() => {
+        if (!isListening || !transcript || !activeField) return;
+
+        if (activeField === 'title') {
+            setEditingNote((prev) => ({
+                ...prev!,
+                noteTitle: transcript,
+            }));
+        } else if (activeField === 'body') {
+            setEditingNote((prev) => ({
+                ...prev!,
+                noteBody: transcript,
+            }));
+        }
+
+        console.log('Transcript:', transcript);
+    }, [transcript, isListening, activeField]);
+
+    // Note operations
     const handlePinToggle = async (note: NoteI) => {
         try {
             await updateNote({
@@ -105,14 +159,17 @@ const NotesContainer = () => {
         }
     };
 
+    // Modal handlers
     const openNote = (note: NoteI) => {
         setEditingNote(note);
         setIsModalOpen(true);
+        resetTranscript();
     };
 
     const closeModal = () => {
         setEditingNote(null);
         setIsModalOpen(false);
+        if (isListening) stopListening();
     };
 
     const saveNote = async () => {
@@ -138,8 +195,17 @@ const NotesContainer = () => {
         }
     };
 
-    if (isLoading) return <div>Loading...</div>;
-    if (isError) return <div>Error loading notes</div>;
+    if (!browserSupportsSpeechRecognition) {
+        return (
+            <div className='browser-warning'>
+                Your browser doesn&apos;t support speech recognition. Please try
+                Chrome or Edge.
+            </div>
+        );
+    }
+
+    if (isLoading) return <div className='loading'>Loading notes...</div>;
+    if (isError) return <div className='error'>Error loading notes</div>;
 
     return (
         <div className='notes-container'>
@@ -215,7 +281,30 @@ const NotesContainer = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2>Edit Note</h2>
+
+                        <div className='speech-controls'>
+                            <button
+                                onClick={
+                                    isListening ? stopListening : startListening
+                                }
+                                aria-label={
+                                    isListening
+                                        ? 'Stop speech recognition'
+                                        : 'Start speech recognition'
+                                }
+                            >
+                                {isListening ? '🛑 Stop' : '🎤 Start Speaking'}
+                            </button>
+                            <button onClick={resetTranscript}>🗑️ Clear</button>
+                            {isListening && (
+                                <span className='listening-indicator'>
+                                    🎙️ Listening...
+                                </span>
+                            )}
+                        </div>
+
                         <input
+                            ref={noteTitleRef}
                             className='modal-input'
                             value={editingNote.noteTitle || ''}
                             onChange={(e) =>
@@ -224,9 +313,15 @@ const NotesContainer = () => {
                                     noteTitle: e.target.value,
                                 })
                             }
+                            onFocus={() => {
+                                setActiveField('title');
+                                resetTranscript();
+                            }}
                             placeholder='Title'
                         />
+
                         <textarea
+                            ref={noteBodyRef}
                             className='modal-textarea'
                             value={editingNote.noteBody || ''}
                             onChange={(e) =>
@@ -235,9 +330,14 @@ const NotesContainer = () => {
                                     noteBody: e.target.value,
                                 })
                             }
+                            onFocus={() => {
+                                setActiveField('body');
+                                resetTranscript();
+                            }}
                             placeholder='Take a note...'
                             rows={8}
                         />
+
                         <div className='modal-actions'>
                             <button
                                 className='modal-button save'

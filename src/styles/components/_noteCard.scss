@@ -233,85 +233,111 @@
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 100;
+    align-items: center;
+    z-index: 1000;
 }
 
 .modal-content {
     background: white;
+    padding: 2rem;
     border-radius: 8px;
-    padding: 20px;
-    width: 100%;
+    width: 90%;
     max-width: 600px;
-    box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.302),
-        0 4px 8px 3px rgba(60, 64, 67, 0.149);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 
     h2 {
         margin-top: 0;
-        color: #202124;
+        color: #333;
     }
+}
 
-    .modal-input {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #dadce0;
+.speech-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+    align-items: center;
+
+    button {
+        padding: 0.5rem 1rem;
         border-radius: 4px;
-        font-size: 1rem;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+        font-size: 0.9rem;
 
-        &:focus {
-            outline: none;
-            border-color: #1a73e8;
+        &:hover {
+            background: #f5f5f5;
         }
     }
 
-    .modal-textarea {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #dadce0;
+    .listening-indicator {
+        color: #4285f4;
+        font-weight: bold;
+        margin-left: auto;
+    }
+}
+
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+
+    &:focus {
+        outline: none;
+        border-color: #4285f4;
+    }
+}
+
+.modal-textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+
+    .modal-button {
+        padding: 0.5rem 1.5rem;
         border-radius: 4px;
-        font-size: 0.875rem;
-        resize: vertical;
-        min-height: 100px;
+        cursor: pointer;
+        font-weight: 500;
 
-        &:focus {
-            outline: none;
-            border-color: #1a73e8;
-        }
-    }
+        &.save {
+            background: #4285f4;
+            color: white;
+            border: none;
 
-    .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-
-        .modal-button {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-
-            &.save {
-                background: #1a73e8;
-                color: white;
-                border: none;
-
-                &:hover {
-                    background: #1765cc;
-                }
+            &:hover {
+                background: #3367d6;
             }
+        }
 
-            &.cancel {
-                background: none;
-                border: 1px solid #dadce0;
-                color: #5f6368;
+        &.cancel {
+            background: white;
+            border: 1px solid #ddd;
 
-                &:hover {
-                    background: #f1f3f4;
-                }
+            &:hover {
+                background: #f5f5f5;
             }
         }
     }
+}
+
+.browser-warning,
+.loading,
+.error {
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: #d32f2f;
 }

@@ -15,6 +15,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
 import { CheckboxList } from './input/CheckboxList';
 import { NoteToolbar } from './input/NoteToolbar';
+import SpeechRecognition, {
+    useSpeechRecognition,
+} from 'react-speech-recognition';
 
 export default function NoteInput({
     isEditing = false,
@@ -49,6 +52,9 @@ export default function NoteInput({
         body: 0,
         cb: 0,
     });
+    const [activeField, setActiveField] = useState<'title' | 'body' | null>(
+        null
+    );
 
     // Tooltip states
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -407,6 +413,53 @@ export default function NoteInput({
         // Enable/disable menu items based on input
     }, [inputLength]);
 
+    const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
+        useSpeechRecognition();
+    const [isListening, setIsListening] = useState(false);
+
+    const startListening = () => {
+        setIsListening(true);
+        SpeechRecognition.startListening({
+            continuous: true,
+            language: 'en-IN',
+        });
+    };
+
+    const stopListening = () => {
+        setIsListening(false);
+        SpeechRecognition.stopListening();
+    };
+
+    useEffect(() => {
+        if (!isListening || !transcript || !activeField) return;
+
+        const fieldRef = activeField === 'title' ? noteTitleRef : noteBodyRef;
+        if (!fieldRef.current) return;
+
+        // Save selection
+        const selection = window.getSelection();
+        const hadSelection =
+            selection?.rangeCount &&
+            selection.getRangeAt(0).collapsed === false;
+
+        // Update content
+        fieldRef.current.textContent = transcript; // Use textContent instead of innerHTML
+        updateInputLength({ [activeField]: transcript.length });
+
+        // Restore cursor
+        if (hadSelection) {
+            const range = document.createRange();
+            range.selectNodeContents(fieldRef.current);
+            range.collapse(false);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        }
+    }, [transcript, isListening, activeField]);
+
+    if (!browserSupportsSpeechRecognition) {
+        return <p>Browser doesnt support speech recognition.</p>;
+    }
+
     return (
         <div
             ref={mainRef}
@@ -462,6 +515,10 @@ export default function NoteInput({
                     </div>
                     <div
                         ref={noteTitleRef}
+                        onFocus={() => {
+                            setActiveField('title');
+                            resetTranscript();
+                        }}
                         onInput={(e) =>
                             updateInputLength({
                                 title: e.currentTarget.innerHTML.length,
@@ -615,6 +672,10 @@ export default function NoteInput({
                             </div>
                             <div
                                 ref={noteBodyRef}
+                                onFocus={() => {
+                                    setActiveField('body');
+                                    resetTranscript();
+                                }}
                                 onInput={(e) =>
                                     updateInputLength({
                                         body: e.currentTarget.innerHTML.length,
@@ -625,6 +686,24 @@ export default function NoteInput({
                                 contentEditable
                                 spellCheck
                             ></div>
+
+                            <div
+                                className='note-input__speech-controls'
+                                style={{
+                                    marginTop: '10px',
+                                    display: 'flex',
+                                    gap: '10px',
+                                }}
+                            >
+                                <button onClick={startListening}>
+                                    🎙️ Start Speaking
+                                </button>
+                                <button onClick={stopListening}>🛑 Stop</button>
+                                <button onClick={resetTranscript}>
+                                    🔁 Clear
+                                </button>
+                                {isListening && <span>Listening...</span>}
+                            </div>
                         </>
                     )}
 
