@@ -1,8 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -11,6 +8,9 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 import logo from '../../public/logo.svg';
 import '../styles/components/_navbar.scss';
 
@@ -27,7 +27,10 @@ export default function Navbar() {
         <header className='navbar'>
             <nav aria-label='Global'>
                 <div className='navbar__logo'>
-                    <Link href='/' className='-m-1.5 p-1.5'>
+                    <Link
+                        href='/'
+                        className='-m-1.5 p-1.5'
+                    >
                         <Image
                             alt='Company Logo'
                             src={logo}
@@ -39,16 +42,25 @@ export default function Navbar() {
                 </div>
 
                 <div className='navbar__mobile'>
-                    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                    <Sheet
+                        open={mobileMenuOpen}
+                        onOpenChange={setMobileMenuOpen}
+                    >
                         <SheetTrigger asChild>
                             <button
                                 aria-label='Open main menu'
                                 className='menu-btn'
                             >
-                                <Menu className='h-6 w-6' aria-hidden='true' />
+                                <Menu
+                                    className='h-6 w-6'
+                                    aria-hidden='true'
+                                />
                             </button>
                         </SheetTrigger>
-                        <SheetContent side='right' className='sheet-content'>
+                        <SheetContent
+                            side='right'
+                            className='sheet-content'
+                        >
                             <SheetHeader className='sheet-header'>
                                 <Link
                                     href='/'
@@ -87,7 +99,10 @@ export default function Navbar() {
 
                 <div className='navbar__links'>
                     {navigation.map((item) => (
-                        <Link key={item.name} href={item.href}>
+                        <Link
+                            key={item.name}
+                            href={item.href}
+                        >
                             {item.name}
                         </Link>
                     ))}

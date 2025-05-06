@@ -1,17 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { NoteI } from '@/interfaces/notes';
 import {
-    useGetUserNotesQuery,
     useCreateNoteMutation,
-    useUpdateNoteMutation,
+    useGetUserNotesQuery,
     useMoveNoteToBinMutation,
+    useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
 import '@/styles/components/_noteCard.scss';
+import { useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
-import { NoteI } from '@/interfaces/notes';
 
 const NotesContainer = () => {
     const user = useSelector((state: RootState) => state.auth.user);

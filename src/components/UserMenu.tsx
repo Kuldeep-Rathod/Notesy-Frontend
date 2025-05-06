@@ -1,17 +1,17 @@
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { toast } from 'sonner';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { User2, LogOut } from 'lucide-react';
 import { useLogoutMutation } from '@/redux/api/authAPI';
+import { RootState } from '@/redux/store';
+import { LogOut, User2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
 export default function UserMenu() {
     const router = useRouter();

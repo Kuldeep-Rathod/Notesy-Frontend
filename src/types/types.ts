@@ -10,7 +10,7 @@ export interface NoteInputProps {
 }
 
 export interface NoteInputState {
-    checkBoxes: CheckboxI[];
+    checklists: CheckboxI[];
     labels: LabelI[];
     isArchived: boolean;
     isTrashed: boolean;

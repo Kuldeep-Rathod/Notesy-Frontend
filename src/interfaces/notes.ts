@@ -2,7 +2,7 @@ import { LabelI } from './labels';
 
 export interface NoteI {
     _id?: string;
-    firebaseUid: string;
+    firebaseUid?: string;
     noteTitle?: string;
     noteBody?: string;
     audio?: {

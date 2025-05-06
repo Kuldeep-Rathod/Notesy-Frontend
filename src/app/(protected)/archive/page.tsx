@@ -1,9 +1,9 @@
 'use client';
 
-import '@/styles/components/_noteCard.scss';
-import { NoteI } from '@/interfaces/notes';
 import NoteCard from '@/components/notes/NoteCard';
+import { NoteI } from '@/interfaces/notes';
 import { useGetArchivedNotesQuery } from '@/redux/api/notesAPI';
+import '@/styles/components/_noteCard.scss';
 
 const ArchivedNotesPage = () => {
     const { data: notes = [], isLoading, isError } = useGetArchivedNotesQuery();

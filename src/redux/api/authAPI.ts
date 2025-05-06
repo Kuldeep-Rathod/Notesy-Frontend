@@ -2,9 +2,9 @@ import { auth, googleProvider } from '@/lib/firebase';
 import { axiosInstance } from '@/utils/axiosInstance';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
+    signOut as firebaseSignOut,
     signInWithEmailAndPassword,
     signInWithPopup,
-    signOut as firebaseSignOut,
     User,
 } from 'firebase/auth';
 

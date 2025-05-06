@@ -1,6 +1,6 @@
 'use client';
 
-import NoteInput from '@/components/NoteInput';
+import NoteInput from '@/components/notes/NoteInput';
 import NotesContainer from '@/components/notes/NotesContainer';
 import { useState } from 'react';
 

@@ -1,6 +1,6 @@
 // features/api/notesApiSlice.ts
-import { createApi } from '@reduxjs/toolkit/query/react';
 import { NoteI } from '@/interfaces/notes';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import customBaseQuery from './customBaseQuery';
 
 export const notesAPI = createApi({

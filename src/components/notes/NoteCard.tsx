@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { NoteI } from '@/interfaces/notes';
 import {
     Archive,
     ArchiveRestore,
@@ -8,8 +8,8 @@ import {
     Palette,
     Trash2,
 } from 'lucide-react';
+import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
-import { NoteI } from '@/interfaces/notes';
 
 const colorOptions = [
     '#ffffff',

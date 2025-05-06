@@ -10,23 +10,11 @@ import {
 } from '@/redux/api/notesAPI';
 import '@/styles/components/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
-import {
-    Archive,
-    Bell,
-    BookImage,
-    Brush,
-    EllipsisVertical,
-    ImagePlus,
-    Palette,
-    PinIcon,
-    Redo2,
-    SquareCheck,
-    Trash2,
-    Undo2,
-    UserPlus,
-} from 'lucide-react';
+import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MdRestoreFromTrash } from 'react-icons/md';
+import { BsPin, BsPinFill } from 'react-icons/bs';
+import { CheckboxList } from './input/CheckboxList';
+import { NoteToolbar } from './input/NoteToolbar';
 
 export default function NoteInput({
     isEditing = false,
@@ -48,10 +36,11 @@ export default function NoteInput({
     const cboxPhRef = useRef<HTMLDivElement>(null);
 
     // State
-    const [checkBoxes, setCheckBoxes] = useState<CheckboxI[]>([]);
+    const [checklists, setChecklists] = useState<CheckboxI[]>([]);
     const [labels, setLabels] = useState<LabelI[]>([]);
     const [isArchived, setIsArchived] = useState(false);
     const [isTrashed, setIsTrashed] = useState(false);
+    const [isPinned, setIsPinned] = useState(false);
     const [isCboxCompletedListCollapsed, setIsCboxCompletedListCollapsed] =
         useState(false);
     const [isCbox, setIsCbox] = useState(false);
@@ -73,6 +62,13 @@ export default function NoteInput({
             noteMainRef.current.hidden = !condition;
         }
     }, []);
+
+    const handlePinClick = () => {
+        setIsPinned((prev) => !prev);
+        if (notePinRef.current) {
+            notePinRef.current.dataset.pinned = (!isPinned).toString();
+        }
+    };
 
     // Handle placeholder click
     const notePhClick = useCallback(() => {
@@ -136,7 +132,7 @@ export default function NoteInput({
             pinned: notePinRef.current?.dataset.pinned === 'true',
             bgColor: noteMainRef.current.style.backgroundColor,
             bgImage: noteContainerRef.current.style.backgroundImage,
-            checkBoxes,
+            checklists,
             isCbox,
             labels: labels.filter((x) => x.added),
             archived: isArchived,
@@ -144,16 +140,16 @@ export default function NoteInput({
         };
 
         if (
-            noteObj.noteTitle.length ||
+            noteObj.noteTitle?.length ||
             noteObj.noteBody?.length ||
-            checkBoxes.length
+            checklists.length
         ) {
             try {
-                if (isEditing && noteToEdit?.id) {
+                if (isEditing && noteToEdit?._id) {
                     // Update note using RTK Query
                     await updateNote({
-                        id: noteToEdit.id.toString(),
-                        data: noteObj,
+                        id: noteToEdit._id.toString(),
+                        updates: noteObj,
                     }).unwrap();
                     console.log('Note updated successfully');
                     onSuccess?.();
@@ -181,14 +177,14 @@ export default function NoteInput({
             }
         }
     }, [
-        checkBoxes,
+        checklists,
         isArchived,
         isCbox,
         isEditing,
         isTrashed,
         labels,
         closeNote,
-        noteToEdit?.id,
+        noteToEdit?._id,
         onSuccess,
         createNote,
         updateNote,
@@ -206,7 +202,7 @@ export default function NoteInput({
             noteMainRef.current.style.borderColor = '';
         }
 
-        setCheckBoxes([]);
+        setChecklists([]);
         setIsCbox(false);
         setIsArchived(false);
         setIsTrashed(false);
@@ -250,17 +246,17 @@ export default function NoteInput({
     // Add checkbox
     const addCheckBox = useCallback(
         (data: string) => {
-            setCheckBoxes((prev) => [
+            setChecklists((prev) => [
                 ...prev,
                 {
-                    done: false,
-                    data: data,
+                    checked: false,
+                    text: data,
                     id: prev.length,
                 },
             ]);
-            setInputLength((prev) => ({ ...prev, cb: checkBoxes.length + 1 }));
+            setInputLength((prev) => ({ ...prev, cb: checklists.length + 1 }));
         },
-        [checkBoxes.length]
+        [checklists.length]
     );
 
     // Checkbox key down
@@ -286,22 +282,22 @@ export default function NoteInput({
         (id: number) => {
             const actions = {
                 remove: () => {
-                    setCheckBoxes((prev) => prev.filter((cb) => cb.id !== id));
+                    setChecklists((prev) => prev.filter((cb) => cb.id !== id));
                     setInputLength((prev) => ({
                         ...prev,
-                        cb: checkBoxes.length - 1,
+                        cb: checklists.length - 1,
                     }));
                 },
                 check: () => {
-                    setCheckBoxes((prev) =>
+                    setChecklists((prev) =>
                         prev.map((cb) =>
-                            cb.id === id ? { ...cb, done: !cb.done } : cb
+                            cb.id === id ? { ...cb, done: !cb.checked } : cb
                         )
                     );
                 },
                 update: (el: HTMLDivElement) => {
                     const elValue = el.innerHTML;
-                    setCheckBoxes((prev) =>
+                    setChecklists((prev) =>
                         prev.map((cb) =>
                             cb.id === id ? { ...cb, data: elValue } : cb
                         )
@@ -310,7 +306,7 @@ export default function NoteInput({
             };
             return actions;
         },
-        [checkBoxes.length]
+        [checklists.length]
     );
 
     // More menu actions
@@ -366,28 +362,30 @@ export default function NoteInput({
             notePhClick();
 
             if (noteTitleRef.current)
-                noteTitleRef.current.innerHTML = noteToEdit.noteTitle;
+                noteTitleRef.current.innerHTML = noteToEdit.noteTitle || '';
             if (noteBodyRef.current)
                 noteBodyRef.current.innerHTML = noteToEdit.noteBody || '';
             if (notePinRef.current)
                 notePinRef.current.dataset.pinned = String(noteToEdit.pinned);
             if (noteContainerRef.current)
                 noteContainerRef.current.style.backgroundImage =
-                    noteToEdit.bgImage;
+                    noteToEdit.bgImage || '';
             if (noteMainRef.current) {
-                noteMainRef.current.style.backgroundColor = noteToEdit.bgColor;
-                noteMainRef.current.style.borderColor = noteToEdit.bgColor;
+                noteMainRef.current.style.backgroundColor =
+                    noteToEdit.bgColor || '';
+                noteMainRef.current.style.borderColor =
+                    noteToEdit.bgColor || '';
             }
 
-            setCheckBoxes(noteToEdit.checkBoxes || []);
-            setIsCbox(noteToEdit.isCbox);
-            setIsArchived(noteToEdit.archived);
-            setIsTrashed(noteToEdit.trashed);
+            setChecklists(noteToEdit.checklists || []);
+            setIsCbox(noteToEdit.isCbox || false);
+            setIsArchived(noteToEdit.archived || false);
+            setIsTrashed(noteToEdit.trashed || false);
 
             setInputLength({
-                title: noteToEdit.noteTitle.length,
+                title: noteToEdit.noteTitle?.length || 0,
                 body: noteToEdit.noteBody?.length || 0,
-                cb: noteToEdit.checkBoxes?.length || 0,
+                cb: noteToEdit.checklists?.length || 0,
             });
 
             // Initialize labels
@@ -430,19 +428,19 @@ export default function NoteInput({
                     data-tooltip='New list'
                     onClick={() => setIsCbox(true)}
                 >
-                    <SquareCheck style={{ color: 'white' }} />
+                    <SquareCheck />
                 </div>
                 <div
                     className={`note-input__action-icon note-input__action-icon--paint H disabled pop`}
                     data-tooltip='New note with drawing'
                 >
-                    <Brush style={{ color: 'white' }} />
+                    <Brush />
                 </div>
                 <div
                     className={`note-input__action-icon note-input__action-icon--picture H disabled pop`}
                     data-tooltip='New note with image'
                 >
-                    <BookImage style={{ color: 'white' }} />
+                    <BookImage />
                 </div>
             </div>
 
@@ -475,68 +473,35 @@ export default function NoteInput({
                         spellCheck
                     ></div>
 
-                    {/* Note or checkboxes */}
+                    {/* Note or checklists */}
                     {isCbox ? (
                         <>
-                            {/* Checkboxes */}
-                            {checkBoxes
-                                .filter((cb) => !cb.done)
-                                .map((cb, index) => (
-                                    <div
-                                        key={cb.id}
-                                        className='note-input__checkbox-container'
-                                    >
-                                        <div className='note-input__checkbox-move-icon'></div>
-                                        <div
-                                            className={`note-input__checkbox-icon ${
-                                                cb.done
-                                                    ? 'note-input__checkbox-icon--checked'
-                                                    : ''
-                                            }`}
-                                            onClick={() =>
-                                                cboxTools(cb.id).check()
-                                            }
-                                        ></div>
-                                        <div className='note-input__checkbox-content'>
-                                            <div
-                                                ref={
-                                                    index ===
-                                                    checkBoxes.length - 1
-                                                        ? cboxInputRef
-                                                        : null
-                                                }
-                                                data-cbox-last={
-                                                    index ===
-                                                    checkBoxes.length - 1
-                                                }
-                                                className={`note-input__checkbox-item ${
-                                                    cb.done
-                                                        ? 'note-input__checkbox-item--completed'
-                                                        : ''
-                                                }`}
-                                                contentEditable
-                                                spellCheck
-                                                onBlur={(e) =>
-                                                    cboxTools(cb.id).update(
-                                                        e.currentTarget
-                                                    )
-                                                }
-                                                onKeyDown={(e) =>
-                                                    cBoxKeyDown(e, cb.id)
-                                                }
-                                                dangerouslySetInnerHTML={{
-                                                    __html: cb.data,
-                                                }}
-                                            ></div>
-                                        </div>
-                                        <div
-                                            className={`note-input__checkbox-remove H`}
-                                            onClick={() =>
-                                                cboxTools(cb.id).remove()
-                                            }
-                                        ></div>
-                                    </div>
-                                ))}
+                            {/* checklists */}
+                            <CheckboxList
+                                checklists={checklists}
+                                isCompletedCollapsed={
+                                    isCboxCompletedListCollapsed
+                                }
+                                onToggleCollapse={() =>
+                                    setIsCboxCompletedListCollapsed(
+                                        (prev) => !prev
+                                    )
+                                }
+                                onCheckboxChange={(id) => cboxTools(id).check()}
+                                onCheckboxRemove={(id) =>
+                                    cboxTools(id).remove()
+                                }
+                                onCheckboxUpdate={(id, value) => {
+                                    setChecklists((prev) =>
+                                        prev.map((cb) =>
+                                            cb.id === id
+                                                ? { ...cb, data: value }
+                                                : cb
+                                        )
+                                    );
+                                }}
+                                onKeyDown={cBoxKeyDown}
+                            />
 
                             {/* Checkbox placeholder */}
                             <div className='note-input__checkbox-placeholder'>
@@ -558,7 +523,8 @@ export default function NoteInput({
                             </div>
 
                             {/* Completed checkboxes */}
-                            {checkBoxes.filter((cb) => cb.done).length > 0 && (
+                            {checklists.filter((cb) => cb.checked).length >
+                                0 && (
                                 <>
                                     <div className='note-input__checkbox-divider'></div>
                                     <div
@@ -580,8 +546,8 @@ export default function NoteInput({
                                             <span>
                                                 (
                                                 {
-                                                    checkBoxes.filter(
-                                                        (cb) => cb.done
+                                                    checklists.filter(
+                                                        (cb) => cb.checked
                                                     ).length
                                                 }
                                                 ) Completed item
@@ -593,8 +559,8 @@ export default function NoteInput({
 
                             {/* Show completed checkboxes if not collapsed */}
                             {!isCboxCompletedListCollapsed &&
-                                checkBoxes
-                                    .filter((cb) => cb.done)
+                                checklists
+                                    .filter((cb) => cb.checked)
                                     .map((cb, index) => (
                                         <div
                                             key={`done-${cb.id}`}
@@ -611,7 +577,7 @@ export default function NoteInput({
                                                 <div
                                                     data-cbox-last={
                                                         index ===
-                                                        checkBoxes.length - 1
+                                                        checklists.length - 1
                                                     }
                                                     className={`note-input__checkbox-item note-input__checkbox-item--completed`}
                                                     contentEditable
@@ -625,7 +591,7 @@ export default function NoteInput({
                                                         cBoxKeyDown(e, cb.id)
                                                     }
                                                     dangerouslySetInnerHTML={{
-                                                        __html: cb.data,
+                                                        __html: cb.text,
                                                     }}
                                                 ></div>
                                             </div>
@@ -697,13 +663,22 @@ export default function NoteInput({
                 {/* Pin icon */}
                 <div
                     ref={notePinRef}
-                    data-pinned='false'
-                    className={`note-input__pin H pop ${
-                        notePinRef.current?.dataset.pinned === 'true'
-                            ? 'note-input__pin--active'
-                            : ''
-                    }`}
-                    onClick={() => {
+                    data-pinned={isPinned.toString()}
+                    className={`note-input__pin H pop`}
+                    onClick={handlePinClick}
+                    data-tooltip={isPinned ? 'Unpin note' : 'Pin note'}
+                >
+                    {isPinned ? <BsPinFill /> : <BsPin />}
+                </div>
+
+                {/* Icons */}
+                <NoteToolbar
+                    isTrashed={isTrashed}
+                    onArchive={() => {
+                        setIsArchived(true);
+                        saveNote();
+                    }}
+                    onPinToggle={() => {
                         if (notePinRef.current) {
                             notePinRef.current.dataset.pinned =
                                 notePinRef.current.dataset.pinned === 'false'
@@ -711,101 +686,10 @@ export default function NoteInput({
                                     : 'false';
                         }
                     }}
-                    data-tooltip={
-                        notePinRef.current?.dataset.pinned === 'false'
-                            ? 'Pin note'
-                            : 'Unpin note'
-                    }
-                >
-                    <PinIcon style={{ color: 'white' }} />
-                </div>
-
-                {/* Icons */}
-                {!isTrashed ? (
-                    <div className='note-input__toolbar'>
-                        <div className='note-input__toolbar-icons'>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--alarm H disabled pop`}
-                                data-tooltip='Remind me'
-                            >
-                                <Bell style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--collaborator H disabled pop`}
-                                data-tooltip='Collaborator'
-                            >
-                                <UserPlus style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop`}
-                                data-tooltip='Background Options'
-                                onClick={() =>
-                                    setColorMenuOpen((prev) => !prev)
-                                }
-                            >
-                                <Palette style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--image H disabled pop`}
-                                data-tooltip='Add image'
-                            >
-                                <ImagePlus style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop`}
-                                onClick={() => {
-                                    setIsArchived(true);
-                                    saveNote();
-                                }}
-                                data-tooltip='Archive'
-                            >
-                                <Archive style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--more H pop`}
-                                data-tooltip='More'
-                                onClick={() => setMoreMenuOpen((prev) => !prev)}
-                            >
-                                <EllipsisVertical style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--undo disabled pop`}
-                                data-tooltip='Undo'
-                            >
-                                <Undo2 style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--redo disabled`}
-                                data-tooltip='Redo'
-                            >
-                                <Redo2 style={{ color: 'white' }} />
-                            </div>
-                        </div>
-                        <div
-                            className='note-input__button--close'
-                            onClick={saveNote}
-                        >
-                            Close
-                        </div>
-                    </div>
-                ) : (
-                    <div
-                        className={`note-input__toolbar note-input__toolbar--minimal`}
-                    >
-                        <div className='note-input__toolbar-icons'>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--delete H`}
-                            >
-                                <Trash2 style={{ color: 'white' }} />
-                            </div>
-                            <div
-                                className={`note-input__toolbar-icon note-input__toolbar-icon--restore H`}
-                            >
-                                <MdRestoreFromTrash />
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    onMoreClick={() => setMoreMenuOpen((prev) => !prev)}
+                    onColorClick={() => setColorMenuOpen((prev) => !prev)}
+                    pinned={notePinRef.current?.dataset.pinned === 'true'}
+                />
             </div>
 
             {/* Tooltips */}

@@ -1,11 +1,11 @@
 // components/AuthGuard.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { setUser } from '@/redux/reducer/authReducer';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
