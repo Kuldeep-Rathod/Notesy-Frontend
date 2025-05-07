@@ -1,8 +1,8 @@
+import ClientOnlyWrapper from '@/components/ClientOnlyWrapper';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ReduxProvider } from './provider';
-import VoiceRouter from '@/components/VoiceRouter';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -31,7 +31,7 @@ export default function RootLayout({
             >
                 <ReduxProvider>
                     {' '}
-                    <VoiceRouter />
+                    <ClientOnlyWrapper />
                     {children}
                 </ReduxProvider>
             </body>
