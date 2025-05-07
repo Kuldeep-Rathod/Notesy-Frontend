@@ -37,10 +37,12 @@ export default function NoteInput({
     const notePinRef = useRef<HTMLDivElement>(null);
     const cboxInputRef = useRef<HTMLDivElement>(null);
     const cboxPhRef = useRef<HTMLDivElement>(null);
+    const labelSearchRef = useRef<HTMLInputElement>(null);
 
     // State
     const [checklists, setChecklists] = useState<CheckboxI[]>([]);
     const [labels, setLabels] = useState<LabelI[]>([]);
+    const [availableLabels, setAvailableLabels] = useState<LabelI[]>([]);
     const [isArchived, setIsArchived] = useState(false);
     const [isTrashed, setIsTrashed] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
@@ -55,6 +57,7 @@ export default function NoteInput({
     const [activeField, setActiveField] = useState<'title' | 'body' | null>(
         null
     );
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Tooltip states
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -89,9 +92,6 @@ export default function NoteInput({
             setInputLength({ title: 0, body: 0, cb: 0 });
             document.addEventListener('mousedown', mouseDownEvent);
         }
-
-        // Clone labels
-        // setLabels(JSON.parse(JSON.stringify(labelsList)));
     }, [isCbox, isEditing, toggleNoteVisibility]);
 
     // Mouse down event handler
@@ -152,7 +152,6 @@ export default function NoteInput({
         ) {
             try {
                 if (isEditing && noteToEdit?._id) {
-                    // Update note using RTK Query
                     await updateNote({
                         id: noteToEdit._id.toString(),
                         updates: noteObj,
@@ -160,7 +159,6 @@ export default function NoteInput({
                     console.log('Note updated successfully');
                     onSuccess?.();
                 } else {
-                    // Create new note using RTK Query
                     await createNote(noteObj).unwrap();
                     console.log('Note created successfully');
                     onSuccess?.();
@@ -178,8 +176,6 @@ export default function NoteInput({
                 }
             } catch (error) {
                 console.error('Error saving note:', error);
-                // You can access the error details from RTK Query
-                // error.data will contain the server response
             }
         }
     }, [
@@ -320,7 +316,6 @@ export default function NoteInput({
         trash: () => {
             if (isEditing) {
                 console.log('Trashing note');
-                // Close modal if needed
             } else {
                 setIsTrashed(true);
                 saveNote();
@@ -362,6 +357,42 @@ export default function NoteInput({
         []
     );
 
+    // Toggle label
+    const toggleLabel = (labelName: string) => {
+        setLabels((prev) =>
+            prev.map((label) =>
+                label.name === labelName
+                    ? { ...label, added: !label.added }
+                    : label
+            )
+        );
+    };
+
+    // Add new label
+    const addNewLabel = () => {
+        if (
+            searchQuery.trim() &&
+            !labels.some((label) => label.name === searchQuery.trim())
+        ) {
+            const newLabel = {
+                name: searchQuery.trim(),
+                added: true,
+            };
+            setLabels((prev) => [...prev, newLabel]);
+            setSearchQuery('');
+            if (labelSearchRef.current) {
+                labelSearchRef.current.value = '';
+            }
+        }
+    };
+
+    // Handle label search key down
+    const handleLabelSearchKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            addNewLabel();
+        }
+    };
+
     // Initialize for editing
     useEffect(() => {
         if (isEditing && noteToEdit) {
@@ -395,23 +426,54 @@ export default function NoteInput({
             });
 
             // Initialize labels
-            // const updatedLabels = labelsList.map(label => ({
-            //   ...label,
-            //   added: noteToEdit.labels.some(noteLabel => noteLabel.name === label.name)
-            // }));
-            // setLabels(updatedLabels);
+            if (noteToEdit.labels) {
+                const initialLabels = noteToEdit.labels.map(label => {
+                    if (typeof label === 'string') {
+                        return { name: label, added: true };
+                    }
+                    return { name: label.name, added: true };
+                });
+                setLabels(initialLabels);
+            }
         }
+
+        // Fetch available labels (this would typically come from an API)
+        // For demo purposes, we'll use some sample labels
+        const fetchAvailableLabels = async () => {
+            // In a real app, you would fetch these from your API
+            const sampleLabels = [
+                { name: 'Work', added: false },
+                { name: 'Personal', added: false },
+                { name: 'Important', added: false },
+                { name: 'To-Do', added: false },
+                { name: 'Ideas', added: false },
+            ];
+
+            // Merge with any existing labels from the note being edited
+            if (isEditing && noteToEdit?.labels) {
+                const noteLabels = noteToEdit.labels.map(label => {
+                    if (typeof label === 'string') {
+                        return { name: label, added: true };
+                    }
+                    return { name: label.name, added: true };
+                });
+
+                // Combine and remove duplicates
+                const combined = [...noteLabels, ...sampleLabels].filter(
+                    (label, index, self) =>
+                        index === self.findIndex((l) => l.name === label.name)
+                );
+
+                setLabels(combined);
+                setAvailableLabels(combined);
+            } else {
+                setLabels(sampleLabels);
+                setAvailableLabels(sampleLabels);
+            }
+        };
+
+        fetchAvailableLabels();
     }, [isEditing, noteToEdit, notePhClick]);
-
-    // Effect for isCbox changes
-    useEffect(() => {
-        // Update more menu checkbox text
-    }, [isCbox]);
-
-    // Effect for input length changes
-    useEffect(() => {
-        // Enable/disable menu items based on input
-    }, [inputLength]);
 
     const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
         useSpeechRecognition();
@@ -436,17 +498,14 @@ export default function NoteInput({
         const fieldRef = activeField === 'title' ? noteTitleRef : noteBodyRef;
         if (!fieldRef.current) return;
 
-        // Save selection
         const selection = window.getSelection();
         const hadSelection =
             selection?.rangeCount &&
             selection.getRangeAt(0).collapsed === false;
 
-        // Update content
-        fieldRef.current.textContent = transcript; // Use textContent instead of innerHTML
+        fieldRef.current.textContent = transcript;
         updateInputLength({ [activeField]: transcript.length });
 
-        // Restore cursor
         if (hadSelection) {
             const range = document.createRange();
             range.selectNodeContents(fieldRef.current);
@@ -721,16 +780,7 @@ export default function NoteInput({
                                         <div
                                             className='note-input__labels-remove'
                                             onClick={() =>
-                                                setLabels((prev) =>
-                                                    prev.map((l) =>
-                                                        l.name === label.name
-                                                            ? {
-                                                                  ...l,
-                                                                  added: false,
-                                                              }
-                                                            : l
-                                                    )
-                                                )
+                                                toggleLabel(label.name)
                                             }
                                         ></div>
                                     </div>
@@ -780,28 +830,13 @@ export default function NoteInput({
                 >
                     <div
                         onClick={() => {
-                            moreMenu.trash();
-                            setMoreMenuOpen(false);
-                        }}
-                    >
-                        Delete note
-                    </div>
-                    <div
-                        onClick={() => {
                             setMoreMenuOpen(false);
                             setLabelMenuOpen(true);
                         }}
                     >
                         Add label
                     </div>
-                    <div
-                        onClick={() => {
-                            moreMenu.clone();
-                            setMoreMenuOpen(false);
-                        }}
-                    >
-                        Make a copy
-                    </div>
+
                     <div
                         onClick={() => {
                             moreMenu.toggleCbox();
@@ -865,43 +900,59 @@ export default function NoteInput({
                     data-is-tooltip-open='true'
                 >
                     <div className='note-input__label-menu-title'>
-                        Label note
+                        <p>Label note</p>
+                        <p
+                            onClick={() => {
+                                setLabelMenuOpen(false);
+                            }}
+                        >
+                            X
+                        </p>
                     </div>
                     <div className='note-input__label-menu-search'>
                         <input
+                            ref={labelSearchRef}
                             type='text'
                             maxLength={50}
                             placeholder='Enter label name'
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleLabelSearchKeyDown}
                         />
-                        <div className='note-input__label-menu-search-icon'></div>
+                        <div
+                            className='note-input__label-menu-search-icon'
+                            onClick={addNewLabel}
+                        >
+                            +
+                        </div>
                     </div>
                     <div className='note-input__label-menu-list'>
-                        {labels.map((label) => (
-                            <div
-                                key={label.name}
-                                className='note-input__label-menu-item'
-                                onClick={() =>
-                                    setLabels((prev) =>
-                                        prev.map((l) =>
-                                            l.name === label.name
-                                                ? { ...l, added: !l.added }
-                                                : l
-                                        )
-                                    )
-                                }
-                            >
+                        {labels
+                            .filter(
+                                (label) =>
+                                    label.name
+                                        .toLowerCase()
+                                        .includes(searchQuery.toLowerCase()) ||
+                                    searchQuery === ''
+                            )
+                            .map((label) => (
                                 <div
-                                    className={`note-input__label-menu-check ${
-                                        label.added
-                                            ? 'note-input__label-menu-check--active'
-                                            : ''
-                                    }`}
-                                ></div>
-                                <div className='note-input__label-menu-name'>
-                                    {label.name}
+                                    key={label.name}
+                                    className='note-input__label-menu-item'
+                                    onClick={() => toggleLabel(label.name)}
+                                >
+                                    <div
+                                        className={`note-input__label-menu-check ${
+                                            label.added
+                                                ? 'note-input__label-menu-check--active'
+                                                : ''
+                                        }`}
+                                    ></div>
+                                    <div className='note-input__label-menu-name'>
+                                        {label.name}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
                     </div>
                 </div>
             )}
