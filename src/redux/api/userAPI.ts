@@ -7,9 +7,13 @@ export const userAPI = createApi({
     baseQuery: customBaseQuery,
     endpoints: (builder) => ({
         getCurrentUser: builder.query<DbUser, void>({
-            query: () => 'user/me',
+            query: () => 'users/me',
+        }),
+
+        getAllUsers: builder.query<DbUser[], void>({
+            query: () => 'users',
         }),
     }),
 });
 
-export const { useGetCurrentUserQuery } = userAPI;
+export const { useGetCurrentUserQuery, useGetAllUsersQuery } = userAPI;

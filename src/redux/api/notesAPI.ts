@@ -10,7 +10,7 @@ export const notesAPI = createApi({
     endpoints: (builder) => ({
         createNote: builder.mutation<NoteI, Partial<NoteI>>({
             query: (noteData) => ({
-                url: 'note',
+                url: 'notes',
                 method: 'POST',
                 body: noteData,
             }),
@@ -18,7 +18,7 @@ export const notesAPI = createApi({
         }),
 
         getUserNotes: builder.query<NoteI[], void>({
-            query: () => `note`,
+            query: () => `notes`,
             providesTags: (result) =>
                 result
                     ? [
@@ -32,7 +32,7 @@ export const notesAPI = createApi({
         }),
 
         getTrashedNotes: builder.query<NoteI[], void>({
-            query: () => 'note/trashed',
+            query: () => 'notes/trashed',
             providesTags: (result) =>
                 result
                     ? [
@@ -46,7 +46,7 @@ export const notesAPI = createApi({
         }),
 
         getArchivedNotes: builder.query<NoteI[], void>({
-            query: () => 'note/archived',
+            query: () => 'notes/archived',
             providesTags: (result) =>
                 result
                     ? [
@@ -64,7 +64,7 @@ export const notesAPI = createApi({
             { id: string; updates: Partial<NoteI> }
         >({
             query: ({ id, updates }) => ({
-                url: `note/${id}`,
+                url: `notes/${id}`,
                 method: 'PUT',
                 body: updates,
             }),
@@ -73,7 +73,7 @@ export const notesAPI = createApi({
 
         moveNoteToBin: builder.mutation<NoteI, string>({
             query: (id) => ({
-                url: `note/${id}/trash`,
+                url: `notes/${id}/trash`,
                 method: 'PUT',
             }),
             invalidatesTags: ['Note', 'TrashedNote'],
@@ -81,7 +81,7 @@ export const notesAPI = createApi({
 
         deleteNote: builder.mutation<void, string>({
             query: (id) => ({
-                url: `note/${id}`,
+                url: `notes/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Note', 'TrashedNote'],
@@ -89,7 +89,7 @@ export const notesAPI = createApi({
 
         restoreNote: builder.mutation<NoteI, string>({
             query: (id) => ({
-                url: `note/${id}/restore`,
+                url: `notes/${id}/restore`,
                 method: 'PUT',
             }),
             invalidatesTags: ['Note', 'TrashedNote'],

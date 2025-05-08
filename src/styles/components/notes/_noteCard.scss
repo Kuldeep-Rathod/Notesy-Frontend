@@ -21,7 +21,6 @@ $transition: all 0.2s ease-in-out;
     transition: $transition;
     border: 1px solid transparent;
     position: relative;
-    overflow: hidden;
     z-index: 1;
 
     &:hover {
@@ -149,7 +148,7 @@ $transition: all 0.2s ease-in-out;
         justify-content: flex-start;
         gap: 5px;
         padding-top: 8px;
-        opacity: 0.7;
+        opacity: 1;
         transition: opacity 0.2s ease;
 
         .action-button {
@@ -194,15 +193,15 @@ $transition: all 0.2s ease-in-out;
             .more-menu {
                 position: absolute;
                 bottom: 100%; // Change from bottom: 40px to appear above
-                left: 50%;
+                left: 100%;
                 transform: translateX(-50%);
                 background-color: white;
                 border-radius: $border-radius;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
                 padding: 10px;
-                z-index: 1000; // Increase z-index
+                z-index: 1000;
                 min-width: 200px;
-                display: none; // Hide by default
+                display: none;
             }
 
             &.open {
@@ -286,7 +285,7 @@ $transition: all 0.2s ease-in-out;
     }
 
     .note-actions {
-        opacity: 0.7;
+        opacity: 1;
         padding-top: 0;
         margin-left: auto;
     }
