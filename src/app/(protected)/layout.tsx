@@ -14,6 +14,7 @@ import {
     LayoutDashboard,
     Menu,
     Pencil,
+    Tag,
     Trash2,
     X,
 } from 'lucide-react';
@@ -21,12 +22,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { default as icon, default as logo } from '../../../public/logo.svg';
+import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const {
+        data: labelsData = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useGetLabelsQuery();
+
+    // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const toggleSidebar = () => {
@@ -104,6 +114,16 @@ export default function DashboardLayout({
                             isSidebarOpen={isSidebarOpen}
                             icon={<Bell className='w-5 h-5' />}
                         />
+
+                        {labelsData.map((name, index) => (
+                            <SidebarLink
+                                key={index}
+                                href={`/labels/${name}`}
+                                title={isLoading ? 'Loading...' : name}
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<Tag className='w-5 h-5' />}
+                            />
+                        ))}
 
                         <SidebarLink
                             href='/edit-labels'
