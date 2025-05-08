@@ -875,6 +875,7 @@ export default function NoteInput({
                         setLabelMenuOpen(false);
                     }}
                     onColorClick={() => setColorMenuOpen((prev) => !prev)}
+                    onCloseClick={saveNote}
                 />
             </div>
 

@@ -45,7 +45,7 @@ export default function DashboardLayout({
 
     return (
         <AuthGuard>
-            <div className='flex h-screen bg-white'>
+            <div className='flex h-screen bg-white overflow-hidden'>
                 {mobileSidebarOpen && (
                     <div
                         className='fixed inset-0 z-40 bg-black/50 lg:hidden'
@@ -54,7 +54,7 @@ export default function DashboardLayout({
                 )}
                 <aside
                     className={cn(
-                        'fixed lg:relative z-50 w-64 bg-white border-r transition-all duration-300 ease-in-out',
+                        'fixed lg:relative z-50 w-64 bg-white border-r transition-all duration-300 ease-in-out flex flex-col',
                         'transform lg:translate-x-0 h-full',
                         mobileSidebarOpen
                             ? 'translate-x-0'
@@ -62,7 +62,7 @@ export default function DashboardLayout({
                         isSidebarOpen ? 'lg:w-64' : 'lg:w-20'
                     )}
                 >
-                    <div className='flex items-center justify-between p-4 border-b h-16'>
+                    <div className='flex items-center justify-between p-4 border-b h-16 flex-shrink-0'>
                         {isSidebarOpen ? (
                             <div className='text-lg font-semibold text-gray-900 whitespace-nowrap'>
                                 <Image
@@ -100,63 +100,65 @@ export default function DashboardLayout({
                         </button>
                     </div>
 
-                    <nav className='space-y-1 mt-4 p-2'>
-                        <SidebarLink
-                            href='/dashboard'
-                            title='Dashboard'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<LayoutDashboard className='w-5 h-5' />}
-                        />
-
-                        <SidebarLink
-                            href='/reminders'
-                            title='Reminders'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<Bell className='w-5 h-5' />}
-                        />
-
-                        {labelsData.map((name, index) => (
+                    <nav className='flex-1 overflow-y-auto p-2'>
+                        <div className='space-y-1'>
                             <SidebarLink
-                                key={index}
-                                href={`/labels/${name}`}
-                                title={isLoading ? 'Loading...' : name}
+                                href='/dashboard'
+                                title='Dashboard'
                                 isSidebarOpen={isSidebarOpen}
-                                icon={<Tag className='w-5 h-5' />}
+                                icon={<LayoutDashboard className='w-5 h-5' />}
                             />
-                        ))}
 
-                        <SidebarLink
-                            href='/edit-labels'
-                            title='Edit labels'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<Pencil className='w-5 h-5' />}
-                        />
+                            <SidebarLink
+                                href='/reminders'
+                                title='Reminders'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<Bell className='w-5 h-5' />}
+                            />
 
-                        <SidebarLink
-                            href='/archive'
-                            title='Archive'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<Archive className='w-5 h-5' />}
-                        />
+                            {labelsData.map((name, index) => (
+                                <SidebarLink
+                                    key={index}
+                                    href={`/labels/${name}`}
+                                    title={isLoading ? 'Loading...' : name}
+                                    isSidebarOpen={isSidebarOpen}
+                                    icon={<Tag className='w-5 h-5' />}
+                                />
+                            ))}
 
-                        <SidebarLink
-                            href='/bin'
-                            title='Bin'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<Trash2 className='w-5 h-5' />}
-                        />
+                            <SidebarLink
+                                href='/edit-labels'
+                                title='Edit labels'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<Pencil className='w-5 h-5' />}
+                            />
 
-                        <SidebarLink
-                            href='/profile'
-                            title='Profile'
-                            isSidebarOpen={isSidebarOpen}
-                            icon={<CircleUserRound className='w-5 h-5' />}
-                        />
+                            <SidebarLink
+                                href='/archive'
+                                title='Archive'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<Archive className='w-5 h-5' />}
+                            />
+
+                            <SidebarLink
+                                href='/bin'
+                                title='Bin'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<Trash2 className='w-5 h-5' />}
+                            />
+
+                            <SidebarLink
+                                href='/profile'
+                                title='Profile'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<CircleUserRound className='w-5 h-5' />}
+                            />
+                        </div>
                     </nav>
                 </aside>
 
                 <div className='flex-1 flex flex-col overflow-hidden'>
-                    <header className='h-16 bg-white border-b flex items-center justify-between px-4 sm:px-6'>
+                    <header className='h-16 bg-white border-b flex items-center justify-between px-4 sm:px-6 flex-shrink-0'>
                         <div className='flex items-center'>
                             <button
                                 onClick={() => setMobileSidebarOpen(true)}
@@ -182,7 +184,7 @@ export default function DashboardLayout({
                         <div className='max-w-7xl mx-auto'>{children}</div>
                     </main>
                 </div>
-            </div>{' '}
+            </div>
         </AuthGuard>
     );
 }

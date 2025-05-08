@@ -9,7 +9,7 @@ import {
     Redo2,
     Trash2,
     Undo2,
-    UserPlus
+    UserPlus,
 } from 'lucide-react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 
@@ -18,6 +18,7 @@ interface NoteToolbarProps {
     onArchive: () => void;
     onMoreClick: () => void;
     onColorClick: () => void;
+    onCloseClick: () => void;
 }
 
 export function NoteToolbar({
@@ -25,6 +26,7 @@ export function NoteToolbar({
     onArchive,
     onMoreClick,
     onColorClick,
+    onCloseClick,
 }: NoteToolbarProps) {
     if (isTrashed) {
         return (
@@ -102,7 +104,7 @@ export function NoteToolbar({
             </div>
             <div
                 className='note-input__button--close'
-                onClick={onArchive}
+                onClick={onCloseClick}
             >
                 Close
             </div>
