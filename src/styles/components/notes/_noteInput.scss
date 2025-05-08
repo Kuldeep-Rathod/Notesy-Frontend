@@ -244,13 +244,15 @@
         }
 
         &-remove {
-            width: 24px;
-            height: 24px;
-            opacity: 0.54;
+            font-size: 1.2rem;
+            color: #666;
             cursor: pointer;
+            margin-left: 6px;
+            user-select: none;
 
             &:hover {
-                opacity: 0.87;
+                // opacity: 0.87;
+                color: red;
             }
         }
 
@@ -466,6 +468,21 @@
             color: #202124;
             border-bottom: 1px solid #e0e0e0;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+
+            button {
+                font-size: 1rem;
+                cursor: pointer;
+                padding: 0px 5px;
+                margin: 0;
+                font-weight: 600;
+
+                &:hover {
+                    background-color: rgba(95, 99, 104, 0.1);
+                    border-radius: 50%;
+                }
+            }
         }
 
         &-search {

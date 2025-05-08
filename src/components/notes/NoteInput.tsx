@@ -1,6 +1,5 @@
 'use client';
 
-// components/NoteInput.tsx
 import { LabelI } from '@/interfaces/labels';
 import { CheckboxI, NoteI } from '@/interfaces/notes';
 import { bgColors, bgImages } from '@/interfaces/tooltip';
@@ -18,6 +17,13 @@ import { NoteToolbar } from './input/NoteToolbar';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
+import {
+    useGetLabelsQuery,
+    useAddLabelMutation,
+    useEditLabelMutation,
+    useDeleteLabelMutation,
+    useAttachLabelsToNoteMutation,
+} from '@/redux/api/labelsAPI';
 
 export default function NoteInput({
     isEditing = false,
@@ -63,6 +69,14 @@ export default function NoteInput({
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [colorMenuOpen, setColorMenuOpen] = useState(false);
     const [labelMenuOpen, setLabelMenuOpen] = useState(false);
+
+    // Get labels
+    const { data: serverLabels = [], refetch: refetchLabels } =
+        useGetLabelsQuery();
+    const [addLabel] = useAddLabelMutation();
+    const [editLabel] = useEditLabelMutation();
+    const [deleteLabel] = useDeleteLabelMutation();
+    const [attachLabelsToNote] = useAttachLabelsToNoteMutation();
 
     // Toggle note visibility
     const toggleNoteVisibility = useCallback((condition: boolean) => {
@@ -140,7 +154,9 @@ export default function NoteInput({
             bgImage: noteContainerRef.current.style.backgroundImage,
             checklists,
             isCbox,
-            labels: labels.filter((x) => x.added),
+            labels: labels
+                .filter((label) => label.added)
+                .map((label) => label.name),
             archived: isArchived,
             trashed: isTrashed,
         };
@@ -161,6 +177,7 @@ export default function NoteInput({
                 } else {
                     await createNote(noteObj).unwrap();
                     console.log('Note created successfully');
+                    console.log('Note created:', noteObj);
                     onSuccess?.();
 
                     if (isArchived) {
@@ -210,6 +227,8 @@ export default function NoteInput({
         setIsTrashed(false);
         setIsCboxCompletedListCollapsed(false);
         setInputLength({ title: 0, body: 0, cb: 0 });
+        setLabelMenuOpen(false);
+        setMoreMenuOpen(false);
     }, []);
 
     // Paste event handler
@@ -357,31 +376,90 @@ export default function NoteInput({
         []
     );
 
+    // Update labels state when server labels change
+    useEffect(() => {
+        if (serverLabels) {
+            const formattedLabels: LabelI[] = serverLabels.map((labelName) => ({
+                name: labelName,
+                added:
+                    (isEditing &&
+                        noteToEdit?.labels?.some((noteLabel) =>
+                            typeof noteLabel === 'string'
+                                ? noteLabel === labelName
+                                : noteLabel.name === labelName
+                        )) ||
+                    false,
+            }));
+            setLabels(formattedLabels);
+            setAvailableLabels(formattedLabels);
+        }
+    }, [serverLabels, isEditing, noteToEdit]);
+
     // Toggle label
-    const toggleLabel = (labelName: string) => {
-        setLabels((prev) =>
-            prev.map((label) =>
-                label.name === labelName
-                    ? { ...label, added: !label.added }
-                    : label
-            )
-        );
+    const toggleLabel = async (labelName: string) => {
+        const label = labels.find((l) => l.name === labelName);
+        if (!label) return;
+
+        try {
+            if (!label.added) {
+                // Attach label to note
+                if (isEditing && noteToEdit?._id) {
+                    await attachLabelsToNote({
+                        id: noteToEdit._id.toString(),
+                        labels: labelName,
+                    }).unwrap();
+                }
+            } else {
+                // Detach label from note (you'll need to implement this in your API)
+                if (isEditing && noteToEdit?._id) {
+                    // Assuming you have a detachLabelsFromNote mutation
+                    // await detachLabelsFromNote({
+                    //     id: noteToEdit._id.toString(),
+                    //     labels: labelName
+                    // }).unwrap();
+                }
+            }
+
+            setLabels((prev) =>
+                prev.map((l) =>
+                    l.name === labelName ? { ...l, added: !l.added } : l
+                )
+            );
+        } catch (error) {
+            console.error('Error toggling label:', error);
+        }
     };
 
     // Add new label
-    const addNewLabel = () => {
+    const addNewLabel = async () => {
         if (
             searchQuery.trim() &&
             !labels.some((label) => label.name === searchQuery.trim())
         ) {
-            const newLabel = {
-                name: searchQuery.trim(),
-                added: true,
-            };
-            setLabels((prev) => [...prev, newLabel]);
-            setSearchQuery('');
-            if (labelSearchRef.current) {
-                labelSearchRef.current.value = '';
+            try {
+                await addLabel(searchQuery.trim()).unwrap();
+
+                // Add the new label to the list
+                const newLabel: LabelI = {
+                    name: searchQuery.trim(),
+                    added: true,
+                };
+
+                setLabels((prev) => [...prev, newLabel]);
+                setSearchQuery('');
+                if (labelSearchRef.current) {
+                    labelSearchRef.current.value = '';
+                }
+
+                // If editing, attach the new label to the note
+                if (isEditing && noteToEdit?._id) {
+                    await attachLabelsToNote({
+                        id: noteToEdit._id.toString(),
+                        labels: searchQuery.trim(),
+                    }).unwrap();
+                }
+            } catch (error) {
+                console.error('Error adding new label:', error);
             }
         }
     };
@@ -427,7 +505,7 @@ export default function NoteInput({
 
             // Initialize labels
             if (noteToEdit.labels) {
-                const initialLabels = noteToEdit.labels.map(label => {
+                const initialLabels = noteToEdit.labels.map((label) => {
                     if (typeof label === 'string') {
                         return { name: label, added: true };
                     }
@@ -436,62 +514,34 @@ export default function NoteInput({
                 setLabels(initialLabels);
             }
         }
-
-        // Fetch available labels (this would typically come from an API)
-        // For demo purposes, we'll use some sample labels
-        const fetchAvailableLabels = async () => {
-            // In a real app, you would fetch these from your API
-            const sampleLabels = [
-                { name: 'Work', added: false },
-                { name: 'Personal', added: false },
-                { name: 'Important', added: false },
-                { name: 'To-Do', added: false },
-                { name: 'Ideas', added: false },
-            ];
-
-            // Merge with any existing labels from the note being edited
-            if (isEditing && noteToEdit?.labels) {
-                const noteLabels = noteToEdit.labels.map(label => {
-                    if (typeof label === 'string') {
-                        return { name: label, added: true };
-                    }
-                    return { name: label.name, added: true };
-                });
-
-                // Combine and remove duplicates
-                const combined = [...noteLabels, ...sampleLabels].filter(
-                    (label, index, self) =>
-                        index === self.findIndex((l) => l.name === label.name)
-                );
-
-                setLabels(combined);
-                setAvailableLabels(combined);
-            } else {
-                setLabels(sampleLabels);
-                setAvailableLabels(sampleLabels);
-            }
-        };
-
-        fetchAvailableLabels();
     }, [isEditing, noteToEdit, notePhClick]);
 
     const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
         useSpeechRecognition();
     const [isListening, setIsListening] = useState(false);
 
-    const startListening = () => {
+    const startListening = useCallback(() => {
         setIsListening(true);
         SpeechRecognition.startListening({
             continuous: true,
             language: 'en-IN',
         });
-    };
+    }, []);
 
-    const stopListening = () => {
+    const stopListening = useCallback(() => {
         setIsListening(false);
         SpeechRecognition.stopListening();
-    };
+    }, []);
 
+    const handleFieldFocus = useCallback(
+        (field: 'title' | 'body') => {
+            setActiveField(field);
+            resetTranscript();
+        },
+        [resetTranscript]
+    );
+
+    // Handle speech recognition transcript updates
     useEffect(() => {
         if (!isListening || !transcript || !activeField) return;
 
@@ -513,10 +563,10 @@ export default function NoteInput({
             selection?.removeAllRanges();
             selection?.addRange(range);
         }
-    }, [transcript, isListening, activeField]);
+    }, [transcript, isListening, activeField, updateInputLength]);
 
     if (!browserSupportsSpeechRecognition) {
-        return <p>Browser doesnt support speech recognition.</p>;
+        return <p>Browser does not support speech recognition.</p>;
     }
 
     return (
@@ -782,7 +832,9 @@ export default function NoteInput({
                                             onClick={() =>
                                                 toggleLabel(label.name)
                                             }
-                                        ></div>
+                                        >
+                                            X
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -815,7 +867,10 @@ export default function NoteInput({
                                     : 'false';
                         }
                     }}
-                    onMoreClick={() => setMoreMenuOpen((prev) => !prev)}
+                    onMoreClick={() => {
+                        setMoreMenuOpen((prev) => !prev);
+                        setLabelMenuOpen(false);
+                    }}
                     onColorClick={() => setColorMenuOpen((prev) => !prev)}
                     pinned={notePinRef.current?.dataset.pinned === 'true'}
                 />
@@ -901,13 +956,13 @@ export default function NoteInput({
                 >
                     <div className='note-input__label-menu-title'>
                         <p>Label note</p>
-                        <p
+                        <button
                             onClick={() => {
                                 setLabelMenuOpen(false);
                             }}
                         >
                             X
-                        </p>
+                        </button>
                     </div>
                     <div className='note-input__label-menu-search'>
                         <input
@@ -942,12 +997,19 @@ export default function NoteInput({
                                     onClick={() => toggleLabel(label.name)}
                                 >
                                     <div
-                                        className={`note-input__label-menu-check ${
-                                            label.added
-                                                ? 'note-input__label-menu-check--active'
-                                                : ''
-                                        }`}
-                                    ></div>
+                                        className='note-input__label-menu-item'
+                                        onClick={() => toggleLabel(label.name)}
+                                    >
+                                        <input
+                                            type='checkbox'
+                                            checked={label.added}
+                                            onChange={() =>
+                                                toggleLabel(label.name)
+                                            }
+                                            className='note-input__label-menu-checkbox'
+                                        />
+                                    </div>
+
                                     <div className='note-input__label-menu-name'>
                                         {label.name}
                                     </div>

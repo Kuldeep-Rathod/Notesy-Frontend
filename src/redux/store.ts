@@ -3,12 +3,14 @@ import { authAPI } from './api/authAPI';
 import { notesAPI } from './api/notesAPI';
 import authReducer from './reducer/authReducer';
 import { userAPI } from './api/userAPI';
+import { labelsAPI } from './api/labelsAPI';
 
 export const rootReducer = combineReducers({
     auth: authReducer,
     [authAPI.reducerPath]: authAPI.reducer,
     [notesAPI.reducerPath]: notesAPI.reducer,
     [userAPI.reducerPath]: userAPI.reducer,
+    [labelsAPI.reducerPath]: labelsAPI.reducer,
 });
 
 export const store = configureStore({
@@ -17,7 +19,8 @@ export const store = configureStore({
         getDefaultMiddleware().concat(
             authAPI.middleware,
             notesAPI.middleware,
-            userAPI.middleware
+            userAPI.middleware,
+            labelsAPI.middleware
         ),
     devTools: process.env.NODE_ENV !== 'production',
 });
