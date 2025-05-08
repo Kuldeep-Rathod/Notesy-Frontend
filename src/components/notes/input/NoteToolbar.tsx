@@ -6,30 +6,25 @@ import {
     EllipsisVertical,
     ImagePlus,
     Palette,
-    PinIcon,
     Redo2,
     Trash2,
     Undo2,
-    UserPlus,
+    UserPlus
 } from 'lucide-react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 
 interface NoteToolbarProps {
     isTrashed: boolean;
     onArchive: () => void;
-    onPinToggle: () => void;
     onMoreClick: () => void;
     onColorClick: () => void;
-    pinned: boolean;
 }
 
 export function NoteToolbar({
     isTrashed,
     onArchive,
-    onPinToggle,
     onMoreClick,
     onColorClick,
-    pinned,
 }: NoteToolbarProps) {
     if (isTrashed) {
         return (

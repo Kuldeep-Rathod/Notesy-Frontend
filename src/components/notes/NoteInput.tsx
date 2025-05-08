@@ -50,6 +50,8 @@ export default function NoteInput({
     const [labels, setLabels] = useState<LabelI[]>([]);
     const [availableLabels, setAvailableLabels] = useState<LabelI[]>([]);
     const [isArchived, setIsArchived] = useState(false);
+    const [shouldSave, setShouldSave] = useState(false);
+
     const [isTrashed, setIsTrashed] = useState(false);
     const [isPinned, setIsPinned] = useState(false);
     const [isCboxCompletedListCollapsed, setIsCboxCompletedListCollapsed] =
@@ -129,6 +131,18 @@ export default function NoteInput({
         },
         [isEditing]
     );
+
+    useEffect(() => {
+        if (shouldSave) {
+            saveNote();
+            setShouldSave(false); // reset the flag if needed
+        }
+    }, [isArchived, shouldSave]);
+
+    const handleArchive = () => {
+        setIsArchived(true);
+        setShouldSave(true);
+    };
 
     // Close note
     const closeNote = useCallback(() => {
@@ -855,24 +869,12 @@ export default function NoteInput({
                 {/* Icons */}
                 <NoteToolbar
                     isTrashed={isTrashed}
-                    onArchive={() => {
-                        setIsArchived(true);
-                        saveNote();
-                    }}
-                    onPinToggle={() => {
-                        if (notePinRef.current) {
-                            notePinRef.current.dataset.pinned =
-                                notePinRef.current.dataset.pinned === 'false'
-                                    ? 'true'
-                                    : 'false';
-                        }
-                    }}
+                    onArchive={handleArchive}
                     onMoreClick={() => {
                         setMoreMenuOpen((prev) => !prev);
                         setLabelMenuOpen(false);
                     }}
                     onColorClick={() => setColorMenuOpen((prev) => !prev)}
-                    pinned={notePinRef.current?.dataset.pinned === 'true'}
                 />
             </div>
 
