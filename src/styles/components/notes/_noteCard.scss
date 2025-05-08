@@ -1,343 +1,308 @@
-.notes-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.notes-actions {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-
-    .view-toggle {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        background: #f1f3f4;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &.active {
-            background: #e0e0e0;
-            font-weight: 500;
-        }
-
-        &:hover {
-            background: #e0e0e0;
-        }
-    }
-}
-
-.notes-section {
-    margin-bottom: 30px;
-
-    .section-title {
-        margin: 0 0 15px 0;
-        font-size: 1rem;
-        font-weight: 500;
-        color: #5f6368;
-    }
-}
-
-.notes-list {
-    display: grid;
-    gap: 16px;
-
-    &.grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    }
-
-    &.list {
-        grid-template-columns: 1fr;
-    }
-}
+// Variables
+$primary-color: #0f766e;
+$secondary-color: #0d9488;
+$light-gray: #e2e8f0;
+$medium-gray: #94a3b8;
+$dark-gray: #475569;
+$danger-color: #ef4444;
+$success-color: #10b981;
+$border-radius: 8px;
+$shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+$transition: all 0.2s ease-in-out;
 
 .note-card {
-    border-radius: 8px;
+    background-color: white;
+    border-radius: $border-radius;
     padding: 16px;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
-        0 1px 3px 1px rgba(60, 64, 67, 0.15);
-    transition: box-shadow 0.2s, transform 0.2s;
-    position: relative;
-    min-height: 120px;
+    box-shadow: $shadow;
     display: flex;
     flex-direction: column;
+    gap: 10px;
+    transition: $transition;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
 
     &:hover {
-        box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.302),
-            0 4px 8px 3px rgba(60, 64, 67, 0.149);
-        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: rgba($secondary-color, 0.3);
+
+        .note-actions {
+            opacity: 1;
+        }
     }
 
     .note-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 12px;
 
         h4 {
-            margin: 0;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 500;
+            color: $dark-gray;
+            margin: 0;
+            word-break: break-word;
             cursor: pointer;
-            flex-grow: 1;
+            flex: 1;
+
+            &:hover {
+                color: $primary-color;
+            }
         }
 
         .pin-button {
             background: none;
             border: none;
-            padding: 4px;
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: $medium-gray;
             cursor: pointer;
-            color: #5f6368;
+            transition: $transition;
+            border-radius: 50%;
             margin-left: 8px;
 
             &:hover {
-                color: #202124;
+                background-color: $light-gray;
+                color: $dark-gray;
+            }
+
+            svg {
+                fill: currentColor;
             }
         }
     }
 
     .note-content {
-        flex-grow: 1;
+        flex: 1;
         cursor: pointer;
 
-        p {
+        .note-body {
+            font-size: 0.95rem;
+            color: $dark-gray;
             margin: 0;
-            font-size: 0.875rem;
-            color: #202124;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 10;
-            -webkit-box-orient: vertical;
             overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 6;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+        }
+
+        .checklist-preview {
+            margin-top: 10px;
+
+            .checklist-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 5px;
+
+                .checkbox-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+
+                    input[type='checkbox'] {
+                        accent-color: $primary-color;
+                    }
+
+                    span {
+                        font-size: 0.9rem;
+                        color: $dark-gray;
+
+                        &.checked {
+                            text-decoration: line-through;
+                            color: $medium-gray;
+                        }
+                    }
+                }
+            }
+
+            .more-items {
+                font-size: 0.8rem;
+                color: $medium-gray;
+                margin-top: 5px;
+            }
+        }
+    }
+
+    .note-labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 5px;
+
+        .label-chip {
+            background-color: rgba($primary-color, 0.1);
+            color: $primary-color;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
         }
     }
 
     .note-actions {
         display: flex;
-        justify-content: flex-end;
-        gap: 4px;
-        margin-top: 12px;
-        opacity: 0;
-        transition: opacity 0.2s;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 5px;
+        padding-top: 8px;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
 
         .action-button {
             background: none;
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            padding: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: $medium-gray;
             cursor: pointer;
-            color: #5f6368;
+            transition: $transition;
+            border-radius: 50%;
 
             &:hover {
-                background: rgba(95, 99, 104, 0.1);
-                color: #202124;
+                background-color: $light-gray;
+                color: $dark-gray;
             }
 
             &.restore {
-                color: #1a73e8;
+                color: $success-color;
 
                 &:hover {
-                    background: rgba(26, 115, 232, 0.1);
+                    background-color: rgba($success-color, 0.1);
                 }
             }
 
             &.delete {
-                color: #d93025;
+                color: $danger-color;
 
                 &:hover {
-                    background: rgba(217, 48, 37, 0.1);
+                    background-color: rgba($danger-color, 0.1);
+                }
+            }
+        }
+
+        .color-picker-container,
+        .more-menu-container {
+            position: relative;
+
+            .color-picker,
+            .more-menu {
+                position: absolute;
+                bottom: 100%; // Change from bottom: 40px to appear above
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: white;
+                border-radius: $border-radius;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+                padding: 10px;
+                z-index: 1000; // Increase z-index
+                min-width: 200px;
+                display: none; // Hide by default
+            }
+
+            &.open {
+                .color-picker,
+                .more-menu {
+                    display: block; // Show when open class is present
+                }
+            }
+
+            .color-picker {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+
+                .color-option {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    border: 1px solid $light-gray;
+                    transition: $transition;
+
+                    &:hover {
+                        transform: scale(1.1);
+                        box-shadow: 0 0 0 2px rgba($secondary-color, 0.3);
+                    }
+                }
+            }
+
+            .more-menu {
+                display: flex;
+                flex-direction: column;
+
+                button {
+                    text-align: left;
+                    padding: 8px 12px;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: $dark-gray;
+                    border-radius: $border-radius;
+                    transition: $transition;
+
+                    &:hover {
+                        background-color: $light-gray;
+                    }
                 }
             }
         }
     }
 
-    &:hover .note-actions {
-        opacity: 1;
+    // Special states
+    &.archived {
+        opacity: 0.8;
+    }
+
+    &.trashed {
+        opacity: 0.7;
+        border: 1px dashed $light-gray;
     }
 }
 
-.color-picker-container {
-    position: relative;
-}
-
-.color-picker {
-    position: absolute;
-    bottom: 40px;
-    left: 0;
-    background: white;
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
-        0 2px 6px 2px rgba(60, 64, 67, 0.15);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    z-index: 10;
-
-    .color-option {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-
-        &:hover {
-            transform: scale(1.1);
-        }
-    }
-}
-
-.more-menu-container {
-    position: relative;
-}
-
-.more-menu {
-    position: absolute;
-    bottom: 40px;
-    right: 0;
-    background: white;
-    border-radius: 8px;
-    padding: 8px 0;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
-        0 2px 6px 2px rgba(60, 64, 67, 0.15);
-    min-width: 150px;
-    z-index: 10;
-
-    button {
-        display: block;
-        width: 100%;
-        padding: 8px 16px;
-        text-align: left;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: #202124;
-
-        &:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-    }
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
+// List view specific styles
+.notes-list.list .note-card {
+    flex-direction: row;
     align-items: center;
-    z-index: 1000;
-}
+    padding: 12px 16px;
 
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-
-    h2 {
-        margin-top: 0;
-        color: #333;
+    .note-header {
+        width: 25%;
+        min-width: 180px;
     }
-}
 
-.speech-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 1rem;
-    align-items: center;
+    .note-content {
+        flex: 1;
+        padding: 0 20px;
 
-    button {
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-        background: white;
-        cursor: pointer;
-        font-size: 0.9rem;
-
-        &:hover {
-            background: #f5f5f5;
+        .note-body {
+            -webkit-line-clamp: 2;
         }
     }
 
-    .listening-indicator {
-        color: #4285f4;
-        font-weight: bold;
+    .note-actions {
+        opacity: 0.7;
+        padding-top: 0;
         margin-left: auto;
     }
 }
 
-.modal-input,
-.modal-textarea {
-    width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+// Responsive adjustments
+@media (max-width: 768px) {
+    .notes-list.list .note-card {
+        flex-direction: column;
 
-    &:focus {
-        outline: none;
-        border-color: #4285f4;
-    }
-}
-
-.modal-textarea {
-    min-height: 200px;
-    resize: vertical;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-
-    .modal-button {
-        padding: 0.5rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-
-        &.save {
-            background: #4285f4;
-            color: white;
-            border: none;
-
-            &:hover {
-                background: #3367d6;
-            }
+        .note-header {
+            width: 100%;
         }
 
-        &.cancel {
-            background: white;
-            border: 1px solid #ddd;
-
-            &:hover {
-                background: #f5f5f5;
-            }
+        .note-content {
+            padding: 10px 0;
         }
     }
-}
-
-.browser-warning,
-.loading,
-.error {
-    padding: 2rem;
-    text-align: center;
-    font-size: 1.2rem;
-}
-
-.error {
-    color: #d32f2f;
 }

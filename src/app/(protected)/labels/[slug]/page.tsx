@@ -3,7 +3,6 @@
 import { useParams } from 'next/navigation';
 import NoteCard from '@/components/notes/NoteCard';
 import { NoteI } from '@/interfaces/notes';
-import '@/styles/components/notes/_noteCard.scss';
 import { useGetUserNotesQuery } from '@/redux/api/notesAPI';
 
 const LabelNotesPage: React.FC = () => {

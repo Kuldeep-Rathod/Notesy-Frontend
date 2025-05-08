@@ -8,13 +8,23 @@ import {
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
+import '@/styles/components/notes/_noteContainer.scss';
+import {
+    X as CloseIcon,
+    Grid,
+    List,
+    Mic,
+    MicOff,
+    Save,
+    Search,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
 import NoteCard from './NoteCard';
-import '@/styles/components/notes/_noteCard.scss';
 
 const NotesContainer = () => {
     const user = useSelector((state: RootState) => state.auth.user);
@@ -23,6 +33,7 @@ const NotesContainer = () => {
     // Refs for speech recognition
     const noteTitleRef = useRef<HTMLInputElement>(null);
     const noteBodyRef = useRef<HTMLTextAreaElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     // API hooks
     const {
@@ -35,6 +46,8 @@ const NotesContainer = () => {
     const [createNote] = useCreateNoteMutation();
     const [updateNote] = useUpdateNoteMutation();
     const [moveToBin] = useMoveNoteToBinMutation();
+    // const [restoreFromBin] = useRestoreFromBinMutation();
+    // const [deleteNotePermanently] = useDeleteNotePermanentlyMutation();
 
     // UI state
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
@@ -43,6 +56,8 @@ const NotesContainer = () => {
     const [activeField, setActiveField] = useState<'title' | 'body' | null>(
         null
     );
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
 
     // Speech recognition
     const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
@@ -50,13 +65,45 @@ const NotesContainer = () => {
     const [isListening, setIsListening] = useState(false);
 
     // Memoize categorized notes
-    const { pinnedNotes, unpinnedNotes } = useMemo(() => {
-        const active = notes.filter((n: NoteI) => !n.trashed && !n.archived);
+    const {
+        pinnedNotes,
+        unpinnedNotes,
+        trashedNotes,
+        archivedNotes,
+        filteredNotes,
+    } = useMemo(() => {
+        const filtered = notes.filter((note: NoteI) => {
+            if (!searchQuery) return true;
+
+            const titleMatch = note.noteTitle
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+            const bodyMatch = note.noteBody
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+            const labelMatch = note.labels?.some(
+                (label) =>
+                    typeof label === 'string' &&
+                    label.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            return titleMatch || bodyMatch || labelMatch;
+        });
+
         return {
-            pinnedNotes: active.filter((n: NoteI) => n.pinned),
-            unpinnedNotes: active.filter((n: NoteI) => !n.pinned),
+            pinnedNotes: filtered.filter(
+                (n: NoteI) => !n.trashed && !n.archived && n.pinned
+            ),
+            unpinnedNotes: filtered.filter(
+                (n: NoteI) => !n.trashed && !n.archived && !n.pinned
+            ),
+            trashedNotes: filtered.filter((n: NoteI) => n.trashed),
+            archivedNotes: filtered.filter(
+                (n: NoteI) => n.archived && !n.trashed
+            ),
+            filteredNotes: filtered,
         };
-    }, [notes]);
+    }, [notes, searchQuery]);
 
     // Speech recognition handlers
     const startListening = () => {
@@ -92,15 +139,16 @@ const NotesContainer = () => {
                 noteBody: transcript,
             }));
         }
-
-        console.log('Transcript:', transcript);
     }, [transcript, isListening, activeField]);
 
     // Note operations
-    const handlePinToggle = async (note: NoteI) => {
+    const handlePinToggle = async (noteId: string) => {
+        const note = notes.find((n: NoteI) => n._id === noteId);
+        if (!note) return;
+
         try {
             await updateNote({
-                id: note._id!,
+                id: noteId,
                 updates: { pinned: !note.pinned },
             }).unwrap();
             refetch();
@@ -109,10 +157,13 @@ const NotesContainer = () => {
         }
     };
 
-    const handleArchiveToggle = async (note: NoteI) => {
+    const handleArchiveToggle = async (noteId: string) => {
+        const note = notes.find((n: NoteI) => n._id === noteId);
+        if (!note) return;
+
         try {
             await updateNote({
-                id: note._id!,
+                id: noteId,
                 updates: {
                     archived: !note.archived,
                     pinned: false,
@@ -124,19 +175,37 @@ const NotesContainer = () => {
         }
     };
 
-    const handleMoveToTrash = async (note: NoteI) => {
+    const handleMoveToTrash = async (noteId: string) => {
         try {
-            await moveToBin(note._id!).unwrap();
+            await moveToBin(noteId).unwrap();
             refetch();
         } catch (error) {
             console.error('Failed to move note to trash:', error);
         }
     };
 
-    const handleChangeColor = async (note: NoteI, color: string) => {
+    const handleRestoreFromTrash = async (noteId: string) => {
+        // try {
+        //     await restoreFromBin(noteId).unwrap();
+        //     refetch();
+        // } catch (error) {
+        //     console.error('Failed to restore note:', error);
+        // }
+    };
+
+    const handleDeletePermanently = async (noteId: string) => {
+        // try {
+        //     await deleteNotePermanently(noteId).unwrap();
+        //     refetch();
+        // } catch (error) {
+        //     console.error('Failed to delete note permanently:', error);
+        // }
+    };
+
+    const handleChangeColor = async (noteId: string, color: string) => {
         try {
             await updateNote({
-                id: note._id!,
+                id: noteId,
                 updates: { bgColor: color },
             }).unwrap();
             refetch();
@@ -145,13 +214,17 @@ const NotesContainer = () => {
         }
     };
 
-    const handleCloneNote = async (note: NoteI) => {
+    const handleCloneNote = async (noteId: string) => {
+        const note = notes.find((n: NoteI) => n._id === noteId);
+        if (!note) return;
+
         try {
             const { _id, ...noteData } = note;
             await createNote({
                 ...noteData,
                 firebaseUid: uid!,
                 pinned: false,
+                noteTitle: `${note.noteTitle} (Copy)`,
             }).unwrap();
             refetch();
         } catch (error) {
@@ -163,35 +236,45 @@ const NotesContainer = () => {
     const openNote = (note: NoteI) => {
         setEditingNote(note);
         setIsModalOpen(true);
+        setIsCreatingNewNote(false);
         resetTranscript();
     };
 
     const closeModal = () => {
         setEditingNote(null);
         setIsModalOpen(false);
+        setIsCreatingNewNote(false);
         if (isListening) stopListening();
     };
 
     const saveNote = async () => {
-        if (editingNote && editingNote._id) {
-            try {
+        if (!editingNote) return;
+
+        try {
+            if (editingNote._id) {
                 await updateNote({
                     id: editingNote._id,
                     updates: {
                         noteTitle: editingNote.noteTitle,
                         noteBody: editingNote.noteBody,
-                        isCbox: editingNote.isCbox,
                         checklists: editingNote.checklists,
                         labels: editingNote.labels,
                         bgColor: editingNote.bgColor,
                         bgImage: editingNote.bgImage,
                     },
                 }).unwrap();
-                refetch();
-                closeModal();
-            } catch (error) {
-                console.error('Failed to update note:', error);
             }
+            refetch();
+            closeModal();
+        } catch (error) {
+            console.error('Failed to save note:', error);
+        }
+    };
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
         }
     };
 
@@ -204,73 +287,189 @@ const NotesContainer = () => {
         );
     }
 
-    if (isLoading) return <div className='loading'>Loading notes...</div>;
-    if (isError) return <div className='error'>Error loading notes</div>;
-
     return (
         <div className='notes-container'>
-            <div className='notes-actions'>
-                {(['grid', 'list'] as const).map((type) => (
+            {/* Header with search and view toggle */}
+            <div className='notes-header'>
+                <div className='search-container'>
+                    <Search
+                        size={18}
+                        className='search-icon'
+                    />
+                    <input
+                        ref={searchInputRef}
+                        type='text'
+                        placeholder='Search notes...'
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className='search-input'
+                    />
+                    {searchQuery && (
+                        <button
+                            className='clear-search'
+                            onClick={clearSearch}
+                            aria-label='Clear search'
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
+                </div>
+
+                <div className='view-options'>
                     <button
-                        key={type}
                         className={`view-toggle ${
-                            viewType === type ? 'active' : ''
+                            viewType === 'grid' ? 'active' : ''
                         }`}
-                        onClick={() => setViewType(type)}
+                        onClick={() => setViewType('grid')}
+                        aria-label='Grid view'
                     >
-                        {type.charAt(0).toUpperCase() + type.slice(1)} View
+                        <Grid size={20} />
                     </button>
-                ))}
+                    <button
+                        className={`view-toggle ${
+                            viewType === 'list' ? 'active' : ''
+                        }`}
+                        onClick={() => setViewType('list')}
+                        aria-label='List view'
+                    >
+                        <List size={20} />
+                    </button>
+                </div>
             </div>
 
-            {pinnedNotes.length > 0 && (
-                <section className='notes-section'>
-                    <h3 className='section-title'>Pinned Notes</h3>
-                    <div className={`notes-list ${viewType}`}>
-                        {pinnedNotes.map((note: NoteI) => (
-                            <NoteCard
-                                key={note._id}
-                                note={note}
-                                onPinToggle={() => handlePinToggle(note)}
-                                onArchiveToggle={() =>
-                                    handleArchiveToggle(note)
-                                }
-                                onTrash={() => handleMoveToTrash(note)}
-                                onEdit={() => openNote(note)}
-                                onChangeColor={(color: string) =>
-                                    handleChangeColor(note, color)
-                                }
-                                onClone={() => handleCloneNote(note)}
-                            />
-                        ))}
-                    </div>
-                </section>
+            {/* Notes sections */}
+            {isLoading ? (
+                <div className='loading-container'>
+                    <div className='loading-spinner'></div>
+                    <p>Loading notes...</p>
+                </div>
+            ) : isError ? (
+                <div className='error-container'>
+                    <p>Error loading notes. Please try again later.</p>
+                    <button
+                        onClick={() => refetch()}
+                        className='retry-button'
+                    >
+                        Retry
+                    </button>
+                </div>
+            ) : filteredNotes.length === 0 ? (
+                <div className='empty-state'>
+                    <p>
+                        No notes found
+                        {searchQuery ? ' matching your search' : ''}
+                    </p>
+                    {searchQuery && (
+                        <button
+                            onClick={clearSearch}
+                            className='clear-search-button'
+                        >
+                            Clear Search
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <>
+                    {pinnedNotes.length > 0 && (
+                        <section className='notes-section'>
+                            <h3 className='section-title'>
+                                <span>Pinned Notes</span>
+                                <span className='note-count'>
+                                    {pinnedNotes.length}
+                                </span>
+                            </h3>
+                            <div className={`notes-list ${viewType}`}>
+                                {pinnedNotes.map((note: NoteI) => (
+                                    <NoteCard
+                                        key={note._id}
+                                        note={note}
+                                        onPinToggle={handlePinToggle}
+                                        onArchiveToggle={handleArchiveToggle}
+                                        onTrash={handleMoveToTrash}
+                                        onEdit={openNote}
+                                        onChangeColor={handleChangeColor}
+                                        onClone={handleCloneNote}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {unpinnedNotes.length > 0 && (
+                        <section className='notes-section'>
+                            <h3 className='section-title'>
+                                <span>Notes</span>
+                                <span className='note-count'>
+                                    {unpinnedNotes.length}
+                                </span>
+                            </h3>
+                            <div className={`notes-list ${viewType}`}>
+                                {unpinnedNotes.map((note: NoteI) => (
+                                    <NoteCard
+                                        key={note._id}
+                                        note={note}
+                                        onPinToggle={handlePinToggle}
+                                        onArchiveToggle={handleArchiveToggle}
+                                        onTrash={handleMoveToTrash}
+                                        onEdit={openNote}
+                                        onChangeColor={handleChangeColor}
+                                        onClone={handleCloneNote}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {archivedNotes.length > 0 && searchQuery && (
+                        <section className='notes-section'>
+                            <h3 className='section-title'>
+                                <span>Archived Notes</span>
+                                <span className='note-count'>
+                                    {archivedNotes.length}
+                                </span>
+                            </h3>
+                            <div className={`notes-list ${viewType}`}>
+                                {archivedNotes.map((note: NoteI) => (
+                                    <NoteCard
+                                        key={note._id}
+                                        note={note}
+                                        onPinToggle={handlePinToggle}
+                                        onArchiveToggle={handleArchiveToggle}
+                                        onTrash={handleMoveToTrash}
+                                        onEdit={openNote}
+                                        onChangeColor={handleChangeColor}
+                                        onClone={handleCloneNote}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {trashedNotes.length > 0 && searchQuery && (
+                        <section className='notes-section'>
+                            <h3 className='section-title'>
+                                <span>Trash</span>
+                                <span className='note-count'>
+                                    {trashedNotes.length}
+                                </span>
+                            </h3>
+                            <div className={`notes-list ${viewType}`}>
+                                {trashedNotes.map((note: NoteI) => (
+                                    <NoteCard
+                                        key={note._id}
+                                        note={note}
+                                        onRestore={handleRestoreFromTrash}
+                                        onDelete={handleDeletePermanently}
+                                        onEdit={openNote}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </>
             )}
 
-            {unpinnedNotes.length > 0 && (
-                <section className='notes-section'>
-                    <h3 className='section-title'>Notes</h3>
-                    <div className={`notes-list ${viewType}`}>
-                        {unpinnedNotes.map((note: NoteI) => (
-                            <NoteCard
-                                key={note._id}
-                                note={note}
-                                onPinToggle={() => handlePinToggle(note)}
-                                onArchiveToggle={() =>
-                                    handleArchiveToggle(note)
-                                }
-                                onTrash={() => handleMoveToTrash(note)}
-                                onEdit={() => openNote(note)}
-                                onChangeColor={(color: string) =>
-                                    handleChangeColor(note, color)
-                                }
-                                onClone={() => handleCloneNote(note)}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )}
-
+            {/* Note edit/create modal */}
             {isModalOpen && editingNote && (
                 <div
                     className='modal-overlay'
@@ -279,11 +478,26 @@ const NotesContainer = () => {
                     <div
                         className='modal-content'
                         onClick={(e) => e.stopPropagation()}
+                        style={{
+                            backgroundColor: editingNote.bgColor || '#ffffff',
+                        }}
                     >
-                        <h2>Edit Note</h2>
+                        <div className='modal-header'>
+                            <h2>Edit Note</h2>
+                            <button
+                                className='close-modal'
+                                onClick={closeModal}
+                                aria-label='Close modal'
+                            >
+                                <CloseIcon size={20} />
+                            </button>
+                        </div>
 
                         <div className='speech-controls'>
                             <button
+                                className={`speech-button ${
+                                    isListening ? 'active' : ''
+                                }`}
                                 onClick={
                                     isListening ? stopListening : startListening
                                 }
@@ -293,13 +507,21 @@ const NotesContainer = () => {
                                         : 'Start speech recognition'
                                 }
                             >
-                                {isListening ? '🛑 Stop' : '🎤 Start Speaking'}
-                            </button>
-                            <button onClick={resetTranscript}>🗑️ Clear</button>
-                            {isListening && (
-                                <span className='listening-indicator'>
-                                    🎙️ Listening...
+                                {isListening ? (
+                                    <MicOff size={18} />
+                                ) : (
+                                    <Mic size={18} />
+                                )}
+                                <span>
+                                    {isListening ? 'Stop' : 'Voice Input'}
                                 </span>
+                            </button>
+
+                            {isListening && (
+                                <div className='listening-status'>
+                                    <div className='pulse-animation'></div>
+                                    <span>Listening...</span>
+                                </div>
                             )}
                         </div>
 
@@ -338,18 +560,61 @@ const NotesContainer = () => {
                             rows={8}
                         />
 
+                        {/* Display labels if any */}
+                        {editingNote.labels &&
+                            editingNote.labels.length > 0 && (
+                                <div className='modal-labels'>
+                                    {editingNote.labels.map((label, index) => (
+                                        <span
+                                            key={index}
+                                            className='label-chip'
+                                        >
+                                            {typeof label === 'string'
+                                                ? label
+                                                : JSON.stringify(label)}
+                                            <button
+                                                className='remove-label'
+                                                onClick={() => {
+                                                    const updatedLabels = [
+                                                        ...editingNote.labels!,
+                                                    ];
+                                                    updatedLabels.splice(
+                                                        index,
+                                                        1
+                                                    );
+                                                    setEditingNote({
+                                                        ...editingNote,
+                                                        labels: updatedLabels.filter(
+                                                            (
+                                                                label
+                                                            ): label is string =>
+                                                                typeof label ===
+                                                                'string'
+                                                        ),
+                                                    });
+                                                }}
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
                         <div className='modal-actions'>
                             <button
                                 className='modal-button save'
                                 onClick={saveNote}
                             >
-                                Save
+                                <Save size={18} />
+                                <span>Save</span>
                             </button>
                             <button
                                 className='modal-button cancel'
                                 onClick={closeModal}
                             >
-                                Cancel
+                                <X size={18} />
+                                <span>Cancel</span>
                             </button>
                         </div>
                     </div>
