@@ -26,11 +26,17 @@ interface NoteInputState {
         moreMenuOpen: boolean;
         colorMenuOpen: boolean;
         labelMenuOpen: boolean;
+        collaboratorMenuOpen: boolean;
     };
     searchQuery: string;
     noteAppearance: {
         bgColor: string;
         bgImage: string;
+    };
+    collaborators: {
+        selectedUsers: { uid: string; email: string; name: string }[];
+        searchTerm: string;
+        isSearching: boolean;
     };
 }
 
@@ -55,11 +61,17 @@ const initialState: NoteInputState = {
         moreMenuOpen: false,
         colorMenuOpen: false,
         labelMenuOpen: false,
+        collaboratorMenuOpen: false,
     },
     searchQuery: '',
     noteAppearance: {
         bgColor: '',
         bgImage: '',
+    },
+    collaborators: {
+        selectedUsers: [],
+        searchTerm: '',
+        isSearching: false,
     },
 };
 
@@ -198,6 +210,37 @@ export const noteInputReducer = createSlice({
 
         // Reset
         resetNoteInput: () => initialState,
+
+        // Collaboration
+        toggleCollaboratorMenu: (state) => {
+            state.tooltips.collaboratorMenuOpen = !state.tooltips.collaboratorMenuOpen;
+            if (state.tooltips.collaboratorMenuOpen) {
+                state.tooltips.moreMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+                state.tooltips.labelMenuOpen = false;
+            }
+        },
+        setCollaboratorSearchTerm: (state, action: PayloadAction<string>) => {
+            state.collaborators.searchTerm = action.payload;
+        },
+        setCollaboratorSearching: (state, action: PayloadAction<boolean>) => {
+            state.collaborators.isSearching = action.payload;
+        },
+        addCollaborator: (state, action: PayloadAction<{ uid: string; email: string; name: string }>) => {
+            if (!state.collaborators.selectedUsers.some(user => user.uid === action.payload.uid)) {
+                state.collaborators.selectedUsers.push(action.payload);
+            }
+        },
+        removeCollaborator: (state, action: PayloadAction<string>) => {
+            state.collaborators.selectedUsers = state.collaborators.selectedUsers.filter(
+                user => user.uid !== action.payload
+            );
+        },
+        clearCollaborators: (state) => {
+            state.collaborators.selectedUsers = [];
+            state.collaborators.searchTerm = '';
+            state.collaborators.isSearching = false;
+        },
     },
 });
 
@@ -226,6 +269,12 @@ export const {
     setActiveField,
     updateInputLength,
     resetNoteInput,
+    toggleCollaboratorMenu,
+    setCollaboratorSearchTerm,
+    setCollaboratorSearching,
+    addCollaborator,
+    removeCollaborator,
+    clearCollaborators,
 } = noteInputReducer.actions;
 
 export default noteInputReducer.reducer;

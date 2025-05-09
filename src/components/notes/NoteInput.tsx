@@ -10,6 +10,7 @@ import {
 import {
     useCreateNoteMutation,
     useUpdateNoteMutation,
+    useShareNoteMutation,
 } from '@/redux/api/notesAPI';
 import {
     addChecklist,
@@ -42,7 +43,7 @@ import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
 import { CheckboxList } from './input/CheckboxList';
-import { NoteToolbar } from './input/NoteToolbar';
+import NoteToolbar from './input/NoteToolbar';
 
 export default function NoteInput({
     isEditing = false,
@@ -65,13 +66,15 @@ export default function NoteInput({
         transcript,
         activeField,
         inputLength,
-        tooltips: { moreMenuOpen, colorMenuOpen, labelMenuOpen },
+        tooltips: { labelMenuOpen },
         searchQuery,
         noteAppearance: { bgColor, bgImage },
+        collaborators: { selectedUsers },
     } = useSelector(selectNoteInput);
 
     const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
     const [updateNote, { isLoading: isUpdating }] = useUpdateNoteMutation();
+    const [shareNote] = useShareNoteMutation();
 
     // Refs
     const mainRef = useRef<HTMLDivElement>(null);
@@ -149,10 +152,6 @@ export default function NoteInput({
         }
     }, [isArchived]);
 
-    const handleArchive = () => {
-        dispatch(toggleArchive());
-    };
-
     // Close note
     const closeNote = useCallback(() => {
         toggleNoteVisibility(false);
@@ -190,22 +189,35 @@ export default function NoteInput({
             checklists.length
         ) {
             try {
+                let savedNoteId: string | undefined;
+
                 if (isEditing && noteToEdit?._id) {
-                    await updateNote({
+                    const updatedNote = await updateNote({
                         id: noteToEdit._id.toString(),
                         updates: noteObj,
                     }).unwrap();
+                    savedNoteId = updatedNote._id;
                     console.log('Note updated successfully');
-                    onSuccess?.();
                 } else {
-                    await createNote(noteObj).unwrap();
+                    const newNote = await createNote(noteObj).unwrap();
+                    savedNoteId = newNote._id;
                     console.log('Note created successfully');
-                    onSuccess?.();
-                    dispatch(resetNoteInput());
+                }
 
-                    if (!isEditing) {
-                        closeNote();
-                    }
+                // Share note if collaborators are selected
+                if (savedNoteId && selectedUsers.length > 0) {
+                    await shareNote({
+                        noteId: savedNoteId,
+                        emails: selectedUsers.map((user) => user.email),
+                    }).unwrap();
+                    console.log('Note shared successfully');
+                }
+
+                onSuccess?.();
+                dispatch(resetNoteInput());
+
+                if (!isEditing) {
+                    closeNote();
                 }
             } catch (error) {
                 console.error('Error saving note:', error);
@@ -223,6 +235,8 @@ export default function NoteInput({
         onSuccess,
         createNote,
         updateNote,
+        shareNote,
+        selectedUsers,
     ]);
 
     // Paste event handler
@@ -798,7 +812,10 @@ export default function NoteInput({
                 </div>
 
                 {/* Icons */}
-                <NoteToolbar onCloseClick={saveNote} />
+                <NoteToolbar
+                    onCloseClick={saveNote}
+                    isEditing={isEditing}
+                />
             </div>
 
             {labelMenuOpen && (

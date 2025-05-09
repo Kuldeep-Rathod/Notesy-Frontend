@@ -7,6 +7,7 @@ import {
     setBgImage,
     toggleArchive,
     toggleCbox,
+    toggleCollaboratorMenu,
     toggleColorMenu,
     toggleLabelMenu,
     toggleMoreMenu,
@@ -25,75 +26,37 @@ import {
 } from 'lucide-react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { useShareNoteMutation } from '@/redux/api/notesAPI';
-import { useState, useEffect } from 'react';
-import { DbUser } from '@/types/reducer-types';
-import { useGetAllUsersQuery } from '@/redux/api/userAPI';
+import { CollaboratorMenu } from './CollaboratorMenu';
 
 interface NoteToolbarProps {
     onCloseClick: () => void;
     isEditing?: boolean;
-    noteId?: string;
 }
 
-export function NoteToolbar({
+export default function NoteToolbar({
     onCloseClick,
     isEditing = false,
-    noteId,
 }: NoteToolbarProps) {
     const dispatch = useDispatch();
-    const [shareNote] = useShareNoteMutation();
-    const { data: users = [] } = useGetAllUsersQuery();
-    const [showCollaboratorMenu, setShowCollaboratorMenu] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedUsers, setSelectedUsers] = useState<DbUser[]>([]);
-
-    console.log('Share Note:', selectedUsers);
 
     // Redux state
     const {
         isCbox,
         isTrashed,
-        tooltips: { moreMenuOpen, colorMenuOpen, labelMenuOpen },
+        tooltips: {
+            moreMenuOpen,
+            colorMenuOpen,
+            labelMenuOpen,
+            collaboratorMenuOpen,
+        },
     } = useSelector(selectNoteInput);
 
     const handleArchive = () => {
         dispatch(toggleArchive());
     };
 
-    // Filter users based on search term
-    const filteredUsers: DbUser[] = users.filter(
-        (user: DbUser) =>
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     const handleCollaboratorClick = () => {
-        setShowCollaboratorMenu(!showCollaboratorMenu);
-    };
-
-    const handleUserSelect = (user: DbUser) => {
-        setSelectedUsers((prev) => {
-            if (prev.some((u) => u._id === user._id)) {
-                return prev.filter((u) => u._id !== user._id);
-            }
-            return [...prev, user];
-        });
-    };
-
-    const handleShareNote = async () => {
-        if (noteId && selectedUsers.length > 0) {
-            try {
-                await shareNote({
-                    noteId,
-                    emails: selectedUsers.map((user) => user.email),
-                }).unwrap();
-                setSelectedUsers([]);
-                setShowCollaboratorMenu(false);
-            } catch (error) {
-                console.error('Failed to share note:', error);
-            }
-        }
+        dispatch(toggleCollaboratorMenu());
     };
 
     // More menu actions
@@ -152,13 +115,18 @@ export function NoteToolbar({
                 >
                     <Bell />
                 </div>
+
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--collaborator H pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop `}
                     data-tooltip='Collaborator'
                     onClick={handleCollaboratorClick}
                 >
                     <UserPlus />
                 </div>
+                {collaboratorMenuOpen && (
+                    <CollaboratorMenu onClose={handleCollaboratorClick} />
+                )}
+
                 <div
                     className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop`}
                     data-tooltip='Background Options'
@@ -206,57 +174,6 @@ export function NoteToolbar({
             >
                 Close
             </div>
-
-            {/* Collaborator menu */}
-            {showCollaboratorMenu && (
-                <div className='note-input__collaborator-menu'>
-                    <div className='note-input__collaborator-search'>
-                        <input
-                            type='text'
-                            placeholder='Search users...'
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className='note-input__collaborator-list'>
-                        {filteredUsers.map((user: DbUser) => (
-                            <div
-                                key={user._id}
-                                className={`note-input__collaborator-item ${
-                                    selectedUsers.some(
-                                        (u: DbUser) => u._id === user._id
-                                    )
-                                        ? 'selected'
-                                        : ''
-                                }`}
-                                onClick={() => handleUserSelect(user)}
-                            >
-                                <div className='note-input__collaborator-avatar'>
-                                    {user.name?.charAt(0) ||
-                                        user.email.charAt(0)}
-                                </div>
-                                <div className='note-input__collaborator-info'>
-                                    <div className='note-input__collaborator-name'>
-                                        {user.name || user.email}
-                                    </div>
-                                    <div className='note-input__collaborator-email'>
-                                        {user.email}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    {selectedUsers.length > 0 && (
-                        <button
-                            className='note-input__collaborator-share-btn'
-                            onClick={handleShareNote}
-                        >
-                            Share with {selectedUsers.length} user
-                            {selectedUsers.length !== 1 ? 's' : ''}
-                        </button>
-                    )}
-                </div>
-            )}
 
             {/* More menu */}
             {moreMenuOpen && (
