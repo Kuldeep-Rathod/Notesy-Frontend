@@ -6,7 +6,7 @@ import customBaseQuery from './customBaseQuery';
 export const notesAPI = createApi({
     reducerPath: 'notesApi',
     baseQuery: customBaseQuery,
-    tagTypes: ['Note', 'TrashedNote', 'ArchivedNote'],
+    tagTypes: ['Note', 'TrashedNote', 'ArchivedNote', 'SharedNote'],
     endpoints: (builder) => ({
         createNote: builder.mutation<NoteI, Partial<NoteI>>({
             query: (noteData) => ({
@@ -93,6 +93,34 @@ export const notesAPI = createApi({
                 method: 'PUT',
             }),
             invalidatesTags: ['Note', 'TrashedNote'],
+        }),
+
+        // 🆕 Share Note Mutation
+        shareNote: builder.mutation<
+            NoteI,
+            { noteId: string; emails: string[] }
+        >({
+            query: (data) => ({
+                url: 'notes/share',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Note'],
+        }),
+
+        // 🆕 Get Notes Shared With Me
+        getNotesSharedWithMe: builder.query<NoteI[], void>({
+            query: () => 'notes/shared-with-me',
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ _id }) => ({
+                              type: 'SharedNote' as const,
+                              _id,
+                          })),
+                          { type: 'SharedNote', id: 'LIST' },
+                      ]
+                    : [{ type: 'SharedNote', id: 'LIST' }],
         }),
     }),
 });
