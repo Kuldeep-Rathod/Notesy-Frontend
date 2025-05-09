@@ -2,54 +2,47 @@
 
 import { LabelI } from '@/interfaces/labels';
 import { CheckboxI, NoteI } from '@/interfaces/notes';
-import { bgColors, bgImages } from '@/interfaces/tooltip';
+import {
+    useAddLabelMutation,
+    useAttachLabelsToNoteMutation,
+    useGetLabelsQuery,
+} from '@/redux/api/labelsAPI';
 import {
     useCreateNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
+import {
+    addChecklist,
+    removeChecklist,
+    resetNoteInput,
+    selectNoteInput,
+    setActiveField,
+    setAvailableLabels,
+    setChecklists,
+    setLabels,
+    setListening,
+    setSearchQuery,
+    toggleArchive,
+    toggleCbox,
+    toggleCboxCompletedList,
+    toggleLabel,
+    toggleLabelMenu,
+    togglePinned,
+    toggleTrash,
+    updateChecklist,
+    updateInputLength,
+} from '@/redux/reducer/noteInputReducer';
 import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
-import { CheckboxList } from './input/CheckboxList';
-import { NoteToolbar } from './input/NoteToolbar';
+import { useDispatch, useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
-import {
-    useGetLabelsQuery,
-    useAddLabelMutation,
-    useAttachLabelsToNoteMutation,
-} from '@/redux/api/labelsAPI';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-    setChecklists,
-    addChecklist,
-    updateChecklist,
-    removeChecklist,
-    setLabels,
-    setAvailableLabels,
-    toggleLabel,
-    togglePinned,
-    toggleCbox,
-    toggleCboxCompletedList,
-    toggleArchive,
-    toggleTrash,
-    toggleMoreMenu,
-    toggleColorMenu,
-    toggleLabelMenu,
-    closeAllTooltips,
-    setBgColor,
-    setBgImage,
-    setSearchQuery,
-    setListening,
-    setTranscript,
-    setActiveField,
-    updateInputLength,
-    resetNoteInput,
-    selectNoteInput,
-} from '@/redux/reducer/noteInputReducer';
+import { CheckboxList } from './input/CheckboxList';
+import { NoteToolbar } from './input/NoteToolbar';
 
 export default function NoteInput({
     isEditing = false,
@@ -208,6 +201,7 @@ export default function NoteInput({
                     await createNote(noteObj).unwrap();
                     console.log('Note created successfully');
                     onSuccess?.();
+                    dispatch(resetNoteInput());
 
                     if (!isEditing) {
                         closeNote();
@@ -328,41 +322,6 @@ export default function NoteInput({
         },
         [checklists, dispatch]
     );
-
-    // More menu actions
-    const moreMenu = {
-        trash: () => {
-            if (isEditing) {
-                console.log('Trashing note');
-            } else {
-                dispatch(toggleTrash());
-                saveNote();
-            }
-        },
-        clone: () => {
-            saveNote();
-        },
-        toggleCbox: () => {
-            dispatch(toggleCbox());
-        },
-    };
-
-    // Color menu actions
-    const colorMenu = {
-        bgColor: (color: string) => {
-            if (noteMainRef.current) {
-                noteMainRef.current.style.backgroundColor = color;
-                noteMainRef.current.style.borderColor = color;
-            }
-            dispatch(setBgColor(color));
-        },
-        bgImage: (image: string) => {
-            if (noteContainerRef.current) {
-                noteContainerRef.current.style.backgroundImage = image;
-            }
-            dispatch(setBgImage(image));
-        },
-    };
 
     // Update labels state when server labels change
     useEffect(() => {
@@ -839,89 +798,8 @@ export default function NoteInput({
                 </div>
 
                 {/* Icons */}
-                <NoteToolbar
-                    isTrashed={isTrashed}
-                    onArchive={handleArchive}
-                    onMoreClick={() => {
-                        dispatch(toggleMoreMenu());
-                        dispatch(toggleLabelMenu());
-                    }}
-                    onColorClick={() => dispatch(toggleColorMenu())}
-                    onCloseClick={saveNote}
-                />
+                <NoteToolbar onCloseClick={saveNote} />
             </div>
-
-            {/* Tooltips */}
-            {moreMenuOpen && (
-                <div
-                    className='note-input__menu'
-                    data-tooltip='true'
-                    data-is-tooltip-open='true'
-                >
-                    <div
-                        onClick={() => {
-                            dispatch(toggleMoreMenu());
-                            dispatch(toggleLabelMenu());
-                        }}
-                    >
-                        Add label
-                    </div>
-
-                    <div
-                        onClick={() => {
-                            moreMenu.toggleCbox();
-                            dispatch(toggleMoreMenu());
-                        }}
-                    >
-                        {isCbox ? 'Hide checkboxes' : 'Show checkboxes'}
-                    </div>
-                </div>
-            )}
-
-            {colorMenuOpen && (
-                <div
-                    className='note-input__color-menu'
-                    data-tooltip='true'
-                    data-is-tooltip-open='true'
-                >
-                    <div className='note-input__color-menu-row'>
-                        {Object.entries(bgColors).map(([key, value]) => (
-                            <div
-                                key={key}
-                                data-bg-color={key}
-                                style={{ backgroundColor: value }}
-                                onClick={() => {
-                                    colorMenu.bgColor(value);
-                                    dispatch(toggleColorMenu());
-                                }}
-                                className={
-                                    value === ''
-                                        ? 'note-input__color-menu-option--transparent'
-                                        : 'note-input__color-menu-option'
-                                }
-                            ></div>
-                        ))}
-                    </div>
-                    <div className='note-input__color-menu-row'>
-                        {Object.entries(bgImages).map(([key, value]) => (
-                            <div
-                                key={key}
-                                data-bg-image={key}
-                                style={{ backgroundImage: value || 'none' }}
-                                onClick={() => {
-                                    colorMenu.bgImage(value);
-                                    dispatch(toggleColorMenu());
-                                }}
-                                className={
-                                    value === ''
-                                        ? 'note-input__color-menu-option--transparent'
-                                        : 'note-input__color-menu-option'
-                                }
-                            ></div>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {labelMenuOpen && (
                 <div
