@@ -1,0 +1,233 @@
+// redux/features/noteInput/noteInputSlice.ts
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { LabelI } from '@/interfaces/labels';
+import { CheckboxI } from '@/interfaces/notes';
+import { bgColors, bgImages } from '@/interfaces/tooltip';
+import { RootState } from '../store';
+
+interface NoteInputState {
+    checklists: CheckboxI[];
+    labels: LabelI[];
+    availableLabels: LabelI[];
+    isArchived: boolean;
+    isTrashed: boolean;
+    isPinned: boolean;
+    isCbox: boolean;
+    isCboxCompletedListCollapsed: boolean;
+    isListening: boolean;
+    transcript: string;
+    activeField: 'title' | 'body' | null;
+    inputLength: {
+        title: number;
+        body: number;
+        cb: number;
+    };
+    tooltips: {
+        moreMenuOpen: boolean;
+        colorMenuOpen: boolean;
+        labelMenuOpen: boolean;
+    };
+    searchQuery: string;
+    noteAppearance: {
+        bgColor: string;
+        bgImage: string;
+    };
+}
+
+const initialState: NoteInputState = {
+    checklists: [],
+    labels: [],
+    availableLabels: [],
+    isArchived: false,
+    isTrashed: false,
+    isPinned: false,
+    isCbox: false,
+    isCboxCompletedListCollapsed: false,
+    isListening: false,
+    transcript: '',
+    activeField: null,
+    inputLength: {
+        title: 0,
+        body: 0,
+        cb: 0,
+    },
+    tooltips: {
+        moreMenuOpen: false,
+        colorMenuOpen: false,
+        labelMenuOpen: false,
+    },
+    searchQuery: '',
+    noteAppearance: {
+        bgColor: '',
+        bgImage: '',
+    },
+};
+
+export const noteInputReducer = createSlice({
+    name: 'noteInput',
+    initialState,
+    reducers: {
+        // Checklists
+        setChecklists: (state, action: PayloadAction<CheckboxI[]>) => {
+            state.checklists = action.payload;
+        },
+        addChecklist: (state, action: PayloadAction<CheckboxI>) => {
+            state.checklists.push(action.payload);
+        },
+        updateChecklist: (
+            state,
+            action: PayloadAction<{ id: number; updates: Partial<CheckboxI> }>
+        ) => {
+            const index = state.checklists.findIndex(
+                (cb) => cb.id === action.payload.id
+            );
+            if (index !== -1) {
+                state.checklists[index] = {
+                    ...state.checklists[index],
+                    ...action.payload.updates,
+                };
+            }
+        },
+        removeChecklist: (state, action: PayloadAction<number>) => {
+            state.checklists = state.checklists.filter(
+                (cb) => cb.id !== action.payload
+            );
+        },
+
+        // Labels
+        setLabels: (state, action: PayloadAction<LabelI[]>) => {
+            state.labels = action.payload;
+        },
+        setAvailableLabels: (state, action: PayloadAction<LabelI[]>) => {
+            state.availableLabels = action.payload;
+        },
+        toggleLabel: (state, action: PayloadAction<string>) => {
+            const label = state.labels.find((l) => l.name === action.payload);
+            if (label) {
+                label.added = !label.added;
+            }
+        },
+
+        // Toggles
+        togglePinned: (state) => {
+            state.isPinned = !state.isPinned;
+        },
+        toggleCbox: (state) => {
+            state.isCbox = !state.isCbox;
+        },
+        toggleCboxCompletedList: (state) => {
+            state.isCboxCompletedListCollapsed =
+                !state.isCboxCompletedListCollapsed;
+        },
+        toggleArchive: (state) => {
+            state.isArchived = !state.isArchived;
+        },
+        toggleTrash: (state) => {
+            state.isTrashed = !state.isTrashed;
+        },
+
+        // Tooltips
+        toggleMoreMenu: (state) => {
+            state.tooltips.moreMenuOpen = !state.tooltips.moreMenuOpen;
+            if (state.tooltips.moreMenuOpen) {
+                state.tooltips.labelMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+            }
+        },
+        toggleColorMenu: (state) => {
+            state.tooltips.colorMenuOpen = !state.tooltips.colorMenuOpen;
+            if (state.tooltips.colorMenuOpen) {
+                state.tooltips.labelMenuOpen = false;
+                state.tooltips.moreMenuOpen = false;
+            }
+        },
+        toggleLabelMenu: (state) => {
+            state.tooltips.labelMenuOpen = !state.tooltips.labelMenuOpen;
+            if (state.tooltips.labelMenuOpen) {
+                state.tooltips.moreMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+            }
+        },
+        closeAllTooltips: (state) => {
+            state.tooltips.moreMenuOpen = false;
+            state.tooltips.colorMenuOpen = false;
+            state.tooltips.labelMenuOpen = false;
+        },
+
+        // Appearance
+        setBgColor: (state, action: PayloadAction<string>) => {
+            state.noteAppearance.bgColor = action.payload;
+        },
+        setBgImage: (state, action: PayloadAction<string>) => {
+            state.noteAppearance.bgImage = action.payload;
+        },
+
+        // Search
+        setSearchQuery: (state, action: PayloadAction<string>) => {
+            state.searchQuery = action.payload;
+        },
+
+        // Speech recognition
+        setListening: (state, action: PayloadAction<boolean>) => {
+            state.isListening = action.payload;
+        },
+        setTranscript: (state, action: PayloadAction<string>) => {
+            state.transcript = action.payload;
+        },
+        setActiveField: (
+            state,
+            action: PayloadAction<'title' | 'body' | null>
+        ) => {
+            state.activeField = action.payload;
+        },
+
+        // Input length
+        updateInputLength: (
+            state,
+            action: PayloadAction<{
+                title?: number;
+                body?: number;
+                cb?: number;
+            }>
+        ) => {
+            state.inputLength = {
+                ...state.inputLength,
+                ...action.payload,
+            };
+        },
+
+        // Reset
+        resetNoteInput: () => initialState,
+    },
+});
+
+export const {
+    setChecklists,
+    addChecklist,
+    updateChecklist,
+    removeChecklist,
+    setLabels,
+    setAvailableLabels,
+    toggleLabel,
+    togglePinned,
+    toggleCbox,
+    toggleCboxCompletedList,
+    toggleArchive,
+    toggleTrash,
+    toggleMoreMenu,
+    toggleColorMenu,
+    toggleLabelMenu,
+    closeAllTooltips,
+    setBgColor,
+    setBgImage,
+    setSearchQuery,
+    setListening,
+    setTranscript,
+    setActiveField,
+    updateInputLength,
+    resetNoteInput,
+} = noteInputReducer.actions;
+
+export default noteInputReducer.reducer;
+// At the bottom of your noteInputReducer.ts file
+export const selectNoteInput = (state: RootState) => state.noteInput;

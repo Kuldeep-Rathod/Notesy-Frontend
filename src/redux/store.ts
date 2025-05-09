@@ -4,9 +4,11 @@ import { notesAPI } from './api/notesAPI';
 import authReducer from './reducer/authReducer';
 import { userAPI } from './api/userAPI';
 import { labelsAPI } from './api/labelsAPI';
+import { noteInputReducer } from './reducer/noteInputReducer';
 
 export const rootReducer = combineReducers({
     auth: authReducer,
+    [noteInputReducer.name]: noteInputReducer.reducer,
     [authAPI.reducerPath]: authAPI.reducer,
     [notesAPI.reducerPath]: notesAPI.reducer,
     [userAPI.reducerPath]: userAPI.reducer,
