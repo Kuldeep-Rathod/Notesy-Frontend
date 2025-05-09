@@ -12,6 +12,7 @@ export interface AuthState {
 }
 
 export interface DbUser {
+    _id: string;
     name: string;
     email: string;
     firebaseUid: string;

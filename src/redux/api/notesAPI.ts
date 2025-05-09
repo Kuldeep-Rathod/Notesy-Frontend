@@ -122,6 +122,45 @@ export const notesAPI = createApi({
                       ]
                     : [{ type: 'SharedNote', id: 'LIST' }],
         }),
+
+        // 🆕 Get collaborators of a note
+        getCollaborators: builder.query<
+            {
+                success: boolean;
+                collaborators: { uid: string; email: string; name: string }[];
+                ownerId: string;
+            },
+            string // noteId
+        >({
+            query: (noteId) => `notes/${noteId}/collaborators`,
+            providesTags: ['SharedNote'],
+        }),
+
+        // 🆕 Remove a collaborator from a note
+        removeCollaborator: builder.mutation<
+            { success: boolean; message: string; sharedWith: string[] },
+            { noteId: string; userId: string }
+        >({
+            query: (data) => ({
+                url: 'notes/remove-collaborator',
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['SharedNote'],
+        }),
+
+        // 🆕 Leave a shared note
+        leaveSharedNote: builder.mutation<
+            { success: boolean; message: string },
+            { noteId: string }
+        >({
+            query: (data) => ({
+                url: 'notes/leave-shared-note',
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['SharedNote'],
+        }),
     }),
 });
 
@@ -134,4 +173,9 @@ export const {
     useMoveNoteToBinMutation,
     useDeleteNoteMutation,
     useRestoreNoteMutation,
+    useShareNoteMutation,
+    useGetNotesSharedWithMeQuery,
+    useGetCollaboratorsQuery,
+    useRemoveCollaboratorMutation,
+    useLeaveSharedNoteMutation,
 } = notesAPI;
