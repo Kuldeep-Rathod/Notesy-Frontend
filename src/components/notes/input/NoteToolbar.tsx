@@ -2,17 +2,22 @@
 
 import { bgColors, bgImages } from '@/interfaces/tooltip';
 import {
+    closeReminderMenu,
     selectNoteInput,
     setBgColor,
     setBgImage,
+    setReminder,
     toggleArchive,
     toggleCbox,
     toggleCollaboratorMenu,
     toggleColorMenu,
     toggleLabelMenu,
     toggleMoreMenu,
+    toggleReminderMenu,
     toggleTrash,
 } from '@/redux/reducer/noteInputReducer';
+import { RootState } from '@/redux/store';
+import { format } from 'date-fns';
 import {
     Archive,
     Bell,
@@ -24,31 +29,35 @@ import {
     Undo2,
     UserPlus,
 } from 'lucide-react';
+import { useEffect } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
+import { ReminderPicker } from './ReminderPicker';
 
 interface NoteToolbarProps {
-    onCloseClick: () => void;
+    onSaveClick: () => void;
     isEditing?: boolean;
 }
 
 export default function NoteToolbar({
-    onCloseClick,
+    onSaveClick,
     isEditing = false,
 }: NoteToolbarProps) {
     const dispatch = useDispatch();
+    const reminderString = useSelector(
+        (state: RootState) => state.noteInput.reminder
+    );
+    const reminder = reminderString ? new Date(reminderString) : null;
+    const reminderMenuOpen = useSelector(
+        (state: RootState) => state.noteInput.reminderMenuOpen
+    );
 
     // Redux state
     const {
         isCbox,
         isTrashed,
-        tooltips: {
-            moreMenuOpen,
-            colorMenuOpen,
-            labelMenuOpen,
-            collaboratorMenuOpen,
-        },
+        tooltips: { moreMenuOpen, colorMenuOpen, collaboratorMenuOpen },
     } = useSelector(selectNoteInput);
 
     const handleArchive = () => {
@@ -59,6 +68,32 @@ export default function NoteToolbar({
         dispatch(toggleCollaboratorMenu());
     };
 
+    const handleReminderClick = () => {
+        dispatch(toggleReminderMenu());
+    };
+
+    const handleReminderSet = (date: Date | null) => {
+        setReminder(date ? date.toISOString() : null);
+    };
+
+    // Close reminder menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (
+                !target.closest('.note-input__reminder-menu') &&
+                !target.closest('.note-input__toolbar-icon--alarm')
+            ) {
+                dispatch(closeReminderMenu());
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dispatch]);
+
     // More menu actions
     const moreMenu = {
         trash: () => {
@@ -66,11 +101,11 @@ export default function NoteToolbar({
                 console.log('Trashing note');
             } else {
                 dispatch(toggleTrash());
-                onCloseClick();
+                onSaveClick();
             }
         },
         clone: () => {
-            onCloseClick();
+            onSaveClick();
         },
         toggleCbox: () => {
             dispatch(toggleCbox());
@@ -110,10 +145,17 @@ export default function NoteToolbar({
         <div className='note-input__toolbar'>
             <div className='note-input__toolbar-icons'>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--alarm H disabled pop`}
-                    data-tooltip='Remind me'
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--alarm ${
+                        reminder ? 'active' : ''
+                    }`}
+                    data-tooltip={
+                        reminder
+                            ? format(new Date(reminder), 'MMM d, h:mm a')
+                            : 'Remind me'
+                    }
+                    onClick={handleReminderClick}
                 >
-                    <Bell />
+                    <Bell className='h-5 w-5' />
                 </div>
 
                 <div
@@ -170,9 +212,9 @@ export default function NoteToolbar({
             </div>
             <div
                 className='note-input__button--close'
-                onClick={onCloseClick}
+                onClick={onSaveClick}
             >
-                Close
+                Save
             </div>
 
             {/* More menu */}
@@ -245,6 +287,12 @@ export default function NoteToolbar({
                             ></div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {reminderMenuOpen && (
+                <div className='note-input__reminder-menu'>
+                    <ReminderPicker onReminderSet={handleReminderSet} />
                 </div>
             )}
         </div>

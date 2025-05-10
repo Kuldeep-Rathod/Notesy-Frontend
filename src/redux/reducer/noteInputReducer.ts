@@ -38,6 +38,8 @@ interface NoteInputState {
         searchTerm: string;
         isSearching: boolean;
     };
+    reminder: string | null;
+    reminderMenuOpen: boolean;
 }
 
 const initialState: NoteInputState = {
@@ -73,6 +75,8 @@ const initialState: NoteInputState = {
         searchTerm: '',
         isSearching: false,
     },
+    reminder: null,
+    reminderMenuOpen: false,
 };
 
 export const noteInputReducer = createSlice({
@@ -213,7 +217,8 @@ export const noteInputReducer = createSlice({
 
         // Collaboration
         toggleCollaboratorMenu: (state) => {
-            state.tooltips.collaboratorMenuOpen = !state.tooltips.collaboratorMenuOpen;
+            state.tooltips.collaboratorMenuOpen =
+                !state.tooltips.collaboratorMenuOpen;
             if (state.tooltips.collaboratorMenuOpen) {
                 state.tooltips.moreMenuOpen = false;
                 state.tooltips.colorMenuOpen = false;
@@ -226,20 +231,37 @@ export const noteInputReducer = createSlice({
         setCollaboratorSearching: (state, action: PayloadAction<boolean>) => {
             state.collaborators.isSearching = action.payload;
         },
-        addCollaborator: (state, action: PayloadAction<{ uid: string; email: string; name: string }>) => {
-            if (!state.collaborators.selectedUsers.some(user => user.uid === action.payload.uid)) {
+        addCollaborator: (
+            state,
+            action: PayloadAction<{ uid: string; email: string; name: string }>
+        ) => {
+            if (
+                !state.collaborators.selectedUsers.some(
+                    (user) => user.uid === action.payload.uid
+                )
+            ) {
                 state.collaborators.selectedUsers.push(action.payload);
             }
         },
         removeCollaborator: (state, action: PayloadAction<string>) => {
-            state.collaborators.selectedUsers = state.collaborators.selectedUsers.filter(
-                user => user.uid !== action.payload
-            );
+            state.collaborators.selectedUsers =
+                state.collaborators.selectedUsers.filter(
+                    (user) => user.uid !== action.payload
+                );
         },
         clearCollaborators: (state) => {
             state.collaborators.selectedUsers = [];
             state.collaborators.searchTerm = '';
             state.collaborators.isSearching = false;
+        },
+        setReminder: (state, action: PayloadAction<string | null>) => {
+            state.reminder = action.payload;
+        },
+        toggleReminderMenu: (state) => {
+            state.reminderMenuOpen = !state.reminderMenuOpen;
+        },
+        closeReminderMenu: (state) => {
+            state.reminderMenuOpen = false;
         },
     },
 });
@@ -275,6 +297,9 @@ export const {
     addCollaborator,
     removeCollaborator,
     clearCollaborators,
+    setReminder,
+    toggleReminderMenu,
+    closeReminderMenu,
 } = noteInputReducer.actions;
 
 export default noteInputReducer.reducer;

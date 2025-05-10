@@ -9,8 +9,8 @@ import {
 } from '@/redux/api/labelsAPI';
 import {
     useCreateNoteMutation,
-    useUpdateNoteMutation,
     useShareNoteMutation,
+    useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import {
     addChecklist,
@@ -60,6 +60,7 @@ export default function NoteInput({
         isArchived,
         isTrashed,
         isPinned,
+        reminder,
         isCbox,
         isCboxCompletedListCollapsed,
         isListening,
@@ -139,7 +140,6 @@ export default function NoteInput({
                     // Handle tooltip close
                 }
             } else if (!el?.contains(event.target as Node)) {
-                saveNote();
                 closeNote();
             }
         },
@@ -181,6 +181,7 @@ export default function NoteInput({
                 .map((label: LabelI) => label.name),
             archived: isArchived,
             trashed: isTrashed,
+            reminder: reminder,
         };
 
         if (
@@ -237,6 +238,7 @@ export default function NoteInput({
         updateNote,
         shareNote,
         selectedUsers,
+        reminder,
     ]);
 
     // Paste event handler
@@ -813,7 +815,7 @@ export default function NoteInput({
 
                 {/* Icons */}
                 <NoteToolbar
-                    onCloseClick={saveNote}
+                    onSaveClick={saveNote}
                     isEditing={isEditing}
                 />
             </div>

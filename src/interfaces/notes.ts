@@ -13,7 +13,7 @@ export interface NoteI {
     bgColor?: string;
     labels?: string[] | LabelI[];
     pinned?: boolean;
-    reminder?: string | Date;
+    reminder?: Date | string | null;
     sharedWith?: string[];
     trashed?: boolean;
     archived?: boolean;
@@ -23,7 +23,7 @@ export interface NoteI {
 
 export interface CheckboxI {
     checked: boolean;
-    text: any;
+    text: string;
     id: number;
 }
 

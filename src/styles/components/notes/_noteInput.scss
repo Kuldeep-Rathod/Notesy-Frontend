@@ -591,6 +591,13 @@ $transition: all 0.2s ease-in-out;
                 opacity: 0.26;
                 cursor: default;
             }
+
+            &--alarm {
+                &.active {
+                    color: #0004E8;
+                    background-color: rgba(0, 4, 232, 0.1);
+                }
+            }
         }
     }
 
@@ -764,5 +771,19 @@ $transition: all 0.2s ease-in-out;
             flex: 1;
             color: #202124;
         }
+    }
+
+    &__reminder-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 50;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        border: 1px solid #e5e7eb;
+        margin-top: 8px;
+        min-width: 300px;
+        overflow: hidden;
     }
 }

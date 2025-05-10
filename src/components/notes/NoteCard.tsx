@@ -10,14 +10,16 @@ import {
 import { NoteI } from '@/interfaces/notes';
 import { useGetCollaboratorsQuery } from '@/redux/api/notesAPI';
 import '@/styles/components/notes/_noteCard.scss';
+import { format } from 'date-fns';
 import {
     Archive,
     ArchiveRestore,
+    Bell,
     EllipsisVertical,
     Palette,
     PinIcon,
     PinOffIcon,
-    Trash2
+    Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
@@ -344,6 +346,17 @@ const NoteCard = ({
                             <Trash2 size={18} />
                         </button>
                     </>
+                )}
+            </div>
+
+            <div className='note-footer'>
+                {note.reminder && (
+                    <div className='flex items-center gap-1 text-sm text-muted-foreground'>
+                        <Bell className='h-4 w-4' />
+                        <span>
+                            {format(new Date(note.reminder), 'MMM d, h:mm a')}
+                        </span>
+                    </div>
                 )}
             </div>
         </div>
