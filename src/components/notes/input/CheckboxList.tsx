@@ -49,6 +49,7 @@ export function CheckboxList({
                             }`}
                             contentEditable
                             spellCheck
+                            data-checkbox-id={cb.id}
                             onBlur={(e) =>
                                 onCheckboxUpdate(
                                     cb.id,
@@ -105,6 +106,7 @@ export function CheckboxList({
                                 className={`note-input__checkbox-item note-input__checkbox-item--completed`}
                                 contentEditable
                                 spellCheck
+                                data-checkbox-id={cb.id}
                                 onBlur={(e) =>
                                     onCheckboxUpdate(
                                         cb.id,

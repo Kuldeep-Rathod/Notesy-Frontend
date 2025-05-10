@@ -163,6 +163,11 @@ export default function NoteInput({
         if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
     }, [mouseDownEvent, toggleNoteVisibility, dispatch]);
 
+    // Toggle checkbox mode
+    const handleToggleCbox = useCallback(() => {
+        dispatch(toggleCbox());
+    }, [dispatch]);
+
     // Save note
     const saveNote = useCallback(async () => {
         if (
@@ -266,86 +271,81 @@ export default function NoteInput({
     // Checkbox placeholder key down
     const cboxPhKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
-            event.preventDefault();
-            const isLetter =
-                /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"²^\\|,.<>\/?éèçµ]$/i.test(
-                    event.key
-                );
-
-            if (!isLetter) return;
-
-            const enteredValue = event.key;
-            dispatch(
-                addChecklist({
-                    checked: false,
-                    text: enteredValue,
-                    id: checklists.length,
-                })
-            );
-            dispatch(updateInputLength({ cb: checklists.length + 1 }));
-
-            const el = document.querySelector(`[data-cbox-last="true"]`);
-            const sel = window.getSelection();
-            if (el) sel?.selectAllChildren(el);
-            sel?.collapseToEnd();
-        },
-        [checklists.length, dispatch]
-    );
-
-    // Checkbox key down
-    const cBoxKeyDown = useCallback(
-        (event: React.KeyboardEvent, id: number) => {
-            const target = event.target as HTMLDivElement;
-
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                cboxPhRef.current?.focus();
-            }
-
-            if (event.key === 'Backspace' && target.innerText.length === 0) {
-                cboxPhRef.current?.focus();
-                dispatch(removeChecklist(id));
-                dispatch(updateInputLength({ cb: checklists.length - 1 }));
-            }
-        },
-        [checklists.length, dispatch]
-    );
-
-    // Checkbox tools
-    const cboxTools = useCallback(
-        (id: number) => {
-            const actions = {
-                remove: () => {
-                    dispatch(removeChecklist(id));
-                    dispatch(updateInputLength({ cb: checklists.length - 1 }));
-                },
-                check: () => {
-                    const checkbox = checklists.find(
-                        (cb: CheckboxI) => cb.id === id
-                    );
-                    if (checkbox) {
-                        dispatch(
-                            updateChecklist({
-                                id,
-                                updates: { checked: !checkbox.checked },
-                            })
-                        );
-                    }
-                },
-                update: (el: HTMLDivElement) => {
-                    const elValue = el.innerHTML;
+                const currentText = event.currentTarget.innerHTML;
+                if (currentText.trim()) {
                     dispatch(
-                        updateChecklist({
-                            id,
-                            updates: { text: elValue },
+                        addChecklist({
+                            id: Date.now(),
+                            text: currentText,
+                            checked: false,
                         })
                     );
-                },
-            };
-            return actions;
+                    event.currentTarget.innerHTML = '';
+                }
+            }
         },
-        [checklists, dispatch]
+        [dispatch]
     );
+
+    // Handle checkbox changes
+    const handleCheckboxChange = (id: number) => {
+        dispatch(
+            updateChecklist({
+                id,
+                updates: {
+                    checked: !checklists.find((cb) => cb.id === id)?.checked,
+                },
+            })
+        );
+    };
+
+    // Handle checkbox removal
+    const handleCheckboxRemove = (id: number) => {
+        dispatch(removeChecklist(id));
+    };
+
+    // Handle checkbox text update
+    const handleCheckboxUpdate = (id: number, value: string) => {
+        if (value.trim()) {
+            dispatch(updateChecklist({ id, updates: { text: value } }));
+        }
+    };
+
+    // Handle keyboard events for checkboxes
+    const handleCheckboxKeyDown = (e: React.KeyboardEvent, id: number) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const currentText = e.currentTarget.innerHTML;
+            if (currentText.trim()) {
+                const newId = Date.now();
+                dispatch(addChecklist({ id: newId, text: '', checked: false }));
+                setTimeout(() => {
+                    const newCheckbox = document.querySelector(
+                        `[data-checkbox-id="${newId}"]`
+                    );
+                    if (newCheckbox instanceof HTMLElement) {
+                        newCheckbox.focus();
+                    }
+                }, 0);
+            }
+        } else if (e.key === 'Backspace' && e.currentTarget.innerHTML === '') {
+            e.preventDefault();
+            handleCheckboxRemove(id);
+            const prevCheckbox = document.querySelector(
+                `[data-checkbox-id="${id - 1}"]`
+            );
+            if (prevCheckbox instanceof HTMLElement) {
+                prevCheckbox.focus();
+            }
+        }
+    };
+
+    // Toggle completed checkboxes list
+    const handleToggleCompletedList = () => {
+        dispatch(toggleCboxCompletedList());
+    };
 
     // Update labels state when server labels change
     useEffect(() => {
@@ -455,6 +455,19 @@ export default function NoteInput({
             dispatch(setChecklists(noteToEdit.checklists || []));
             if (noteToEdit.isCbox) {
                 dispatch(toggleCbox());
+                // Create description div for checkbox mode
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'note-input__description';
+                descriptionDiv.innerHTML = noteToEdit.noteBody || '';
+                const checkboxList = document.querySelector(
+                    '.note-input__checkbox-list'
+                );
+                if (checkboxList) {
+                    checkboxList.parentNode?.insertBefore(
+                        descriptionDiv,
+                        checkboxList.nextSibling
+                    );
+                }
             }
             dispatch(toggleArchive());
             dispatch(toggleTrash());
@@ -614,45 +627,63 @@ export default function NoteInput({
                         <>
                             {/* checklists */}
                             <CheckboxList
-                                checklists={checklists}
+                                checklists={checklists.filter(
+                                    (cb) => !cb.checked
+                                )}
                                 isCompletedCollapsed={
                                     isCboxCompletedListCollapsed
                                 }
-                                onToggleCollapse={() =>
-                                    dispatch(toggleCboxCompletedList())
-                                }
-                                onCheckboxChange={(id) => cboxTools(id).check()}
-                                onCheckboxRemove={(id) =>
-                                    cboxTools(id).remove()
-                                }
-                                onCheckboxUpdate={(id, value) => {
-                                    dispatch(
-                                        updateChecklist({
-                                            id,
-                                            updates: { text: value },
-                                        })
-                                    );
-                                }}
-                                onKeyDown={cBoxKeyDown}
+                                onToggleCollapse={handleToggleCompletedList}
+                                onCheckboxChange={handleCheckboxChange}
+                                onCheckboxRemove={handleCheckboxRemove}
+                                onCheckboxUpdate={handleCheckboxUpdate}
+                                onKeyDown={handleCheckboxKeyDown}
                             />
 
                             {/* Checkbox placeholder */}
                             <div className='note-input__checkbox-placeholder'>
-                                <div className='note-input__checkbox-placeholder-icon'></div>
+                                <div className='note-input__checkbox-placeholder-icon'>
+                                    <div className='note-input__checkbox-icon'></div>
+                                </div>
                                 <div className='note-input__checkbox-content'>
-                                    <div
-                                        className={`note-input__checkbox-item note-input__checkbox-item--placeholder`}
-                                    >
-                                        List item
-                                    </div>
                                     <div
                                         ref={cboxPhRef}
                                         onKeyDown={cboxPhKeyDown}
                                         className='note-input__checkbox-item'
                                         contentEditable
                                         spellCheck
+                                        data-placeholder='List item'
                                     ></div>
                                 </div>
+                            </div>
+
+                            {/* Optional description */}
+                            <div className='note-input__description-section'>
+                                <div
+                                    hidden={inputLength.body > 0}
+                                    className={`note-input__body note-input__body--placeholder`}
+                                >
+                                    Add a note (optional)...
+                                </div>
+                                <div
+                                    ref={noteBodyRef}
+                                    onFocus={() => {
+                                        dispatch(setActiveField('body'));
+                                        resetTranscript();
+                                    }}
+                                    onInput={(e) =>
+                                        dispatch(
+                                            updateInputLength({
+                                                body: e.currentTarget.innerHTML
+                                                    .length,
+                                            })
+                                        )
+                                    }
+                                    onPaste={pasteEvent}
+                                    className='note-input__body'
+                                    contentEditable
+                                    spellCheck
+                                ></div>
                             </div>
 
                             {/* Completed checkboxes */}
@@ -662,9 +693,7 @@ export default function NoteInput({
                                     <div className='note-input__checkbox-divider'></div>
                                     <div
                                         className='note-input__checkbox-completed-header'
-                                        onClick={() =>
-                                            dispatch(toggleCboxCompletedList())
-                                        }
+                                        onClick={handleToggleCompletedList}
                                     >
                                         <div
                                             className={`note-input__checkbox-toggle ${
@@ -693,7 +722,7 @@ export default function NoteInput({
                             {!isCboxCompletedListCollapsed &&
                                 checklists
                                     .filter((cb: CheckboxI) => cb.checked)
-                                    .map((cb: CheckboxI, index: number) => (
+                                    .map((cb: CheckboxI) => (
                                         <div
                                             key={`done-${cb.id}`}
                                             className='note-input__checkbox-container'
@@ -702,25 +731,26 @@ export default function NoteInput({
                                             <div
                                                 className={`note-input__checkbox-icon note-input__checkbox-icon--checked`}
                                                 onClick={() =>
-                                                    cboxTools(cb.id).check()
+                                                    handleCheckboxChange(cb.id)
                                                 }
                                             ></div>
                                             <div className='note-input__checkbox-content'>
                                                 <div
-                                                    data-cbox-last={
-                                                        index ===
-                                                        checklists.length - 1
-                                                    }
                                                     className={`note-input__checkbox-item note-input__checkbox-item--completed`}
                                                     contentEditable
                                                     spellCheck
                                                     onBlur={(e) =>
-                                                        cboxTools(cb.id).update(
+                                                        handleCheckboxUpdate(
+                                                            cb.id,
                                                             e.currentTarget
+                                                                .innerHTML
                                                         )
                                                     }
                                                     onKeyDown={(e) =>
-                                                        cBoxKeyDown(e, cb.id)
+                                                        handleCheckboxKeyDown(
+                                                            e,
+                                                            cb.id
+                                                        )
                                                     }
                                                     dangerouslySetInnerHTML={{
                                                         __html: cb.text,
@@ -730,7 +760,7 @@ export default function NoteInput({
                                             <div
                                                 className={`note-input__checkbox-remove H`}
                                                 onClick={() =>
-                                                    cboxTools(cb.id).remove()
+                                                    handleCheckboxRemove(cb.id)
                                                 }
                                             ></div>
                                         </div>

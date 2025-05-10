@@ -213,6 +213,10 @@ $transition: all 0.2s ease-in-out;
             margin: 8px 0;
         }
 
+        &-list {
+            width: 100%;
+        }
+
         &-move-icon {
             width: 24px;
             height: 24px;
@@ -227,10 +231,23 @@ $transition: all 0.2s ease-in-out;
             margin: 0 8px;
             cursor: pointer;
             background-color: white;
+            position: relative;
 
             &--checked {
                 background-color: #1a73e8;
                 border-color: #1a73e8;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: 7px;
+                    top: 3px;
+                    width: 6px;
+                    height: 12px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                }
             }
         }
 
@@ -253,6 +270,11 @@ $transition: all 0.2s ease-in-out;
                 text-decoration: line-through;
                 color: rgba(95, 99, 104, 0.6);
             }
+
+            &[data-placeholder]:empty:before {
+                content: attr(data-placeholder);
+                color: rgba(95, 99, 104, 0.6);
+            }
         }
 
         &-remove {
@@ -263,7 +285,6 @@ $transition: all 0.2s ease-in-out;
             user-select: none;
 
             &:hover {
-                // opacity: 0.87;
                 color: red;
             }
         }
@@ -276,8 +297,10 @@ $transition: all 0.2s ease-in-out;
             &-icon {
                 width: 24px;
                 height: 24px;
-                opacity: 0.54;
                 margin-right: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
 
@@ -306,6 +329,26 @@ $transition: all 0.2s ease-in-out;
             &--expanded {
                 transform: rotate(90deg);
             }
+        }
+    }
+
+    // Description section in checkbox mode
+    &__description-section {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e0e0e0;
+
+        .note-input__body {
+            margin-top: 8px;
+            min-height: 24px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #202124;
+        }
+
+        .note-input__body--placeholder {
+            color: rgba(95, 99, 104, 0.6);
+            font-weight: 500;
         }
     }
 
