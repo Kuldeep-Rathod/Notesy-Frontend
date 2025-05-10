@@ -40,6 +40,8 @@ interface NoteInputState {
     };
     reminder: string | null;
     reminderMenuOpen: boolean;
+    noteTitle: string;
+    noteBody: string;
 }
 
 const initialState: NoteInputState = {
@@ -77,6 +79,8 @@ const initialState: NoteInputState = {
     },
     reminder: null,
     reminderMenuOpen: false,
+    noteTitle: '',
+    noteBody: '',
 };
 
 export const noteInputReducer = createSlice({

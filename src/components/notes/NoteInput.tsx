@@ -157,6 +157,10 @@ export default function NoteInput({
         toggleNoteVisibility(false);
         document.removeEventListener('mousedown', mouseDownEvent);
         dispatch(resetNoteInput());
+
+        // Clear the contentEditable divs
+        if (noteTitleRef.current) noteTitleRef.current.innerHTML = '';
+        if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
     }, [mouseDownEvent, toggleNoteVisibility, dispatch]);
 
     // Save note
@@ -216,6 +220,10 @@ export default function NoteInput({
 
                 onSuccess?.();
                 dispatch(resetNoteInput());
+
+                // Clear the contentEditable divs explicitly
+                if (noteTitleRef.current) noteTitleRef.current.innerHTML = '';
+                if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
 
                 if (!isEditing) {
                     closeNote();
