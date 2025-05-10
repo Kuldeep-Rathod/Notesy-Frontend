@@ -127,7 +127,12 @@ export const notesAPI = createApi({
         getCollaborators: builder.query<
             {
                 success: boolean;
-                collaborators: { uid: string; email: string; name: string }[];
+                collaborators: {
+                    uid: string;
+                    email: string;
+                    name: string;
+                    photo: string | null;
+                }[];
                 ownerId: string;
             },
             string // noteId

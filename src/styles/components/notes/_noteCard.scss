@@ -142,6 +142,27 @@ $transition: all 0.2s ease-in-out;
         }
     }
 
+    .note-collaborators {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid $light-gray;
+
+        .collaborator-avatars {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .more-collaborators {
+                background-color: $light-gray;
+                color: $dark-gray;
+                font-size: 0.75rem;
+                padding: 2px 6px;
+                border-radius: 10px;
+                margin-left: 2px;
+            }
+        }
+    }
+
     .note-actions {
         display: flex;
         align-items: center;
@@ -192,7 +213,7 @@ $transition: all 0.2s ease-in-out;
             .color-picker,
             .more-menu {
                 position: absolute;
-                bottom: 100%; // Change from bottom: 40px to appear above
+                bottom: 100%;
                 left: 100%;
                 transform: translateX(-50%);
                 background-color: white;
@@ -207,7 +228,7 @@ $transition: all 0.2s ease-in-out;
             &.open {
                 .color-picker,
                 .more-menu {
-                    display: block; // Show when open class is present
+                    display: block;
                 }
             }
 

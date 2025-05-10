@@ -1,6 +1,14 @@
 'use client';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { NoteI } from '@/interfaces/notes';
+import { useGetCollaboratorsQuery } from '@/redux/api/notesAPI';
 import '@/styles/components/notes/_noteCard.scss';
 import {
     Archive,
@@ -9,7 +17,7 @@ import {
     Palette,
     PinIcon,
     PinOffIcon,
-    Trash2,
+    Trash2
 } from 'lucide-react';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
@@ -24,6 +32,19 @@ interface NoteCardProps {
     onEdit?: (note: NoteI) => void;
     onChangeColor?: (id: string, color: string) => void;
     onClone?: (id: string) => void;
+}
+
+interface Collaborator {
+    firebaseUid: string;
+    email: string;
+    name: string;
+    photo: string | null;
+}
+
+interface CollaboratorsData {
+    success: boolean;
+    collaborators: Collaborator[];
+    ownerId: string;
 }
 
 const colorOptions = [
@@ -53,6 +74,15 @@ const NoteCard = ({
 }: NoteCardProps) => {
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [colorMenuOpen, setColorMenuOpen] = useState(false);
+    const { data: collaboratorsData } = useGetCollaboratorsQuery(
+        note._id || '',
+        {
+            skip: !note._id || !note.sharedWith?.length,
+            refetchOnMountOrArgChange: true,
+            refetchOnFocus: true,
+            refetchOnReconnect: true,
+        }
+    ) as { data: CollaboratorsData | undefined };
 
     const handleEditClick = () => {
         if (onEdit) onEdit(note);
@@ -144,6 +174,49 @@ const NoteCard = ({
                             {typeof label === 'string' ? label : label.name}
                         </span>
                     ))}
+                </div>
+            )}
+
+            {/* Collaborators display */}
+            {note.sharedWith && note.sharedWith.length > 0 && (
+                <div className='note-collaborators'>
+                    <TooltipProvider>
+                        <div className='collaborator-avatars'>
+                            {collaboratorsData?.collaborators
+                                ?.slice(0, 3)
+                                .map((collaborator: Collaborator) => (
+                                    <Tooltip key={collaborator.firebaseUid}>
+                                        <TooltipTrigger>
+                                            <Avatar className='h-6 w-6 border border-gray-200'>
+                                                {collaborator.photo ? (
+                                                    <AvatarImage
+                                                        src={collaborator.photo}
+                                                        alt={collaborator.name}
+                                                    />
+                                                ) : (
+                                                    <AvatarFallback className='bg-[#0004E8]/10 text-[#0004E8] text-xs'>
+                                                        {collaborator.name
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </AvatarFallback>
+                                                )}
+                                            </Avatar>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{collaborator.name}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ))}
+                            {collaboratorsData?.collaborators &&
+                                collaboratorsData.collaborators.length > 3 && (
+                                    <div className='more-collaborators'>
+                                        +
+                                        {collaboratorsData.collaborators
+                                            .length - 3}
+                                    </div>
+                                )}
+                        </div>
+                    </TooltipProvider>
                 </div>
             )}
 

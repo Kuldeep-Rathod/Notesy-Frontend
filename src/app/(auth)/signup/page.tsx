@@ -3,19 +3,19 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { auth, googleProvider } from '@/lib/firebase';
+import '@/styles/app/_signup.scss';
+import { axiosInstance } from '@/utils/axiosInstance';
+import axios from 'axios';
 import {
     createUserWithEmailAndPassword,
     signInWithPopup,
     updateProfile,
 } from 'firebase/auth';
-import '@/styles/app/_signup.scss';
-import { axiosInstance } from '@/utils/axiosInstance';
-import axios from 'axios';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function Signup() {
     const router = useRouter();
@@ -32,22 +32,44 @@ export default function Signup() {
     const createMongoUser = async (
         firebaseUser: any,
         name?: string,
-        photo?: string
+        photo?: string | null
     ) => {
         try {
-            const response = await axiosInstance.post('/api/v1/auth/register', {
+            // Debug logs
+            console.log('Creating MongoDB User with:', {
                 email: firebaseUser.email,
                 name:
                     name ||
                     firebaseUser.displayName ||
                     firebaseUser.email.split('@')[0],
-                photo: firebaseUser.photoURL || photo,
+                photo: photo || firebaseUser.photoURL || null,
                 firebaseUid: firebaseUser.uid,
             });
+
+            const userData = {
+                email: firebaseUser.email,
+                name:
+                    name ||
+                    firebaseUser.displayName ||
+                    firebaseUser.email.split('@')[0],
+                photo: photo || firebaseUser.photoURL || null,
+                firebaseUid: firebaseUser.uid,
+            };
+
+            console.log('Sending user data to server:', userData);
+
+            const response = await axiosInstance.post(
+                '/api/v1/auth/register',
+                userData
+            );
+            console.log('Server response:', response.data);
 
             return response.data;
         } catch (error) {
             console.error('Error creating MongoDB user:', error);
+            if (axios.isAxiosError(error)) {
+                console.error('Server error response:', error.response?.data);
+            }
             throw error;
         }
     };
@@ -67,6 +89,7 @@ export default function Signup() {
             // 2. Update Firebase profile with name
             await updateProfile(userCredential.user, {
                 displayName: data.name,
+                photoURL: null,
             });
 
             // 3. Create corresponding MongoDB user
@@ -94,7 +117,13 @@ export default function Signup() {
                 await axiosInstance.get(`/api/v1/auth/check?email=${email}`);
             } catch (err) {
                 if (axios.isAxiosError(err) && err.response?.status === 404) {
-                    await createMongoUser(userCredential.user);
+                    // For Google sign-in, explicitly pass the photo URL
+                    const mongoUser = await createMongoUser(
+                        userCredential.user,
+                        userCredential.user.displayName || undefined,
+                        userCredential.user.photoURL || undefined
+                    );
+                    console.log('Created MongoDB User:', mongoUser);
                 } else {
                     throw err;
                 }
@@ -102,6 +131,7 @@ export default function Signup() {
 
             await router.push('/dashboard');
         } catch (error: any) {
+            console.error('Google Sign-in Error:', error);
             setFirebaseError(getFirebaseErrorMessage(error.code));
         } finally {
             setIsLoading(false);
