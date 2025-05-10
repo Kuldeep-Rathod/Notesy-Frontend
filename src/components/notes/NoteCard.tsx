@@ -179,6 +179,18 @@ const NoteCard = ({
                 </div>
             )}
 
+            {/* Reminder Display */}
+            <div className='note-labels'>
+                {note.reminder && (
+                    <>
+                        <span className='label-chip flex items-center gap-1'>
+                            <Bell className='h-4 w-4' />
+                            {format(new Date(note.reminder), 'MMM d, h:mm a')}
+                        </span>
+                    </>
+                )}
+            </div>
+
             {/* Collaborators display */}
             {note.sharedWith && note.sharedWith.length > 0 && (
                 <div className='note-collaborators'>
@@ -346,17 +358,6 @@ const NoteCard = ({
                             <Trash2 size={18} />
                         </button>
                     </>
-                )}
-            </div>
-
-            <div className='note-footer'>
-                {note.reminder && (
-                    <div className='flex items-center gap-1 text-sm text-muted-foreground'>
-                        <Bell className='h-4 w-4' />
-                        <span>
-                            {format(new Date(note.reminder), 'MMM d, h:mm a')}
-                        </span>
-                    </div>
                 )}
             </div>
         </div>

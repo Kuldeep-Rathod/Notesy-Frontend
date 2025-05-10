@@ -1,19 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import {
     closeReminderMenu,
     setReminder,
 } from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
 import { format } from 'date-fns';
-import { Bell, CalendarIcon, Clock } from 'lucide-react';
+import { Bell, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -52,26 +45,41 @@ const quickOptions = [
 
 export function ReminderPicker({ onReminderSet }: ReminderPickerProps) {
     const dispatch = useDispatch();
-    const reminderString = useSelector((state: RootState) => state.noteInput.reminder);
+    const reminderString = useSelector(
+        (state: RootState) => state.noteInput.reminder
+    );
     const reminder = reminderString ? new Date(reminderString) : null;
     const [time, setTime] = useState<string>(
         reminder ? format(reminder, 'HH:mm') : '12:00'
     );
+    const [date, setDate] = useState<string>(
+        reminder
+            ? format(reminder, 'yyyy-MM-dd')
+            : format(new Date(), 'yyyy-MM-dd')
+    );
 
-    const handleDateSelect = (selectedDate: Date | undefined) => {
-        if (selectedDate) {
-            const [hours, minutes] = time.split(':').map(Number);
-            selectedDate.setHours(hours, minutes);
-            dispatch(setReminder(selectedDate.toISOString()));
-            onReminderSet(selectedDate);
-            dispatch(closeReminderMenu());
-        }
+    const handleDateSelect = (selectedDate: Date) => {
+        // Remove the time manipulation - the quick options already set their own times
+        dispatch(setReminder(selectedDate.toISOString()));
+        onReminderSet(selectedDate);
+
+        // Update the local state to reflect the new date/time
+        setTime(format(selectedDate, 'HH:mm'));
+        setDate(format(selectedDate, 'yyyy-MM-dd'));
+    };
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newDate = e.target.value;
+        setDate(newDate);
+        const selectedDate = new Date(newDate);
+        handleDateSelect(selectedDate);
     };
 
     const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTime(e.target.value);
+        const newTime = e.target.value;
+        setTime(newTime);
         if (reminder) {
-            const [hours, minutes] = e.target.value.split(':').map(Number);
+            const [hours, minutes] = newTime.split(':').map(Number);
             const newDate = new Date(reminder);
             newDate.setHours(hours, minutes);
             dispatch(setReminder(newDate.toISOString()));
@@ -118,35 +126,13 @@ export function ReminderPicker({ onReminderSet }: ReminderPickerProps) {
 
             <div className='space-y-3'>
                 <div className='flex items-center gap-2'>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant='outline'
-                                className={cn(
-                                    'w-full justify-start text-left font-normal',
-                                    !reminder && 'text-muted-foreground'
-                                )}
-                            >
-                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                {reminder ? (
-                                    format(reminder, 'PPP')
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                            className='w-auto p-0'
-                            align='start'
-                        >
-                            <Calendar
-                                mode='single'
-                                selected={reminder || undefined}
-                                onSelect={handleDateSelect}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <Input
+                        type='date'
+                        value={date}
+                        onChange={handleDateChange}
+                        className='w-full'
+                        min={format(new Date(), 'yyyy-MM-dd')}
+                    />
                 </div>
 
                 <div className='flex items-center gap-2'>

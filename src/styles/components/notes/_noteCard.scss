@@ -29,6 +29,14 @@ $transition: all 0.2s ease-in-out;
 
         .note-actions {
             opacity: 1;
+            pointer-events: auto;
+        }
+
+        .note-header {
+            .pin-button {
+                opacity: 1;
+                pointer-events: auto;
+            }
         }
     }
 
@@ -55,6 +63,8 @@ $transition: all 0.2s ease-in-out;
             background: none;
             border: none;
             padding: 3px;
+            opacity: 0;
+            pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -143,9 +153,7 @@ $transition: all 0.2s ease-in-out;
     }
 
     .note-collaborators {
-        margin-top: 8px;
         padding-top: 8px;
-        border-top: 1px solid $light-gray;
 
         .collaborator-avatars {
             display: flex;
@@ -169,7 +177,8 @@ $transition: all 0.2s ease-in-out;
         justify-content: flex-start;
         gap: 5px;
         padding-top: 8px;
-        opacity: 1;
+        opacity: 0;
+        pointer-events: none;
         transition: opacity 0.2s ease;
 
         .action-button {
