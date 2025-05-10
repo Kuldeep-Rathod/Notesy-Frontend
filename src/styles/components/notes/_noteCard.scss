@@ -13,7 +13,8 @@ $transition: all 0.2s ease-in-out;
 .note-card {
     background-color: white;
     border-radius: $border-radius;
-    padding: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
     box-shadow: $shadow;
     display: flex;
     flex-direction: column;
@@ -24,8 +25,10 @@ $transition: all 0.2s ease-in-out;
     z-index: 1;
 
     &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: rgba($secondary-color, 0.3);
+        // box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        // border-color: rgba($secondary-color, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 
         .note-actions {
             opacity: 1;

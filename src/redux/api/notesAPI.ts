@@ -68,7 +68,7 @@ export const notesAPI = createApi({
                 method: 'PUT',
                 body: updates,
             }),
-            invalidatesTags: ['Note', 'TrashedNote'],
+            invalidatesTags: ['Note', 'TrashedNote', 'ArchivedNote'],
         }),
 
         moveNoteToBin: builder.mutation<NoteI, string>({

@@ -10,13 +10,24 @@ $border-radius: 8px;
 $shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 $transition: all 0.2s ease-in-out;
 
-// Notes Container
+// Google Keep color palette for notes
+$color-white: #ffffff;
+$color-yellow: #fefcbf;
+$color-blue: #bfdbfe;
+$color-pink: #fce7f3;
+$color-green: #ccfbf1;
+$color-orange: #ffedd5;
+$color-gray: #e5e7eb;
+
+// Global styles
 .notes-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
     position: relative;
 
+    // Notes Header
     .notes-header {
         display: flex;
         justify-content: space-between;
@@ -38,7 +49,7 @@ $transition: all 0.2s ease-in-out;
 
             .search-input {
                 width: 100%;
-                padding: 10px 40px 10px 40px;
+                padding: 10px 40px;
                 border-radius: $border-radius;
                 border: 1px solid $light-gray;
                 font-size: 1rem;
@@ -63,7 +74,6 @@ $transition: all 0.2s ease-in-out;
                 padding: 5px;
                 display: flex;
                 align-items: center;
-                justify-content: center;
 
                 &:hover {
                     color: $dark-gray;
@@ -84,7 +94,6 @@ $transition: all 0.2s ease-in-out;
                 color: $medium-gray;
                 display: flex;
                 align-items: center;
-                justify-content: center;
                 transition: $transition;
 
                 &:hover {
@@ -100,35 +109,7 @@ $transition: all 0.2s ease-in-out;
         }
     }
 
-    .create-note-button {
-        width: 100%;
-        padding: 12px;
-        background-color: white;
-        border: 1px dashed $light-gray;
-        border-radius: $border-radius;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        cursor: pointer;
-        margin-bottom: 20px;
-        transition: $transition;
-
-        span {
-            font-size: 1rem;
-            color: $dark-gray;
-        }
-
-        svg {
-            color: $primary-color;
-        }
-
-        &:hover {
-            background-color: rgba($secondary-color, 0.05);
-            border-color: $secondary-color;
-        }
-    }
-
+    // Notes Section
     .notes-section {
         margin-bottom: 30px;
 
@@ -148,6 +129,10 @@ $transition: all 0.2s ease-in-out;
                 padding: 2px 8px;
                 border-radius: 12px;
             }
+
+            &.pinned::before {
+                content: '📌 ';
+            }
         }
 
         .notes-list {
@@ -155,7 +140,8 @@ $transition: all 0.2s ease-in-out;
             gap: 15px;
 
             &.grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                grid-auto-flow: dense;
             }
 
             &.list {
@@ -164,6 +150,9 @@ $transition: all 0.2s ease-in-out;
         }
     }
 
+   
+
+    // Loading, Error, and Empty States
     .loading-container,
     .error-container,
     .empty-state {
@@ -171,9 +160,18 @@ $transition: all 0.2s ease-in-out;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px 0;
+        padding: 60px 0;
         color: $dark-gray;
+        text-align: center;
 
+        p {
+            font-size: 1.1rem;
+            color: $medium-gray;
+            margin-bottom: 20px;
+        }
+    }
+
+    .loading-container {
         .loading-spinner {
             border: 3px solid $light-gray;
             border-top: 3px solid $primary-color;
@@ -183,7 +181,10 @@ $transition: all 0.2s ease-in-out;
             animation: spin 1s linear infinite;
             margin-bottom: 15px;
         }
+    }
 
+    .error-container,
+    .empty-state {
         .retry-button,
         .clear-search-button {
             margin-top: 15px;
@@ -227,7 +228,7 @@ $transition: all 0.2s ease-in-out;
     .modal-content {
         width: 90%;
         max-width: 600px;
-        background-color: white;
+        background-color: $color-white;
         border-radius: $border-radius;
         padding: 25px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -253,8 +254,8 @@ $transition: all 0.2s ease-in-out;
                 border: none;
                 color: $medium-gray;
                 cursor: pointer;
-                display: flex;
                 padding: 5px;
+                display: flex;
 
                 &:hover {
                     color: $dark-gray;
@@ -356,7 +357,6 @@ $transition: all 0.2s ease-in-out;
                     border: none;
                     display: flex;
                     align-items: center;
-                    justify-content: center;
                     padding: 2px;
                     cursor: pointer;
                     color: $primary-color;
@@ -365,6 +365,52 @@ $transition: all 0.2s ease-in-out;
                         background-color: rgba($primary-color, 0.2);
                         border-radius: 50%;
                     }
+                }
+            }
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+
+            .color-option {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid transparent;
+                transition: $transition;
+
+                &.white {
+                    background-color: $color-white;
+                }
+                &.yellow {
+                    background-color: $color-yellow;
+                }
+                &.blue {
+                    background-color: $color-blue;
+                }
+                &.pink {
+                    background-color: $color-pink;
+                }
+                &.green {
+                    background-color: $color-green;
+                }
+                &.orange {
+                    background-color: $color-orange;
+                }
+                &.gray {
+                    background-color: $color-gray;
+                }
+
+                &.selected {
+                    border-color: $primary-color;
+                    box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+                }
+
+                &:hover {
+                    transform: scale(1.1);
                 }
             }
         }
@@ -412,16 +458,48 @@ $transition: all 0.2s ease-in-out;
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba($primary-color, 0.7);
             }
-
             70% {
                 transform: scale(1);
                 box-shadow: 0 0 0 10px rgba($primary-color, 0);
             }
-
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba($primary-color, 0);
             }
         }
+    }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .notes-container {
+        padding: 10px;
+    }
+
+    .notes-header {
+        flex-direction: column;
+        gap: 15px;
+
+        .search-container {
+            max-width: 100%;
+        }
+    }
+
+    .notes-list.grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .notes-list.grid {
+        grid-template-columns: 1fr;
+    }
+
+    .note-card {
+        padding: 12px;
+    }
+
+    .modal-content {
+        padding: 15px;
     }
 }

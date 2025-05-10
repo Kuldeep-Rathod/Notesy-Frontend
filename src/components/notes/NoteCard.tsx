@@ -180,16 +180,15 @@ const NoteCard = ({
             )}
 
             {/* Reminder Display */}
-            <div className='note-labels'>
-                {note.reminder && (
-                    <>
-                        <span className='label-chip flex items-center gap-1'>
-                            <Bell className='h-4 w-4' />
-                            {format(new Date(note.reminder), 'MMM d, h:mm a')}
-                        </span>
-                    </>
-                )}
-            </div>
+
+            {note.reminder && (
+                <div className='note-labels'>
+                    <span className='label-chip flex items-center gap-1'>
+                        <Bell className='h-4 w-4' />
+                        {format(new Date(note.reminder), 'MMM d, h:mm a')}
+                    </span>
+                </div>
+            )}
 
             {/* Collaborators display */}
             {note.sharedWith && note.sharedWith.length > 0 && (
