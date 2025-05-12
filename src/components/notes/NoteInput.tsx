@@ -452,26 +452,21 @@ export default function NoteInput({
                     noteToEdit.bgColor || '';
             }
 
-            dispatch(setChecklists(noteToEdit.checklists || []));
-            if (noteToEdit.isCbox) {
+            // Set checklists first
+            if (noteToEdit.checklists && noteToEdit.checklists.length > 0) {
+                dispatch(setChecklists(noteToEdit.checklists));
                 dispatch(toggleCbox());
-                // Create description div for checkbox mode
-                const descriptionDiv = document.createElement('div');
-                descriptionDiv.className = 'note-input__description';
-                descriptionDiv.innerHTML = noteToEdit.noteBody || '';
-                const checkboxList = document.querySelector(
-                    '.note-input__checkbox-list'
-                );
-                if (checkboxList) {
-                    checkboxList.parentNode?.insertBefore(
-                        descriptionDiv,
-                        checkboxList.nextSibling
-                    );
-                }
             }
-            dispatch(toggleArchive());
-            dispatch(toggleTrash());
 
+            // Set archived and trashed state
+            if (noteToEdit.archived) {
+                dispatch(toggleArchive());
+            }
+            if (noteToEdit.trashed) {
+                dispatch(toggleTrash());
+            }
+
+            // Update input length
             dispatch(
                 updateInputLength({
                     title: noteToEdit.noteTitle?.length || 0,
@@ -479,17 +474,6 @@ export default function NoteInput({
                     cb: noteToEdit.checklists?.length || 0,
                 })
             );
-
-            // Initialize labels
-            if (noteToEdit.labels) {
-                const initialLabels = noteToEdit.labels.map((label) => {
-                    if (typeof label === 'string') {
-                        return { name: label, added: true };
-                    }
-                    return { name: label.name, added: true };
-                });
-                dispatch(setLabels(initialLabels));
-            }
         }
     }, [isEditing, noteToEdit, notePhClick, dispatch]);
 

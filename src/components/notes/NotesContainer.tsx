@@ -9,30 +9,18 @@ import {
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
 import '@/styles/components/notes/_noteContainer.scss';
-import {
-    X as CloseIcon,
-    Grid,
-    List,
-    Mic,
-    MicOff,
-    Save,
-    Search,
-    X,
-} from 'lucide-react';
+import { X as CloseIcon, Grid, List, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import SpeechRecognition, {
-    useSpeechRecognition,
-} from 'react-speech-recognition';
 import NoteCard from './NoteCard';
+import NoteInput from './NoteInput';
+import { isEqual } from 'lodash-es';
 
 const NotesContainer = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
 
-    // Refs for speech recognition
-    const noteTitleRef = useRef<HTMLInputElement>(null);
-    const noteBodyRef = useRef<HTMLTextAreaElement>(null);
+    // Refs
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     // API hooks
@@ -46,23 +34,12 @@ const NotesContainer = () => {
     const [createNote] = useCreateNoteMutation();
     const [updateNote] = useUpdateNoteMutation();
     const [moveToBin] = useMoveNoteToBinMutation();
-    // const [restoreFromBin] = useRestoreFromBinMutation();
-    // const [deleteNotePermanently] = useDeleteNotePermanentlyMutation();
 
     // UI state
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
     const [editingNote, setEditingNote] = useState<NoteI | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeField, setActiveField] = useState<'title' | 'body' | null>(
-        null
-    );
     const [searchQuery, setSearchQuery] = useState('');
-    const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
-
-    // Speech recognition
-    const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
-        useSpeechRecognition();
-    const [isListening, setIsListening] = useState(false);
 
     // Memoize categorized notes
     const {
@@ -104,42 +81,6 @@ const NotesContainer = () => {
             filteredNotes: filtered,
         };
     }, [notes, searchQuery]);
-
-    // Speech recognition handlers
-    const startListening = () => {
-        try {
-            setIsListening(true);
-            SpeechRecognition.startListening({
-                continuous: true,
-                language: 'en-IN',
-            });
-        } catch (error) {
-            console.error('Speech recognition error:', error);
-            setIsListening(false);
-        }
-    };
-
-    const stopListening = () => {
-        setIsListening(false);
-        SpeechRecognition.stopListening();
-    };
-
-    // Update fields with speech input
-    useEffect(() => {
-        if (!isListening || !transcript || !activeField) return;
-
-        if (activeField === 'title') {
-            setEditingNote((prev) => ({
-                ...prev!,
-                noteTitle: transcript,
-            }));
-        } else if (activeField === 'body') {
-            setEditingNote((prev) => ({
-                ...prev!,
-                noteBody: transcript,
-            }));
-        }
-    }, [transcript, isListening, activeField]);
 
     // Note operations
     const handlePinToggle = async (noteId: string) => {
@@ -236,15 +177,12 @@ const NotesContainer = () => {
     const openNote = (note: NoteI) => {
         setEditingNote(note);
         setIsModalOpen(true);
-        setIsCreatingNewNote(false);
-        resetTranscript();
+        setSearchQuery('');
     };
 
     const closeModal = () => {
         setEditingNote(null);
         setIsModalOpen(false);
-        setIsCreatingNewNote(false);
-        if (isListening) stopListening();
     };
 
     const saveNote = async () => {
@@ -277,15 +215,6 @@ const NotesContainer = () => {
             searchInputRef.current.focus();
         }
     };
-
-    if (!browserSupportsSpeechRecognition) {
-        return (
-            <div className='browser-warning'>
-                Your browser doesn&apos;t support speech recognition. Please try
-                Chrome or Edge.
-            </div>
-        );
-    }
 
     return (
         <div className='notes-container'>
@@ -478,9 +407,6 @@ const NotesContainer = () => {
                     <div
                         className='modal-content'
                         onClick={(e) => e.stopPropagation()}
-                        style={{
-                            backgroundColor: editingNote.bgColor || '#ffffff',
-                        }}
                     >
                         <div className='modal-header'>
                             <h2>Edit Note</h2>
@@ -493,129 +419,30 @@ const NotesContainer = () => {
                             </button>
                         </div>
 
-                        <div className='speech-controls'>
-                            <button
-                                className={`speech-button ${
-                                    isListening ? 'active' : ''
-                                }`}
-                                onClick={
-                                    isListening ? stopListening : startListening
-                                }
-                                aria-label={
-                                    isListening
-                                        ? 'Stop speech recognition'
-                                        : 'Start speech recognition'
-                                }
-                            >
-                                {isListening ? (
-                                    <MicOff size={18} />
-                                ) : (
-                                    <Mic size={18} />
-                                )}
-                                <span>
-                                    {isListening ? 'Stop' : 'Voice Input'}
-                                </span>
-                            </button>
-
-                            {isListening && (
-                                <div className='listening-status'>
-                                    <div className='pulse-animation'></div>
-                                    <span>Listening...</span>
-                                </div>
-                            )}
-                        </div>
-
-                        <input
-                            ref={noteTitleRef}
-                            className='modal-input'
-                            value={editingNote.noteTitle || ''}
-                            onChange={(e) =>
-                                setEditingNote({
-                                    ...editingNote,
-                                    noteTitle: e.target.value,
-                                })
-                            }
-                            onFocus={() => {
-                                setActiveField('title');
-                                resetTranscript();
-                            }}
-                            placeholder='Title'
-                        />
-
-                        <textarea
-                            ref={noteBodyRef}
-                            className='modal-textarea'
-                            value={editingNote.noteBody || ''}
-                            onChange={(e) =>
-                                setEditingNote({
-                                    ...editingNote,
-                                    noteBody: e.target.value,
-                                })
-                            }
-                            onFocus={() => {
-                                setActiveField('body');
-                                resetTranscript();
-                            }}
-                            placeholder='Take a note...'
-                            rows={8}
-                        />
-
-                        {/* Display labels if any */}
-                        {editingNote.labels &&
-                            editingNote.labels.length > 0 && (
-                                <div className='modal-labels'>
-                                    {editingNote.labels.map((label, index) => (
-                                        <span
-                                            key={index}
-                                            className='label-chip'
-                                        >
-                                            {typeof label === 'string'
-                                                ? label
-                                                : JSON.stringify(label)}
-                                            <button
-                                                className='remove-label'
-                                                onClick={() => {
-                                                    const updatedLabels = [
-                                                        ...editingNote.labels!,
-                                                    ];
-                                                    updatedLabels.splice(
-                                                        index,
-                                                        1
-                                                    );
-                                                    setEditingNote({
-                                                        ...editingNote,
-                                                        labels: updatedLabels.filter(
-                                                            (
-                                                                label
-                                                            ): label is string =>
-                                                                typeof label ===
-                                                                'string'
-                                                        ),
-                                                    });
-                                                }}
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-
-                        <div className='modal-actions'>
-                            <button
-                                className='modal-button save'
-                                onClick={saveNote}
-                            >
-                                <Save size={18} />
-                                <span>Save</span>
-                            </button>
-                            <button
-                                className='modal-button cancel'
-                                onClick={closeModal}
-                            >
-                                <X size={18} />
-                                <span>Cancel</span>
-                            </button>
+                        <div className='modal-body'>
+                            <NoteInput
+                                isEditing={true}
+                                noteToEdit={{
+                                    _id: editingNote._id,
+                                    noteTitle: editingNote.noteTitle || '',
+                                    noteBody: editingNote.noteBody || '',
+                                    isCbox: editingNote.checklists
+                                        ? editingNote.checklists.length > 0
+                                        : false,
+                                    checklists: editingNote.checklists || [],
+                                    pinned: editingNote.pinned || false,
+                                    archived: editingNote.archived || false,
+                                    trashed: editingNote.trashed || false,
+                                    bgColor: editingNote.bgColor || '#ffffff',
+                                    bgImage: editingNote.bgImage || '',
+                                    labels: editingNote.labels || [],
+                                    reminder: editingNote.reminder,
+                                }}
+                                onSuccess={() => {
+                                    closeModal();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

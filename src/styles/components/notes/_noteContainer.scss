@@ -221,252 +221,89 @@ $color-gray: #e5e7eb;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1000;
+}
 
-    .modal-content {
-        width: 90%;
-        max-width: 600px;
-        background-color: $color-white;
-        border-radius: $border-radius;
-        padding: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #202124;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        color: #5f6368;
+        border-radius: 50%;
         display: flex;
-        flex-direction: column;
-        gap: 15px;
-        max-height: 90vh;
-        overflow-y: auto;
+        align-items: center;
+        justify-content: center;
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            h2 {
-                font-size: 1.5rem;
-                color: $dark-gray;
-                font-weight: 500;
-            }
-
-            .close-modal {
-                background: none;
-                border: none;
-                color: $medium-gray;
-                cursor: pointer;
-                padding: 5px;
-                display: flex;
-
-                &:hover {
-                    color: $dark-gray;
-                }
-            }
+        &:hover {
+            background-color: rgba(95, 99, 104, 0.04);
         }
+    }
+}
 
-        .speech-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 5px;
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
 
-            .speech-button {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 8px 12px;
-                border-radius: $border-radius;
-                border: 1px solid $light-gray;
-                background: none;
-                cursor: pointer;
-                transition: $transition;
+    .note-input__container {
+        margin: 0;
+        box-shadow: none;
+    }
 
-                &:hover {
-                    background-color: $light-gray;
-                }
+    .note-input__editor {
+        display: block !important;
+        height: auto;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-                &.active {
-                    background-color: rgba($primary-color, 0.1);
-                    border-color: $primary-color;
-                    color: $primary-color;
-                }
-            }
+    .note-input__editor-content {
+        min-height: 200px;
+    }
 
-            .listening-status {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: $primary-color;
+    .note-input__checkbox-list {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-                .pulse-animation {
-                    width: 12px;
-                    height: 12px;
-                    background-color: $primary-color;
-                    border-radius: 50%;
-                    animation: pulse 1.5s infinite;
-                }
+    .note-input__checkbox-container {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-                span {
-                    font-size: 0.9rem;
-                }
-            }
-        }
-
-        .modal-input,
-        .modal-textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid $light-gray;
-            border-radius: $border-radius;
-            font-size: 1rem;
-            transition: $transition;
-
-            &:focus {
-                outline: none;
-                border-color: $secondary-color;
-                box-shadow: 0 0 0 2px rgba($secondary-color, 0.1);
-            }
-        }
-
-        .modal-input {
-            font-weight: 500;
-            font-size: 1.2rem;
-        }
-
-        .modal-textarea {
-            resize: vertical;
-            min-height: 150px;
-        }
-
-        .modal-labels {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-
-            .label-chip {
-                background-color: rgba($primary-color, 0.1);
-                color: $primary-color;
-                padding: 5px 10px;
-                border-radius: 16px;
-                font-size: 0.9rem;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-
-                .remove-label {
-                    background: none;
-                    border: none;
-                    display: flex;
-                    align-items: center;
-                    padding: 2px;
-                    cursor: pointer;
-                    color: $primary-color;
-
-                    &:hover {
-                        background-color: rgba($primary-color, 0.2);
-                        border-radius: 50%;
-                    }
-                }
-            }
-        }
-
-        .color-picker {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-
-            .color-option {
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                cursor: pointer;
-                border: 2px solid transparent;
-                transition: $transition;
-
-                &.white {
-                    background-color: $color-white;
-                }
-                &.yellow {
-                    background-color: $color-yellow;
-                }
-                &.blue {
-                    background-color: $color-blue;
-                }
-                &.pink {
-                    background-color: $color-pink;
-                }
-                &.green {
-                    background-color: $color-green;
-                }
-                &.orange {
-                    background-color: $color-orange;
-                }
-                &.gray {
-                    background-color: $color-gray;
-                }
-
-                &.selected {
-                    border-color: $primary-color;
-                    box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
-                }
-
-                &:hover {
-                    transform: scale(1.1);
-                }
-            }
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 10px;
-
-            .modal-button {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                padding: 10px 16px;
-                border-radius: $border-radius;
-                font-size: 0.95rem;
-                cursor: pointer;
-                transition: $transition;
-
-                &.save {
-                    background-color: $primary-color;
-                    color: white;
-                    border: none;
-
-                    &:hover {
-                        background-color: darken($primary-color, 8%);
-                    }
-                }
-
-                &.cancel {
-                    background-color: transparent;
-                    border: 1px solid $light-gray;
-                    color: $dark-gray;
-
-                    &:hover {
-                        background-color: $light-gray;
-                    }
-                }
-            }
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba($primary-color, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 10px rgba($primary-color, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba($primary-color, 0);
-            }
-        }
+    .note-input__checkbox-placeholder {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 }
 

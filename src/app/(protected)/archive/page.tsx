@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import NoteCard from '@/components/notes/NoteCard';
 import { NoteI } from '@/interfaces/notes';
 import '@/styles/components/notes/_noteCard.scss';
+import '@/styles/components/notes/_noteContainer.scss';
 import { useGetArchivedNotesQuery } from '@/redux/api/notesAPI';
 import { Search, Grid, List, X } from 'lucide-react';
 
@@ -22,7 +23,9 @@ const ArchivedNotesPage: React.FC = () => {
     // Filter archived notes based on search query
     const filteredNotes = notes.filter((note: NoteI) => {
         const matchesSearch = searchQuery
-            ? note.noteTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            ? note.noteTitle
+                  ?.toLowerCase()
+                  .includes(searchQuery.toLowerCase()) ||
               note.noteBody?.toLowerCase().includes(searchQuery.toLowerCase())
             : true;
         return matchesSearch;
@@ -41,7 +44,10 @@ const ArchivedNotesPage: React.FC = () => {
             {/* Header */}
             <div className='notes-header'>
                 <div className='search-container'>
-                    <Search size={18} className='search-icon' />
+                    <Search
+                        size={18}
+                        className='search-icon'
+                    />
                     <input
                         ref={searchInputRef}
                         type='text'
@@ -63,14 +69,18 @@ const ArchivedNotesPage: React.FC = () => {
 
                 <div className='view-options'>
                     <button
-                        className={`view-toggle ${viewType === 'grid' ? 'active' : ''}`}
+                        className={`view-toggle ${
+                            viewType === 'grid' ? 'active' : ''
+                        }`}
                         onClick={() => setViewType('grid')}
                         aria-label='Grid view'
                     >
                         <Grid size={20} />
                     </button>
                     <button
-                        className={`view-toggle ${viewType === 'list' ? 'active' : ''}`}
+                        className={`view-toggle ${
+                            viewType === 'list' ? 'active' : ''
+                        }`}
                         onClick={() => setViewType('list')}
                         aria-label='List view'
                     >
@@ -88,7 +98,10 @@ const ArchivedNotesPage: React.FC = () => {
             ) : isError ? (
                 <div className='error-container'>
                     <p>Error loading archived notes. Please try again later.</p>
-                    <button onClick={() => refetch()} className='retry-button'>
+                    <button
+                        onClick={() => refetch()}
+                        className='retry-button'
+                    >
                         Retry
                     </button>
                 </div>
@@ -111,7 +124,9 @@ const ArchivedNotesPage: React.FC = () => {
                 <section className='notes-section'>
                     <h3 className='section-title'>
                         <span>Archived Notes</span>
-                        <span className='note-count'>{filteredNotes.length}</span>
+                        <span className='note-count'>
+                            {filteredNotes.length}
+                        </span>
                     </h3>
                     <div className={`notes-list ${viewType}`}>
                         {filteredNotes.map((note: NoteI) => (
