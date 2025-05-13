@@ -4,7 +4,7 @@ import NoteInput from '@/components/notes/NoteInput';
 import NotesContainer from '@/components/notes/NotesContainer';
 import { getDashboardCommands } from '@/voice-assistant/commands/dashboardCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function Page() {
     const [recentlyAdded, setRecentlyAdded] = useState(false);
@@ -12,11 +12,13 @@ function Page() {
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
     const noteInputRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleSuccess = () => {
         setRecentlyAdded(true);
     };
 
+    // Initialize voice commands
     const { isActive } = usePageVoiceCommands(
         {
             '/dashboard': getDashboardCommands({
@@ -27,9 +29,22 @@ function Page() {
         { debug: true, requireWakeWord: true }
     );
 
+    // Forward the search input ref once the NotesContainer is mounted
+    useEffect(() => {
+        if (containerRef.current) {
+            const searchInput =
+                containerRef.current.querySelector('input.search-input');
+            if (searchInput instanceof HTMLInputElement) {
+                searchInputRef.current = searchInput;
+            }
+        }
+    }, [containerRef.current]);
+
+    // Function to forward the refs from the NotesContainer
     const forwardRefs = (container: HTMLDivElement | null) => {
         if (container) {
-            const searchInput = container.querySelector('input[type="text"]');
+            containerRef.current = container;
+            const searchInput = container.querySelector('input.search-input');
             if (searchInput instanceof HTMLInputElement) {
                 searchInputRef.current = searchInput;
             }
