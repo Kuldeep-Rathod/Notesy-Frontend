@@ -14,11 +14,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
-import { isEqual } from 'lodash-es';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
     initialSearchQuery?: string;
+    filterType?: 'reminder' | 'label' | 'archive' | 'trash';
+    filterValue?: string;
     onViewTypeChange?: (viewType: 'grid' | 'list') => void;
     onSearchQueryChange?: (query: string) => void;
 }
@@ -26,6 +27,8 @@ interface NotesContainerProps {
 const NotesContainer = ({
     initialViewType = 'grid',
     initialSearchQuery = '',
+    filterType,
+    filterValue,
     onViewTypeChange,
     onSearchQueryChange,
 }: NotesContainerProps = {}) => {
@@ -73,7 +76,6 @@ const NotesContainer = ({
         onSearchQueryChange?.(newQuery);
     };
 
-    // Memoize categorized notes
     const {
         pinnedNotes,
         unpinnedNotes,
@@ -81,38 +83,63 @@ const NotesContainer = ({
         archivedNotes,
         filteredNotes,
     } = useMemo(() => {
-        const filtered = notes.filter((note: NoteI) => {
-            if (!searchQuery) return true;
+        let filtered = notes;
 
-            const titleMatch = note.noteTitle
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase());
-            const bodyMatch = note.noteBody
-                ?.toLowerCase()
-                .includes(searchQuery.toLowerCase());
-            const labelMatch = note.labels?.some(
-                (label) =>
-                    typeof label === 'string' &&
-                    label.toLowerCase().includes(searchQuery.toLowerCase())
-            );
+        // Apply search filter
+        if (searchQuery) {
+            filtered = filtered.filter((note: NoteI) => {
+                const titleMatch = note.noteTitle
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase());
+                const bodyMatch = note.noteBody
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase());
+                const labelMatch = note.labels?.some(
+                    (label) =>
+                        typeof label === 'string' &&
+                        label.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                return titleMatch || bodyMatch || labelMatch;
+            });
+        }
 
-            return titleMatch || bodyMatch || labelMatch;
-        });
+        // Apply filterType
+        switch (filterType) {
+            case 'reminder':
+                filtered = filtered.filter(
+                    (note: NoteI) => !!note.reminder && !note.trashed
+                );
+                break;
+            case 'label':
+                filtered = filtered.filter((note: NoteI) =>
+                    note.labels?.some((label) => label === filterValue)
+                );
+                break;
+            case 'archive':
+                filtered = filtered.filter(
+                    (note: NoteI) => note.archived && !note.trashed
+                );
+                break;
+            case 'trash':
+                filtered = filtered.filter((note: NoteI) => note.trashed);
+                break;
+            default:
+                filtered = filtered.filter(
+                    (note: NoteI) => !note.archived && !note.trashed
+                );
+                break;
+        }
 
         return {
-            pinnedNotes: filtered.filter(
-                (n: NoteI) => !n.trashed && !n.archived && n.pinned
-            ),
-            unpinnedNotes: filtered.filter(
-                (n: NoteI) => !n.trashed && !n.archived && !n.pinned
-            ),
+            pinnedNotes: filtered.filter((n: NoteI) => n.pinned),
+            unpinnedNotes: filtered.filter((n: NoteI) => !n.pinned),
             trashedNotes: filtered.filter((n: NoteI) => n.trashed),
             archivedNotes: filtered.filter(
                 (n: NoteI) => n.archived && !n.trashed
             ),
             filteredNotes: filtered,
         };
-    }, [notes, searchQuery]);
+    }, [notes, searchQuery, filterType, filterValue]);
 
     // Note operations
     const handlePinToggle = async (noteId: string) => {

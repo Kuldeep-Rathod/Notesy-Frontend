@@ -71,7 +71,8 @@ const usePageVoiceCommands = (
             const customEvent = event as CustomEvent; // Cast the event to CustomEvent
             const globalActive = customEvent.detail.isActive;
             const isDashboard = pathname.startsWith('/dashboard');
-            const shouldActivate = globalActive && isDashboard;
+            const isArchive = pathname.startsWith('/archive');
+            const shouldActivate = globalActive && (isDashboard || isArchive);
 
             setIsActive(shouldActivate);
 
@@ -91,7 +92,8 @@ const usePageVoiceCommands = (
         // Immediately check if voice assistant is active on mount
         const globalActiveNow = (window as any).voiceAssistantActive ?? false;
         const isDashboardNow = pathname.startsWith('/dashboard');
-        const shouldActivateNow = globalActiveNow && isDashboardNow;
+        const isArchiveNow = pathname.startsWith('/archive');
+        const shouldActivateNow = globalActiveNow && (isDashboardNow || isArchiveNow);
 
         setIsActive(shouldActivateNow);
 
