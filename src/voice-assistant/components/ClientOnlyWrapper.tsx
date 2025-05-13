@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
 // 👇 Dynamically import VoiceRouter only on the client
-const VoiceRouter = dynamic(() => import('@/components/VoiceRouter'), {
+const VoiceRouter = dynamic(() => import('@/voice-assistant/VoiceRouter'), {
     ssr: false,
     loading: () => <VoiceAssistantLoading />,
 });

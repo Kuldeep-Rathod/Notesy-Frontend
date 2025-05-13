@@ -1,6 +1,6 @@
 'use client';
 
-import VoiceDebugger from '@/components/VoiceDebugger';
+import VoiceDebugger from '@/voice-assistant/components/VoiceDebugger';
 import { useEffect, useState } from 'react';
 
 export default function VoiceTestPage() {

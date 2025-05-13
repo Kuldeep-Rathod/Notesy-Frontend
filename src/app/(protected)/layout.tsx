@@ -29,12 +29,7 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const {
-        data: labelsData = [],
-        isLoading,
-        isError,
-        refetch,
-    } = useGetLabelsQuery();
+    const { data: labelsData = [], isLoading } = useGetLabelsQuery();
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -119,7 +114,7 @@ export default function DashboardLayout({
                             {labelsData.map((name, index) => (
                                 <SidebarLink
                                     key={index}
-                                    href={`/labels/${name}`}
+                                    href={`/${name}`}
                                     title={isLoading ? 'Loading...' : name}
                                     isSidebarOpen={isSidebarOpen}
                                     icon={<Tag className='w-5 h-5' />}
@@ -127,7 +122,7 @@ export default function DashboardLayout({
                             ))}
 
                             <SidebarLink
-                                href='/edit-labels'
+                                href='/labels'
                                 title='Edit labels'
                                 isSidebarOpen={isSidebarOpen}
                                 icon={<Pencil className='w-5 h-5' />}
@@ -141,8 +136,8 @@ export default function DashboardLayout({
                             />
 
                             <SidebarLink
-                                href='/bin'
-                                title='Bin'
+                                href='/trash'
+                                title='Trash'
                                 isSidebarOpen={isSidebarOpen}
                                 icon={<Trash2 className='w-5 h-5' />}
                             />

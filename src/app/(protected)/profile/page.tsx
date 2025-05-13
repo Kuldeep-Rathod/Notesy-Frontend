@@ -1,7 +1,7 @@
 'use client';
 
 import Profile from '@/components/profile';
-import usePageVoiceCommands from '@/hooks/usePageVoiceCommands';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import {
     Label,
     Preferences,

@@ -1,4 +1,4 @@
-import ClientOnlyWrapper from '@/components/ClientOnlyWrapper';
+import ClientOnlyWrapper from '@/voice-assistant/components/ClientOnlyWrapper';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';

@@ -1,5 +1,6 @@
 'use client';
 
+import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 import { RootState } from '@/redux/store';
 import { debounce } from 'lodash-es';
 import { useRouter } from 'next/navigation';
@@ -11,16 +12,27 @@ import SpeechRecognition, {
 
 const VoiceRouter = () => {
     const user = useSelector((state: RootState) => state.auth.user);
+    const { data: labelsData = [] } = useGetLabelsQuery();
 
     const router = useRouter();
     const isDev = process.env.NODE_ENV === 'development';
-    const validRoutes = [
+
+    // Static routes
+    const baseRoutes = [
         'dashboard',
         'archive',
         'trash',
         'profile',
+        'labels',
         'reminders',
     ];
+
+    // Merge labels into routes
+    const validRoutes = useMemo(() => {
+        const labelRoutes = labelsData.map((label) => label.toLowerCase?.());
+        return [...baseRoutes, ...labelRoutes];
+    }, [labelsData]);
+
     const [isActive, setIsActive] = useState(false);
     const [hasUserGesture, setHasUserGesture] = useState(false);
     const [showGesturePrompt, setShowGesturePrompt] = useState(true);
@@ -216,7 +228,7 @@ const VoiceRouter = () => {
         if (typeof window !== 'undefined') {
             // ✅ Set global voice state
             (window as any).voiceAssistantActive = isActive;
-    
+
             // ✅ Dispatch event
             const event = new CustomEvent('voiceAssistantStateChange', {
                 detail: { isActive },
@@ -227,7 +239,6 @@ const VoiceRouter = () => {
             );
         }
     }, [isActive]);
-    
 
     if (!browserSupportsSpeechRecognition) {
         return (
