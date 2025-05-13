@@ -481,15 +481,22 @@ export default function NoteInput({
         transcript: speechTranscript,
         resetTranscript,
         browserSupportsSpeechRecognition,
+        listening,
     } = useSpeechRecognition();
 
     const startListening = useCallback(() => {
+        if (!browserSupportsSpeechRecognition) {
+            console.error(
+                'Speech recognition is not supported in this browser'
+            );
+            return;
+        }
         dispatch(setListening(true));
         SpeechRecognition.startListening({
             continuous: true,
-            language: 'en-IN',
+            language: 'en-US',
         });
-    }, [dispatch]);
+    }, [dispatch, browserSupportsSpeechRecognition]);
 
     const stopListening = useCallback(() => {
         dispatch(setListening(false));
@@ -506,30 +513,49 @@ export default function NoteInput({
 
     // Handle speech recognition transcript updates
     useEffect(() => {
-        if (!isListening || !transcript || !activeField) return;
+        if (!isListening || !speechTranscript || !activeField) return;
 
         const fieldRef = activeField === 'title' ? noteTitleRef : noteBodyRef;
         if (!fieldRef.current) return;
 
-        const selection = window.getSelection();
-        const hadSelection =
-            selection?.rangeCount &&
-            selection.getRangeAt(0).collapsed === false;
+        // Get current content
+        const currentContent = fieldRef.current.textContent || '';
 
-        fieldRef.current.textContent = transcript;
-        dispatch(updateInputLength({ [activeField]: transcript.length }));
+        // Append new transcript to current content
+        fieldRef.current.textContent = currentContent + ' ' + speechTranscript;
 
-        if (hadSelection) {
-            const range = document.createRange();
-            range.selectNodeContents(fieldRef.current);
-            range.collapse(false);
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-        }
-    }, [transcript, isListening, activeField, dispatch]);
+        // Update input length
+        dispatch(
+            updateInputLength({
+                [activeField]: fieldRef.current.textContent.length,
+            })
+        );
+
+        // Place cursor at end
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(fieldRef.current);
+        range.collapse(false);
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+    }, [speechTranscript, isListening, activeField, dispatch]);
+
+    // Cleanup speech recognition on unmount
+    useEffect(() => {
+        return () => {
+            if (isListening) {
+                SpeechRecognition.stopListening();
+            }
+        };
+    }, [isListening]);
 
     if (!browserSupportsSpeechRecognition) {
-        return <p>Browser does not support speech recognition.</p>;
+        return (
+            <p>
+                Your browser does not support speech recognition. Please try
+                using Chrome or Edge.
+            </p>
+        );
     }
 
     return (
