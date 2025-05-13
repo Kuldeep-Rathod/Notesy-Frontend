@@ -14,7 +14,13 @@ const VoiceRouter = () => {
 
     const router = useRouter();
     const isDev = process.env.NODE_ENV === 'development';
-    const validRoutes = ['dashboard', 'archive', 'bin', 'profile'];
+    const validRoutes = [
+        'dashboard',
+        'archive',
+        'trash',
+        'profile',
+        'reminders',
+    ];
     const [isActive, setIsActive] = useState(false);
     const [hasUserGesture, setHasUserGesture] = useState(false);
     const [showGesturePrompt, setShowGesturePrompt] = useState(true);
@@ -204,6 +210,24 @@ const VoiceRouter = () => {
             window.removeEventListener('keydown', handleUserInteraction);
         };
     }, [hasUserGesture, browserSupportsSpeechRecognition]);
+
+    // Emit voice assistant state changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            // ✅ Set global voice state
+            (window as any).voiceAssistantActive = isActive;
+    
+            // ✅ Dispatch event
+            const event = new CustomEvent('voiceAssistantStateChange', {
+                detail: { isActive },
+            });
+            window.dispatchEvent(event);
+            console.log(
+                `Voice assistant ${isActive ? 'activated' : 'deactivated'}`
+            );
+        }
+    }, [isActive]);
+    
 
     if (!browserSupportsSpeechRecognition) {
         return (

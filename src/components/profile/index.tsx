@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Label,
     Preferences,
@@ -20,6 +20,8 @@ interface ProfileProps {
     voiceStats: VoiceStats;
     labels: Label[];
     preferences: Preferences;
+    activeSection?: 'profile' | 'preferences' | 'stats';
+    onSectionChange?: (section: 'profile' | 'preferences' | 'stats') => void;
 }
 
 const Profile: React.FC<ProfileProps> = ({
@@ -28,9 +30,25 @@ const Profile: React.FC<ProfileProps> = ({
     voiceStats,
     labels,
     preferences,
+    activeSection = 'profile',
+    onSectionChange,
 }) => {
     const [currentLabels, setCurrentLabels] = useState<Label[]>(labels);
     const [newLabel, setNewLabel] = useState('');
+    const [localActiveSection, setLocalActiveSection] = useState<'profile' | 'preferences' | 'stats'>(activeSection);
+    
+    useEffect(() => {
+        setLocalActiveSection(activeSection);
+    }, [activeSection]);
+    
+    const handleSectionChange = (section: 'profile' | 'preferences' | 'stats') => {
+        setLocalActiveSection(section);
+        if (onSectionChange) {
+            onSectionChange(section);
+        }
+    };
+    
+    const effectiveSection = localActiveSection;
 
     const handleDeleteLabel = (id: string) => {
         setCurrentLabels(currentLabels.filter((label) => label.id !== id));

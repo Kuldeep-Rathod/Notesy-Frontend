@@ -16,7 +16,19 @@ import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
 import { isEqual } from 'lodash-es';
 
-const NotesContainer = () => {
+interface NotesContainerProps {
+    initialViewType?: 'grid' | 'list';
+    initialSearchQuery?: string;
+    onViewTypeChange?: (viewType: 'grid' | 'list') => void;
+    onSearchQueryChange?: (query: string) => void;
+}
+
+const NotesContainer = ({
+    initialViewType = 'grid',
+    initialSearchQuery = '',
+    onViewTypeChange,
+    onSearchQueryChange,
+}: NotesContainerProps = {}) => {
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
 
@@ -36,10 +48,30 @@ const NotesContainer = () => {
     const [moveToBin] = useMoveNoteToBinMutation();
 
     // UI state
-    const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
+    const [viewType, setViewType] = useState<'grid' | 'list'>(initialViewType);
     const [editingNote, setEditingNote] = useState<NoteI | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+
+    // When the props change, update the state
+    useEffect(() => {
+        setViewType(initialViewType);
+    }, [initialViewType]);
+
+    useEffect(() => {
+        setSearchQuery(initialSearchQuery);
+    }, [initialSearchQuery]);
+
+    // When the state changes, notify the parent
+    const handleViewTypeChange = (newViewType: 'grid' | 'list') => {
+        setViewType(newViewType);
+        onViewTypeChange?.(newViewType);
+    };
+
+    const handleSearchQueryChange = (newQuery: string) => {
+        setSearchQuery(newQuery);
+        onSearchQueryChange?.(newQuery);
+    };
 
     // Memoize categorized notes
     const {
@@ -210,7 +242,7 @@ const NotesContainer = () => {
     };
 
     const clearSearch = () => {
-        setSearchQuery('');
+        handleSearchQueryChange('');
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
@@ -230,7 +262,9 @@ const NotesContainer = () => {
                         type='text'
                         placeholder='Search notes...'
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) =>
+                            handleSearchQueryChange(e.target.value)
+                        }
                         className='search-input'
                     />
                     {searchQuery && (
@@ -249,7 +283,7 @@ const NotesContainer = () => {
                         className={`view-toggle ${
                             viewType === 'grid' ? 'active' : ''
                         }`}
-                        onClick={() => setViewType('grid')}
+                        onClick={() => handleViewTypeChange('grid')}
                         aria-label='Grid view'
                     >
                         <Grid size={20} />
@@ -258,7 +292,7 @@ const NotesContainer = () => {
                         className={`view-toggle ${
                             viewType === 'list' ? 'active' : ''
                         }`}
-                        onClick={() => setViewType('list')}
+                        onClick={() => handleViewTypeChange('list')}
                         aria-label='List view'
                     >
                         <List size={20} />
