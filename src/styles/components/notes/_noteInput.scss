@@ -830,3 +830,140 @@ $transition: all 0.2s ease-in-out;
         overflow: hidden;
     }
 }
+
+// Enhanced input styles for modal
+.improved-modal {
+    .note-input__container {
+        border-radius: 12px;
+        overflow: hidden;
+        
+        .note-input__editor {
+            background-color: transparent;
+            transition: background-color 0.2s;
+            box-shadow: none;
+            border: none;
+            
+            &:focus-within {
+                background-color: rgba(255, 255, 255, 0.8);
+            }
+        }
+        
+        .note-input__title {
+            font-size: 1.4rem !important;
+            font-weight: 500;
+            padding: 8px 0 12px;
+            color: rgba(0, 0, 0, 0.87);
+            
+            &:empty:before {
+                color: rgba(0, 0, 0, 0.38);
+            }
+        }
+        
+        .note-input__body {
+            font-size: 1rem !important;
+            line-height: 1.5;
+            color: rgba(0, 0, 0, 0.6);
+            
+            &:empty:before {
+                color: rgba(0, 0, 0, 0.38);
+            }
+        }
+        
+        .note-input__toolbar {
+            backdrop-filter: blur(5px);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            justify-content: space-between;
+            
+            .note-input__toolbar-left,
+            .note-input__toolbar-right {
+                display: flex;
+                gap: 4px;
+            }
+            
+            button {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.08);
+                }
+                
+                &.active {
+                    color: $primary-color;
+                    background-color: rgba($primary-color, 0.1);
+                }
+            }
+        }
+        
+        .note-input__checkbox-item {
+            background-color: transparent;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.04);
+            }
+            
+            .checkbox {
+                border-color: rgba(0, 0, 0, 0.38);
+                
+                &.checked {
+                    background-color: $primary-color;
+                    border-color: $primary-color;
+                }
+            }
+            
+            .checkbox-text {
+                font-size: 1rem;
+                color: rgba(0, 0, 0, 0.87);
+                
+                &[contenteditable]:focus {
+                    outline: none;
+                    background-color: rgba(255, 255, 255, 0.8);
+                }
+                
+                &.checked {
+                    color: rgba(0, 0, 0, 0.38);
+                    text-decoration: line-through;
+                }
+            }
+            
+            .delete-checkbox {
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            
+            &:hover .delete-checkbox {
+                opacity: 1;
+            }
+        }
+        
+        .color-tooltip, .options-menu, .label-tooltip, .reminder-tooltip, .collaborator-tooltip {
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            
+            &::before {
+                display: none;
+            }
+        }
+        
+        .color-item {
+            border-radius: 8px;
+            transition: transform 0.2s;
+            
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+    }
+}

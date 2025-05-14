@@ -15,10 +15,20 @@ export interface NoteI {
     pinned?: boolean;
     reminder?: Date | string | null;
     sharedWith?: string[];
+    collaborators?: CollaboratorI[];
     trashed?: boolean;
     archived?: boolean;
     bgImage?: string;
     isCbox?: boolean;
+    createdAt?: string | Date;
+    updatedAt?: string | Date;
+}
+
+export interface CollaboratorI {
+    firebaseUid: string;
+    name?: string;
+    email?: string;
+    photo?: string;
 }
 
 export interface CheckboxI {

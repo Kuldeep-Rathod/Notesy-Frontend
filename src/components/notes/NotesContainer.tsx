@@ -9,11 +9,23 @@ import {
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
 import '@/styles/components/notes/_noteContainer.scss';
-import { X as CloseIcon, Grid, List, Search, X } from 'lucide-react';
+import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import {
+    Bell,
+    Clock,
+    UserCircle,
+    Users,
+    X as CloseIcon,
+    Grid,
+    List,
+    Search,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
+import Image from 'next/image';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -244,6 +256,68 @@ const NotesContainer = ({
         setIsModalOpen(false);
     };
 
+    // Add event listener for Escape key to close modal
+    useEffect(() => {
+        const handleEscapeKey = (e: KeyboardEvent) => {
+            if (isModalOpen && e.key === 'Escape') {
+                closeModal();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscapeKey);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscapeKey);
+        };
+    }, [isModalOpen]);
+
+    // Calculate modal background styles
+    const getModalStyle = useMemo(() => {
+        if (!editingNote) return {};
+
+        const style: React.CSSProperties = {};
+
+        if (editingNote.bgImage) {
+            style.backgroundImage = editingNote.bgImage;
+            style.backgroundSize = 'cover';
+            style.backgroundPosition = 'center';
+        } else if (editingNote.bgColor) {
+            style.backgroundColor = editingNote.bgColor;
+        }
+
+        return style;
+    }, [editingNote]);
+
+    // Format date for display
+    const formatReminderDate = (
+        dateString: string | Date | null | undefined
+    ) => {
+        if (!dateString) return null;
+        try {
+            const date =
+                typeof dateString === 'string'
+                    ? parseISO(dateString)
+                    : new Date(dateString);
+
+            if (isToday(date)) {
+                return `Today at ${format(date, 'h:mm a')}`;
+            } else if (isTomorrow(date)) {
+                return `Tomorrow at ${format(date, 'h:mm a')}`;
+            } else {
+                return format(date, "MMM d, yyyy 'at' h:mm a");
+            }
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return null;
+        }
+    };
+
+    // Generate initials for avatars
+    const getInitials = (email: string) => {
+        if (!email) return '?';
+        return email.charAt(0).toUpperCase();
+    };
+
     const saveNote = async () => {
         if (!editingNote) return;
 
@@ -274,6 +348,10 @@ const NotesContainer = ({
             searchInputRef.current.focus();
         }
     };
+
+    {
+        console.log('email', editingNote?.collaborators);
+    }
 
     return (
         <div className='notes-container'>
@@ -466,19 +544,153 @@ const NotesContainer = ({
                     onClick={closeModal}
                 >
                     <div
-                        className='modal-content'
+                        className='modal-content improved-modal'
                         onClick={(e) => e.stopPropagation()}
+                        style={getModalStyle}
                     >
                         <div className='modal-header'>
-                            <h2>Edit Note</h2>
-                            <button
-                                className='close-modal'
-                                onClick={closeModal}
-                                aria-label='Close modal'
-                            >
-                                <CloseIcon size={20} />
-                            </button>
+                            <h2>{editingNote.pinned ? '📌 ' : ''}Edit Note</h2>
+                            <div className='modal-actions'>
+                                {editingNote.labels &&
+                                    editingNote.labels.length > 0 && (
+                                        <div className='modal-labels'>
+                                            {editingNote.labels.map(
+                                                (label, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className='modal-label'
+                                                    >
+                                                        {typeof label ===
+                                                        'string'
+                                                            ? label
+                                                            : label.name}
+                                                    </span>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
+                                <button
+                                    className='close-modal'
+                                    onClick={closeModal}
+                                    aria-label='Close modal'
+                                    title='Close (Esc)'
+                                >
+                                    <CloseIcon size={20} />
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Reminder & Collaborators Info Bar */}
+                        {(editingNote.reminder ||
+                            (editingNote.collaborators &&
+                                editingNote.collaborators.length > 0)) && (
+                            <div className='modal-info-bar'>
+                                {editingNote.reminder && (
+                                    <div
+                                        className='modal-reminder'
+                                        title={`Reminder: ${formatReminderDate(
+                                            editingNote.reminder
+                                        )}`}
+                                    >
+                                        <Bell size={14} />
+                                        <span>
+                                            {formatReminderDate(
+                                                editingNote.reminder
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {editingNote.collaborators &&
+                                    editingNote.collaborators.length > 0 && (
+                                        <div
+                                            className='modal-collaborators'
+                                            title={`Shared with ${
+                                                editingNote.collaborators.length
+                                            } ${
+                                                editingNote.collaborators
+                                                    .length === 1
+                                                    ? 'person'
+                                                    : 'people'
+                                            }`}
+                                        >
+                                            <Users size={14} />
+                                            <span>
+                                                Shared with{' '}
+                                                {
+                                                    editingNote.collaborators
+                                                        .length
+                                                }
+                                                {editingNote.collaborators
+                                                    .length === 1
+                                                    ? ' person'
+                                                    : ' people'}
+                                            </span>
+                                            <div className='modal-avatar-stack'>
+                                                {editingNote.collaborators
+                                                    .slice(0, 3)
+                                                    .map(
+                                                        (
+                                                            collaborator,
+                                                            index
+                                                        ) => (
+                                                            <div
+                                                                key={
+                                                                    collaborator.firebaseUid ||
+                                                                    index
+                                                                } // Better to use a unique ID if available
+                                                                className='modal-avatar'
+                                                                title={
+                                                                    collaborator.email
+                                                                }
+                                                                style={{
+                                                                    zIndex:
+                                                                        3 -
+                                                                        index,
+                                                                }}
+                                                            >
+                                                                {collaborator.photo ? (
+                                                                    <Image
+                                                                        src={
+                                                                            collaborator.photo
+                                                                        }
+                                                                        alt={
+                                                                            collaborator.name ||
+                                                                            collaborator.email ||
+                                                                            'Collaborator'
+                                                                        }
+                                                                        width={
+                                                                            40
+                                                                        }
+                                                                        height={
+                                                                            40
+                                                                        }
+                                                                        className='w-full h-full rounded-full object-cover'
+                                                                    />
+                                                                ) : (
+                                                                    getInitials(
+                                                                        collaborator.name ||
+                                                                            collaborator.email ||
+                                                                            ''
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    )}
+                                                {editingNote.collaborators
+                                                    .length > 3 && (
+                                                    <div className='modal-avatar modal-avatar-more'>
+                                                        +
+                                                        {editingNote
+                                                            .collaborators
+                                                            .length - 3}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                            </div>
+                        )}
 
                         <div className='modal-body'>
                             <NoteInput
@@ -498,12 +710,35 @@ const NotesContainer = ({
                                     bgImage: editingNote.bgImage || '',
                                     labels: editingNote.labels || [],
                                     reminder: editingNote.reminder,
+                                    sharedWith: editingNote.sharedWith || [],
+                                    createdAt: editingNote.createdAt,
+                                    updatedAt: editingNote.updatedAt,
                                 }}
                                 onSuccess={() => {
                                     closeModal();
                                     refetch();
                                 }}
                             />
+                        </div>
+
+                        <div className='modal-footer'>
+                            <div className='modal-date'>
+                                {editingNote.updatedAt ? (
+                                    <span>
+                                        Edited{' '}
+                                        {new Date(
+                                            editingNote.updatedAt
+                                        ).toLocaleString()}
+                                    </span>
+                                ) : (
+                                    <span>
+                                        Created{' '}
+                                        {new Date(
+                                            editingNote.createdAt || Date.now()
+                                        ).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

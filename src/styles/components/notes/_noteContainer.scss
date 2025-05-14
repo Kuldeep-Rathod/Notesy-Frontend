@@ -150,8 +150,6 @@ $color-gray: #e5e7eb;
         }
     }
 
-   
-
     // Loading, Error, and Empty States
     .loading-container,
     .error-container,
@@ -224,22 +222,114 @@ $color-gray: #e5e7eb;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-in-out;
 }
 
 .modal-content {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    animation: slideUp 0.3s ease-out;
+    position: relative;
+
+    &.improved-modal {
+        transition: all 0.3s ease, background-color 0.5s ease;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+
+        &:hover {
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+        }
+
+        // Content transitions
+        .modal-header,
+        .modal-body,
+        .modal-footer,
+        .modal-info-bar {
+            transition: background-color 0.5s ease;
+        }
+
+        // Subtle light overlay for darker backgrounds
+        &[style*='background-color: rgb(72,']::after,
+        &[style*='background-color: rgb(0,']::after,
+        &[style*='background-color: rgb(33,']::after,
+        &[style*='background-color: rgb(45,']::after,
+        &[style*='background-color: #1']::after,
+        &[style*='background-color: #2']::after,
+        &[style*='background-color: #3']::after,
+        &[style*='background-color: #0']::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+        }
+
+        // Text color for dark backgrounds
+        &[style*='background-color: rgb(72,'] *,
+        &[style*='background-color: rgb(0,'] *,
+        &[style*='background-color: rgb(33,'] *,
+        &[style*='background-color: rgb(45,'] *,
+        &[style*='background-color: #1'] *,
+        &[style*='background-color: #2'] *,
+        &[style*='background-color: #3'] *,
+        &[style*='background-color: #0'] * {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        // Override for info bar on dark backgrounds
+        &[style*='background-color: rgb(72,'] .modal-info-bar,
+        &[style*='background-color: rgb(0,'] .modal-info-bar,
+        &[style*='background-color: rgb(33,'] .modal-info-bar,
+        &[style*='background-color: rgb(45,'] .modal-info-bar,
+        &[style*='background-color: #1'] .modal-info-bar,
+        &[style*='background-color: #2'] .modal-info-bar,
+        &[style*='background-color: #3'] .modal-info-bar,
+        &[style*='background-color: #0'] .modal-info-bar {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+
+            .modal-reminder,
+            .modal-collaborators {
+                background-color: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.15);
+
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.18);
+                }
+            }
+
+            .modal-reminder {
+                color: #fbbf24; // Brighter amber for dark mode
+
+                svg {
+                    color: #fbbf24;
+                }
+            }
+
+            .modal-collaborators {
+                color: #60a5fa; // Brighter blue for dark mode
+
+                svg {
+                    color: #60a5fa;
+                }
+            }
+        }
+    }
 }
 
 .modal-header {
-    padding: 16px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -248,6 +338,29 @@ $color-gray: #e5e7eb;
         margin: 0;
         font-size: 1.25rem;
         color: #202124;
+        font-weight: 500;
+    }
+
+    .modal-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .modal-labels {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-right: 8px;
+
+        .modal-label {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 14px;
+            background-color: rgba($primary-color, 0.1);
+            color: $primary-color;
+            white-space: nowrap;
+        }
     }
 
     .close-modal {
@@ -260,21 +373,138 @@ $color-gray: #e5e7eb;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.2s ease;
 
         &:hover {
-            background-color: rgba(95, 99, 104, 0.04);
+            background-color: rgba(95, 99, 104, 0.12);
+            transform: rotate(90deg);
+        }
+    }
+}
+
+// Info bar for reminders and collaborators
+.modal-info-bar {
+    padding: 8px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    background-color: rgba(0, 0, 0, 0.02);
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.7);
+    animation: fadeDown 0.3s ease-out;
+    position: relative;
+
+    &:empty {
+        display: none;
+    }
+
+    .modal-reminder,
+    .modal-collaborators {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(4px);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        svg {
+            flex-shrink: 0;
+        }
+
+        span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .modal-reminder {
+        color: #f59e0b; // Amber color for reminders
+
+        svg {
+            color: #f59e0b;
+        }
+    }
+
+    .modal-collaborators {
+        color: #3b82f6; // Blue color for collaborators
+
+        svg {
+            color: #3b82f6;
+        }
+    }
+
+    // Avatar stack for collaborators
+    .modal-avatar-stack {
+        display: flex;
+        margin-left: 6px;
+
+        .modal-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #3b82f6;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1.5px solid white;
+            margin-left: -8px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+
+            &:first-child {
+                margin-left: 0;
+            }
+
+            &:hover {
+                transform: translateY(-2px) scale(1.1);
+                z-index: 10 !important;
+            }
+
+            &.modal-avatar-more {
+                background-color: #6b7280;
+                font-size: 0.65rem;
+            }
+
+            // Generate different colors based on the first letter
+            &:nth-child(1) {
+                background-color: #3b82f6;
+            }
+            &:nth-child(2) {
+                background-color: #ef4444;
+            }
+            &:nth-child(3) {
+                background-color: #10b981;
+            }
         }
     }
 }
 
 .modal-body {
-    padding: 16px;
+    padding: 16px 20px;
     overflow-y: auto;
     flex: 1;
 
     .note-input__container {
         margin: 0;
         box-shadow: none;
+        border: none;
+        background-color: transparent;
     }
 
     .note-input__editor {
@@ -307,6 +537,51 @@ $color-gray: #e5e7eb;
     }
 }
 
+.modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: $medium-gray;
+    font-size: 0.8rem;
+
+    .modal-date {
+        font-style: italic;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
     .notes-container {
@@ -325,6 +600,56 @@ $color-gray: #e5e7eb;
     .notes-list.grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
+
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+
+        .modal-header {
+            h2 {
+                font-size: 1.15rem;
+            }
+
+            .modal-labels {
+                max-width: 150px;
+                overflow-x: auto;
+
+                .modal-label {
+                    font-size: 0.7rem;
+                    white-space: nowrap;
+                }
+            }
+        }
+
+        .modal-info-bar {
+            padding: 6px 16px;
+            gap: 8px;
+            font-size: 0.75rem;
+
+            .modal-reminder,
+            .modal-collaborators {
+                padding: 3px 8px;
+                gap: 4px;
+                max-width: 150px;
+
+                span {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 80px;
+                }
+            }
+
+            .modal-avatar-stack {
+                .modal-avatar {
+                    width: 18px;
+                    height: 18px;
+                    font-size: 0.65rem;
+                    margin-left: -6px;
+                }
+            }
+        }
+    }
 }
 
 @media (max-width: 576px) {
@@ -337,6 +662,86 @@ $color-gray: #e5e7eb;
     }
 
     .modal-content {
-        padding: 15px;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        margin: 0;
+
+        .modal-header {
+            padding: 16px;
+
+            .modal-actions {
+                gap: 8px;
+            }
+        }
+
+        .modal-info-bar {
+            padding: 6px 12px;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+
+            &::-webkit-scrollbar {
+                height: 2px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        .modal-body {
+            padding: 12px 16px;
+            height: calc(
+                100% - 140px
+            ); // Account for header, info bar, and footer
+        }
+
+        .modal-footer {
+            padding: 12px 16px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+        }
+    }
+
+    .improved-modal {
+        animation: slideUpFull 0.3s ease-out;
+    }
+
+    @keyframes slideUpFull {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+}
+
+// Print styles
+@media print {
+    .modal-overlay {
+        background: none;
+        position: static;
+
+        .modal-content {
+            box-shadow: none;
+            border: none;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .modal-header .close-modal,
+        .modal-footer {
+            display: none;
+        }
     }
 }

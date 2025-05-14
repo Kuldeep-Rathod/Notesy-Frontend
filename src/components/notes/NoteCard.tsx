@@ -1,12 +1,5 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { NoteI } from '@/interfaces/notes';
 import { useGetCollaboratorsQuery } from '@/redux/api/notesAPI';
 import '@/styles/components/notes/_noteCard.scss';
@@ -19,8 +12,9 @@ import {
     Palette,
     PinIcon,
     PinOffIcon,
-    Trash2,
+    Trash2
 } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 
@@ -99,6 +93,12 @@ const NoteCard = ({
     const handleGlobalClick = () => {
         if (moreMenuOpen) setMoreMenuOpen(false);
         if (colorMenuOpen) setColorMenuOpen(false);
+    };
+
+    // Generate initials for avatars
+    const getInitials = (email: string) => {
+        if (!email) return '?';
+        return email.charAt(0).toUpperCase();
     };
 
     return (
@@ -191,45 +191,52 @@ const NoteCard = ({
             )}
 
             {/* Collaborators display */}
-            {note.sharedWith && note.sharedWith.length > 0 && (
-                <div className='note-collaborators'>
-                    <TooltipProvider>
-                        <div className='collaborator-avatars'>
-                            {collaboratorsData?.collaborators
-                                ?.slice(0, 3)
-                                .map((collaborator: Collaborator) => (
-                                    <Tooltip key={collaborator.firebaseUid}>
-                                        <TooltipTrigger>
-                                            <Avatar className='h-6 w-6 border border-gray-200'>
-                                                {collaborator.photo ? (
-                                                    <AvatarImage
-                                                        src={collaborator.photo}
-                                                        alt={collaborator.name}
-                                                    />
-                                                ) : (
-                                                    <AvatarFallback className='bg-[#0004E8]/10 text-[#0004E8] text-xs'>
-                                                        {collaborator.name
-                                                            .charAt(0)
-                                                            .toUpperCase()}
-                                                    </AvatarFallback>
-                                                )}
-                                            </Avatar>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{collaborator.name}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ))}
-                            {collaboratorsData?.collaborators &&
-                                collaboratorsData.collaborators.length > 3 && (
-                                    <div className='more-collaborators'>
-                                        +
-                                        {collaboratorsData.collaborators
-                                            .length - 3}
-                                    </div>
-                                )}
-                        </div>
-                    </TooltipProvider>
+            {note.collaborators && note.collaborators.length > 0 && (
+                <div
+                    className='note-collaborators'
+                    title={`Shared with ${note.collaborators.length} ${
+                        note.collaborators.length === 1 ? 'person' : 'people'
+                    }`}
+                >
+                    <div className='note-avatar-stack'>
+                        {note.collaborators
+                            .slice(0, 3)
+                            .map((collaborator, index) => (
+                                <div
+                                    key={collaborator.firebaseUid || index}
+                                    className='note-avatar'
+                                    title={collaborator.email}
+                                    style={{
+                                        zIndex: 3 - index,
+                                    }}
+                                >
+                                    {collaborator.photo ? (
+                                        <Image
+                                            src={collaborator.photo}
+                                            alt={
+                                                collaborator.name ||
+                                                collaborator.email ||
+                                                'Collaborator'
+                                            }
+                                            width={40}
+                                            height={40}
+                                            className='w-full h-full rounded-full object-cover'
+                                        />
+                                    ) : (
+                                        getInitials(
+                                            collaborator.name ||
+                                                collaborator.email ||
+                                                ''
+                                        )
+                                    )}
+                                </div>
+                            ))}
+                        {note.collaborators.length > 3 && (
+                            <div className='note-avatar note-avatar-more'>
+                                +{note.collaborators.length - 3}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
