@@ -349,10 +349,6 @@ const NotesContainer = ({
         }
     };
 
-    {
-        console.log('email', editingNote?.collaborators);
-    }
-
     return (
         <div className='notes-container'>
             {/* Header with search and view toggle */}
