@@ -34,6 +34,7 @@ import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
 import { ReminderPicker } from './ReminderPicker';
+import '@/styles/components/notes/_noteInput.scss';
 
 interface NoteToolbarProps {
     onSaveClick: () => void;
@@ -145,7 +146,7 @@ export default function NoteToolbar({
         <div className='note-input__toolbar'>
             <div className='note-input__toolbar-icons'>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--alarm ${
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--alarm note-input--tooltip ${
                         reminder ? 'active' : ''
                     }`}
                     data-tooltip={
@@ -159,7 +160,7 @@ export default function NoteToolbar({
                 </div>
 
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop `}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop note-input--tooltip`}
                     data-tooltip='Collaborator'
                     onClick={handleCollaboratorClick}
                 >
@@ -170,27 +171,27 @@ export default function NoteToolbar({
                 )}
 
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop note-input--tooltip`}
                     data-tooltip='Background Options'
                     onClick={() => dispatch(toggleColorMenu())}
                 >
                     <Palette />
                 </div>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--image H disabled pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--image H disabled pop note-input--tooltip`}
                     data-tooltip='Add image'
                 >
                     <ImagePlus />
                 </div>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop note-input--tooltip`}
                     onClick={handleArchive}
                     data-tooltip='Archive'
                 >
                     <Archive />
                 </div>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--more H pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--more H pop note-input--tooltip`}
                     data-tooltip='More'
                     onClick={() => dispatch(toggleMoreMenu())}
                 >
@@ -198,13 +199,13 @@ export default function NoteToolbar({
                 </div>
 
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--undo disabled pop`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--undo disabled pop note-input--tooltip`}
                     data-tooltip='Undo'
                 >
                     <Undo2 />
                 </div>
                 <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--redo disabled`}
+                    className={`note-input__toolbar-icon note-input__toolbar-icon--redo disabled note-input--tooltip`}
                     data-tooltip='Redo'
                 >
                     <Redo2 />

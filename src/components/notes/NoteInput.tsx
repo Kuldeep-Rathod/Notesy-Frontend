@@ -575,20 +575,20 @@ export default function NoteInput({
                     type='text'
                 />
                 <div
-                    className={`note-input__action-icon note-input__action-icon--check H pop`}
+                    className={`note-input__action-icon note-input__action-icon--check H pop note-input--tooltip`}
                     data-tooltip='New list'
                     onClick={() => dispatch(toggleCbox())}
                 >
                     <SquareCheck />
                 </div>
                 <div
-                    className={`note-input__action-icon note-input__action-icon--paint H disabled pop`}
+                    className={`note-input__action-icon note-input__action-icon--paint H disabled pop note-input--tooltip`}
                     data-tooltip='New note with drawing'
                 >
                     <Brush />
                 </div>
                 <div
-                    className={`note-input__action-icon note-input__action-icon--picture H disabled pop`}
+                    className={`note-input__action-icon note-input__action-icon--picture H disabled pop note-input--tooltip`}
                     data-tooltip='New note with image'
                 >
                     <BookImage />
@@ -854,7 +854,7 @@ export default function NoteInput({
                 <div
                     ref={notePinRef}
                     data-pinned={isPinned.toString()}
-                    className={`note-input__pin H pop`}
+                    className={`note-input__pin H pop note-input--tooltip`}
                     onClick={handlePinClick}
                     data-tooltip={isPinned ? 'Unpin note' : 'Pin note'}
                 >

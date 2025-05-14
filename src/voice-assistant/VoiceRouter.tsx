@@ -322,7 +322,7 @@ const VoiceRouter = () => {
                     : '🔇 Say "Hey Notsy" to activate'}
             </div>
 
-            {(isDev || true) && hasUserGesture && (
+            {/* {(isDev || true) && hasUserGesture && (
                 <div
                     style={{
                         position: 'fixed',
@@ -348,7 +348,7 @@ const VoiceRouter = () => {
                         Restart Voice Recognition
                     </button>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };
