@@ -61,6 +61,7 @@ export default function NoteInput({
         isTrashed,
         isPinned,
         reminder,
+        images,
         isCbox,
         isCboxCompletedListCollapsed,
         isListening,
@@ -177,6 +178,8 @@ export default function NoteInput({
         )
             return;
 
+        const formData = new FormData();
+
         const noteObj: NoteI = {
             noteTitle: noteTitleRef.current.innerHTML,
             noteBody: noteBodyRef.current?.innerHTML || '',
@@ -191,7 +194,34 @@ export default function NoteInput({
             archived: isArchived,
             trashed: isTrashed,
             reminder: reminder,
+            images: images,
         };
+
+        formData.set('noteTitle', noteTitleRef.current.innerHTML);
+        formData.set('noteBody', noteBodyRef.current?.innerHTML || '');
+        formData.set(
+            'pinned',
+            notePinRef.current?.dataset.pinned === 'true' ? 'true' : 'false'
+        );
+        formData.set('bgColor', noteMainRef.current.style.backgroundColor);
+        formData.set('bgImage', noteContainerRef.current.style.backgroundImage);
+        formData.set('isCbox', isCbox ? 'true' : 'false');
+        formData.set('archived', isArchived ? 'true' : 'false');
+        formData.set('trashed', isTrashed ? 'true' : 'false');
+        formData.set('reminder', reminder || '');
+        formData.set('checklists', JSON.stringify(checklists));
+        labels
+            .filter((label: LabelI) => label.added)
+            .forEach((label: LabelI) => {
+                formData.append('labels[]', label.name);
+            });
+        images.forEach((img) => {
+            if (typeof img !== 'string') {
+                formData.append('images', img); // File
+            }
+        });
+
+        console.log('FormData:', formData);
 
         if (
             noteObj.noteTitle?.length ||
@@ -204,12 +234,12 @@ export default function NoteInput({
                 if (isEditing && noteToEdit?._id) {
                     const updatedNote = await updateNote({
                         id: noteToEdit._id.toString(),
-                        updates: noteObj,
+                        updates: formData,
                     }).unwrap();
                     savedNoteId = updatedNote._id;
                     console.log('Note updated successfully');
                 } else {
-                    const newNote = await createNote(noteObj).unwrap();
+                    const newNote = await createNote(formData).unwrap();
                     savedNoteId = newNote._id;
                     console.log('Note created successfully');
                 }
@@ -252,6 +282,7 @@ export default function NoteInput({
         shareNote,
         selectedUsers,
         reminder,
+        images,
     ]);
 
     // Paste event handler

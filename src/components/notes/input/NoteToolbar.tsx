@@ -6,6 +6,8 @@ import {
     selectNoteInput,
     setBgColor,
     setBgImage,
+    setImagePreviews,
+    setImages,
     setReminder,
     toggleArchive,
     toggleCbox,
@@ -14,27 +16,26 @@ import {
     toggleLabelMenu,
     toggleMoreMenu,
     toggleReminderMenu,
-    toggleTrash,
+    toggleTrash
 } from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
+import '@/styles/components/notes/_noteInput.scss';
 import { format } from 'date-fns';
 import {
     Archive,
     Bell,
     EllipsisVertical,
-    ImagePlus,
     Palette,
     Redo2,
     Trash2,
     Undo2,
-    UserPlus,
+    UserPlus
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { ChangeEvent, useEffect } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
 import { ReminderPicker } from './ReminderPicker';
-import '@/styles/components/notes/_noteInput.scss';
 
 interface NoteToolbarProps {
     onSaveClick: () => void;
@@ -50,15 +51,18 @@ export default function NoteToolbar({
         (state: RootState) => state.noteInput.reminder
     );
     const reminder = reminderString ? new Date(reminderString) : null;
-    const reminderMenuOpen = useSelector(
-        (state: RootState) => state.noteInput.reminderMenuOpen
-    );
 
     // Redux state
     const {
         isCbox,
         isTrashed,
-        tooltips: { moreMenuOpen, colorMenuOpen, collaboratorMenuOpen },
+        tooltips: {
+            moreMenuOpen,
+            colorMenuOpen,
+            collaboratorMenuOpen,
+            reminderMenuOpen,
+            imageMenuOpen,
+        },
     } = useSelector(selectNoteInput);
 
     const handleArchive = () => {
@@ -75,6 +79,23 @@ export default function NoteToolbar({
 
     const handleReminderSet = (date: Date | null) => {
         setReminder(date ? date.toISOString() : null);
+    };
+
+    const changeImageHandler = (e: ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        dispatch(setImages(files));
+        const previews: string[] = [];
+
+        files.forEach((file) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    previews.push(reader.result);
+                    dispatch(setImagePreviews([...previews]));
+                }
+            };
+            reader.readAsDataURL(file);
+        });
     };
 
     // Close reminder menu when clicking outside
@@ -177,12 +198,27 @@ export default function NoteToolbar({
                 >
                     <Palette />
                 </div>
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--image H disabled pop note-input--tooltip`}
+                {/* <div
+                    className='note-input__toolbar-icon note-input__toolbar-icon--image H pop note-input--tooltip'
                     data-tooltip='Add image'
+                    onClick={() => dispatch(toggleImageMenu())}
                 >
-                    <ImagePlus />
-                </div>
+                    <ImagePlus /> */}
+                <input
+                    type='file'
+                    accept='image/*'
+                    multiple
+                    onChange={changeImageHandler}
+                    className='block w-full text-sm text-gray-500
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded file:border-0
+                       file:text-sm file:font-semibold
+                       file:bg-blue-50 file:text-blue-700
+                       hover:file:bg-blue-100
+                       cursor-pointer'
+                />
+                {/* </div> */}
+
                 <div
                     className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop note-input--tooltip`}
                     onClick={handleArchive}
@@ -296,6 +332,27 @@ export default function NoteToolbar({
                     <ReminderPicker onReminderSet={handleReminderSet} />
                 </div>
             )}
+
+            {/* {imageMenuOpen && (
+                <div className='note-input__reminder-menu p-4 rounded-lg shadow-lg bg-white w-80 mx-auto'>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Upload Image
+                    </label>
+                    <input
+                        type='file'
+                        accept='image/*'
+                        multiple
+                        onChange={changeImageHandler}
+                        className='block w-full text-sm text-gray-500
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded file:border-0
+                       file:text-sm file:font-semibold
+                       file:bg-blue-50 file:text-blue-700
+                       hover:file:bg-blue-100
+                       cursor-pointer'
+                    />
+                </div>
+            )} */}
         </div>
     );
 }

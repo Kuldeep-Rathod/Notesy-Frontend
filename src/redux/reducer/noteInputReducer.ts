@@ -1,8 +1,7 @@
 // redux/features/noteInput/noteInputSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LabelI } from '@/interfaces/labels';
 import { CheckboxI } from '@/interfaces/notes';
-import { bgColors, bgImages } from '@/interfaces/tooltip';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
 interface NoteInputState {
@@ -26,6 +25,8 @@ interface NoteInputState {
         moreMenuOpen: boolean;
         colorMenuOpen: boolean;
         labelMenuOpen: boolean;
+        imageMenuOpen: boolean;
+        reminderMenuOpen: boolean;
         collaboratorMenuOpen: boolean;
     };
     searchQuery: string;
@@ -39,9 +40,11 @@ interface NoteInputState {
         isSearching: boolean;
     };
     reminder: string | null;
-    reminderMenuOpen: boolean;
+
     noteTitle: string;
     noteBody: string;
+    images: File[];
+    imagePreviews: string[];
 }
 
 const initialState: NoteInputState = {
@@ -65,6 +68,8 @@ const initialState: NoteInputState = {
         moreMenuOpen: false,
         colorMenuOpen: false,
         labelMenuOpen: false,
+        imageMenuOpen: false,
+        reminderMenuOpen: false,
         collaboratorMenuOpen: false,
     },
     searchQuery: '',
@@ -78,9 +83,11 @@ const initialState: NoteInputState = {
         isSearching: false,
     },
     reminder: null,
-    reminderMenuOpen: false,
+
     noteTitle: '',
     noteBody: '',
+    images: [],
+    imagePreviews: [],
 };
 
 export const noteInputReducer = createSlice({
@@ -152,6 +159,8 @@ export const noteInputReducer = createSlice({
             if (state.tooltips.moreMenuOpen) {
                 state.tooltips.labelMenuOpen = false;
                 state.tooltips.colorMenuOpen = false;
+                state.tooltips.imageMenuOpen = false;
+                state.tooltips.collaboratorMenuOpen = false;
             }
         },
         toggleColorMenu: (state) => {
@@ -159,6 +168,17 @@ export const noteInputReducer = createSlice({
             if (state.tooltips.colorMenuOpen) {
                 state.tooltips.labelMenuOpen = false;
                 state.tooltips.moreMenuOpen = false;
+                state.tooltips.imageMenuOpen = false;
+                state.tooltips.collaboratorMenuOpen = false;
+            }
+        },
+        toggleImageMenu: (state) => {
+            state.tooltips.imageMenuOpen = !state.tooltips.imageMenuOpen;
+            if (state.tooltips.imageMenuOpen) {
+                state.tooltips.labelMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+                state.tooltips.moreMenuOpen = false;
+                state.tooltips.collaboratorMenuOpen = false;
             }
         },
         toggleLabelMenu: (state) => {
@@ -166,12 +186,37 @@ export const noteInputReducer = createSlice({
             if (state.tooltips.labelMenuOpen) {
                 state.tooltips.moreMenuOpen = false;
                 state.tooltips.colorMenuOpen = false;
+                state.tooltips.imageMenuOpen = false;
+                state.tooltips.collaboratorMenuOpen = false;
             }
         },
+        toggleReminderMenu: (state) => {
+            state.tooltips.reminderMenuOpen = !state.tooltips.reminderMenuOpen;
+            if (state.tooltips.reminderMenuOpen) {
+                state.tooltips.moreMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+                state.tooltips.labelMenuOpen = false;
+                state.tooltips.imageMenuOpen = false;
+                state.tooltips.collaboratorMenuOpen = false;
+            }
+        },
+        toggleCollaboratorMenu: (state) => {
+            state.tooltips.collaboratorMenuOpen =
+                !state.tooltips.collaboratorMenuOpen;
+            if (state.tooltips.collaboratorMenuOpen) {
+                state.tooltips.moreMenuOpen = false;
+                state.tooltips.colorMenuOpen = false;
+                state.tooltips.labelMenuOpen = false;
+                state.tooltips.imageMenuOpen = false;
+            }
+        },
+
         closeAllTooltips: (state) => {
             state.tooltips.moreMenuOpen = false;
             state.tooltips.colorMenuOpen = false;
             state.tooltips.labelMenuOpen = false;
+            state.tooltips.imageMenuOpen = false;
+            state.tooltips.reminderMenuOpen = false;
         },
 
         // Appearance
@@ -219,16 +264,6 @@ export const noteInputReducer = createSlice({
         // Reset
         resetNoteInput: () => initialState,
 
-        // Collaboration
-        toggleCollaboratorMenu: (state) => {
-            state.tooltips.collaboratorMenuOpen =
-                !state.tooltips.collaboratorMenuOpen;
-            if (state.tooltips.collaboratorMenuOpen) {
-                state.tooltips.moreMenuOpen = false;
-                state.tooltips.colorMenuOpen = false;
-                state.tooltips.labelMenuOpen = false;
-            }
-        },
         setCollaboratorSearchTerm: (state, action: PayloadAction<string>) => {
             state.collaborators.searchTerm = action.payload;
         },
@@ -261,11 +296,14 @@ export const noteInputReducer = createSlice({
         setReminder: (state, action: PayloadAction<string | null>) => {
             state.reminder = action.payload;
         },
-        toggleReminderMenu: (state) => {
-            state.reminderMenuOpen = !state.reminderMenuOpen;
-        },
         closeReminderMenu: (state) => {
-            state.reminderMenuOpen = false;
+            state.tooltips.reminderMenuOpen = false;
+        },
+        setImages: (state, action: PayloadAction<File[]>) => {
+            state.images = action.payload;
+        },
+        setImagePreviews: (state, action: PayloadAction<string[]>) => {
+            state.imagePreviews = action.payload;
         },
     },
 });
@@ -285,6 +323,7 @@ export const {
     toggleTrash,
     toggleMoreMenu,
     toggleColorMenu,
+    toggleImageMenu,
     toggleLabelMenu,
     closeAllTooltips,
     setBgColor,
@@ -304,6 +343,8 @@ export const {
     setReminder,
     toggleReminderMenu,
     closeReminderMenu,
+    setImages,
+    setImagePreviews,
 } = noteInputReducer.actions;
 
 export default noteInputReducer.reducer;

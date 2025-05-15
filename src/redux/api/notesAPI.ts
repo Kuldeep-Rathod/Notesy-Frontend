@@ -8,7 +8,7 @@ export const notesAPI = createApi({
     baseQuery: customBaseQuery,
     tagTypes: ['Note', 'TrashedNote', 'ArchivedNote', 'SharedNote'],
     endpoints: (builder) => ({
-        createNote: builder.mutation<NoteI, Partial<NoteI>>({
+        createNote: builder.mutation<NoteI, FormData>({
             query: (noteData) => ({
                 url: 'notes',
                 method: 'POST',
@@ -59,10 +59,7 @@ export const notesAPI = createApi({
                     : [{ type: 'ArchivedNote', id: 'LIST' }],
         }),
 
-        updateNote: builder.mutation<
-            NoteI,
-            { id: string; updates: Partial<NoteI> }
-        >({
+        updateNote: builder.mutation<NoteI, { id: string; updates: FormData }>({
             query: ({ id, updates }) => ({
                 url: `notes/${id}`,
                 method: 'PUT',

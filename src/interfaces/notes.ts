@@ -20,6 +20,7 @@ export interface NoteI {
     archived?: boolean;
     bgImage?: string;
     isCbox?: boolean;
+    images?: File[];
     createdAt?: string | Date;
     updatedAt?: string | Date;
 }
