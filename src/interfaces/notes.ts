@@ -1,6 +1,6 @@
 import { LabelI } from './labels';
 
-export interface NoteI {
+export interface NoteI extends FormData {
     _id?: string;
     firebaseUid?: string;
     noteTitle?: string;

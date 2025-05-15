@@ -691,25 +691,7 @@ const NotesContainer = ({
                         <div className='modal-body'>
                             <NoteInput
                                 isEditing={true}
-                                noteToEdit={{
-                                    _id: editingNote._id,
-                                    noteTitle: editingNote.noteTitle || '',
-                                    noteBody: editingNote.noteBody || '',
-                                    isCbox: editingNote.checklists
-                                        ? editingNote.checklists.length > 0
-                                        : false,
-                                    checklists: editingNote.checklists || [],
-                                    pinned: editingNote.pinned || false,
-                                    archived: editingNote.archived || false,
-                                    trashed: editingNote.trashed || false,
-                                    bgColor: editingNote.bgColor || '#ffffff',
-                                    bgImage: editingNote.bgImage || '',
-                                    labels: editingNote.labels || [],
-                                    reminder: editingNote.reminder,
-                                    sharedWith: editingNote.sharedWith || [],
-                                    createdAt: editingNote.createdAt,
-                                    updatedAt: editingNote.updatedAt,
-                                }}
+                                noteToEdit={editingNote}
                                 onSuccess={() => {
                                     closeModal();
                                     refetch();

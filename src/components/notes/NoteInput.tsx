@@ -197,7 +197,7 @@ export default function NoteInput({
 
         const formData = new FormData();
 
-        const noteObj: NoteI = {
+        const noteObj = {
             noteTitle: noteTitleRef.current.innerHTML,
             noteBody: noteBodyRef.current.innerHTML,
             pinned: notePinRef.current.dataset.pinned === 'true',
