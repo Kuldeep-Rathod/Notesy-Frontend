@@ -95,18 +95,35 @@ export const noteInputReducer = createSlice({
     initialState,
     reducers: {
         // Checklists
-        setChecklists: (state, action: PayloadAction<CheckboxI[]>) => {
-            state.checklists = action.payload;
+        setChecklists: (
+            state,
+            action: PayloadAction<
+                (
+                    | CheckboxI
+                    | {
+                          id: string | number;
+                          checked: boolean;
+                          text: string;
+                          _id?: string;
+                      }
+                )[]
+            >
+        ) => {
+            state.checklists = action.payload as CheckboxI[];
         },
         addChecklist: (state, action: PayloadAction<CheckboxI>) => {
             state.checklists.push(action.payload);
         },
         updateChecklist: (
             state,
-            action: PayloadAction<{ id: number; updates: Partial<CheckboxI> }>
+            action: PayloadAction<{
+                id: number | string;
+                updates: Partial<CheckboxI>;
+            }>
         ) => {
             const index = state.checklists.findIndex(
-                (cb) => cb.id === action.payload.id
+                (cb) =>
+                    cb.id === action.payload.id || cb._id === action.payload.id
             );
             if (index !== -1) {
                 state.checklists[index] = {
@@ -115,9 +132,9 @@ export const noteInputReducer = createSlice({
                 };
             }
         },
-        removeChecklist: (state, action: PayloadAction<number>) => {
+        removeChecklist: (state, action: PayloadAction<number | string>) => {
             state.checklists = state.checklists.filter(
-                (cb) => cb.id !== action.payload
+                (cb) => cb.id !== action.payload && cb._id !== action.payload
             );
         },
 

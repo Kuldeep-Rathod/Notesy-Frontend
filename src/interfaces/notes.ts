@@ -35,7 +35,8 @@ export interface CollaboratorI {
 export interface CheckboxI {
     checked: boolean;
     text: string;
-    id: number;
+    id?: number;
+    _id?: string;
 }
 
 export type UpdateKeyI = {

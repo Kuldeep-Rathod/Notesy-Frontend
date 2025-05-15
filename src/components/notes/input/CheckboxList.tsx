@@ -6,10 +6,10 @@ interface CheckboxListProps {
     checklists: CheckboxI[];
     isCompletedCollapsed: boolean;
     onToggleCollapse: () => void;
-    onCheckboxChange: (id: number) => void;
-    onCheckboxRemove: (id: number) => void;
-    onCheckboxUpdate: (id: number, value: string) => void;
-    onKeyDown: (e: React.KeyboardEvent, id: number) => void;
+    onCheckboxChange: (id: number | string) => void;
+    onCheckboxRemove: (id: number | string) => void;
+    onCheckboxUpdate: (id: number | string, value: string) => void;
+    onKeyDown: (e: React.KeyboardEvent, id: number | string) => void;
 }
 
 export function CheckboxList({
@@ -21,14 +21,25 @@ export function CheckboxList({
     onCheckboxUpdate,
     onKeyDown,
 }: CheckboxListProps) {
-    const activeCheckboxes = checklists.filter((cb) => !cb.checked);
-    const completedCheckboxes = checklists.filter((cb) => cb.checked);
+    // Map _id to id if needed to handle both formats
+    const normalizedChecklists = checklists.map(cb => {
+        if (cb.id === undefined && cb._id !== undefined) {
+            return { ...cb, id: cb._id };
+        }
+        return cb;
+    });
+
+    // Filter out items with undefined ID and cast the result type
+    const validChecklists = normalizedChecklists.filter(cb => cb.id !== undefined) as (CheckboxI & { id: string | number })[];
+    
+    const activeCheckboxes = validChecklists.filter((cb) => !cb.checked);
+    const completedCheckboxes = validChecklists.filter((cb) => cb.checked);
 
     return (
         <>
             {activeCheckboxes.map((cb) => (
                 <div
-                    key={cb.id}
+                    key={`active-${cb.id}`}
                     className='note-input__checkbox-container'
                 >
                     <div className='note-input__checkbox-move-icon'></div>
@@ -83,7 +94,7 @@ export function CheckboxList({
                         ></div>
                         <div>
                             <span>
-                                ({completedCheckboxes.length}) Completed item
+                                ({completedCheckboxes.length}) Completed {completedCheckboxes.length === 1 ? 'item' : 'items'}
                             </span>
                         </div>
                     </div>

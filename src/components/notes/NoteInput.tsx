@@ -96,6 +96,13 @@ export default function NoteInput({
     const [addLabel] = useAddLabelMutation();
     const [attachLabelsToNote] = useAttachLabelsToNoteMutation();
 
+    // Keep previous labels reference for comparison
+    const prevLabelsRef = useRef<string[]>([]);
+    const prevNoteToEditRef = useRef<NoteI | null>(null);
+
+    // For tracking if we've already initialized for the current note
+    const noteInitializedRef = useRef<string | null>(null);
+
     // Toggle note visibility
     const toggleNoteVisibility = useCallback((condition: boolean) => {
         if (notePlaceholderRef.current && noteMainRef.current) {
@@ -114,11 +121,19 @@ export default function NoteInput({
     // Handle placeholder click
     const notePhClick = useCallback(() => {
         toggleNoteVisibility(true);
-        if (isCbox) {
-            cboxPhRef.current?.focus();
-        } else {
-            noteBodyRef.current?.focus();
-        }
+
+        // Add a small delay to ensure DOM elements are properly rendered
+        setTimeout(() => {
+            if (isCbox) {
+                if (cboxPhRef.current) {
+                    cboxPhRef.current.focus();
+                }
+            } else {
+                if (noteBodyRef.current) {
+                    noteBodyRef.current.focus();
+                }
+            }
+        }, 0);
 
         if (!isEditing) {
             dispatch(updateInputLength({ title: 0, body: 0, cb: 0 }));
@@ -173,8 +188,10 @@ export default function NoteInput({
     const saveNote = useCallback(async () => {
         if (
             !noteTitleRef.current ||
+            !noteBodyRef.current ||
             !noteContainerRef.current ||
-            !noteMainRef.current
+            !noteMainRef.current ||
+            !notePinRef.current
         )
             return;
 
@@ -182,8 +199,8 @@ export default function NoteInput({
 
         const noteObj: NoteI = {
             noteTitle: noteTitleRef.current.innerHTML,
-            noteBody: noteBodyRef.current?.innerHTML || '',
-            pinned: notePinRef.current?.dataset.pinned === 'true',
+            noteBody: noteBodyRef.current.innerHTML,
+            pinned: notePinRef.current.dataset.pinned === 'true',
             bgColor: noteMainRef.current.style.backgroundColor,
             bgImage: noteContainerRef.current.style.backgroundImage,
             checklists,
@@ -198,28 +215,45 @@ export default function NoteInput({
         };
 
         formData.set('noteTitle', noteTitleRef.current.innerHTML);
-        formData.set('noteBody', noteBodyRef.current?.innerHTML || '');
+        formData.set('noteBody', noteBodyRef.current.innerHTML);
         formData.set(
             'pinned',
-            notePinRef.current?.dataset.pinned === 'true' ? 'true' : 'false'
+            notePinRef.current.dataset.pinned === 'true' ? 'true' : 'false'
         );
-        formData.set('bgColor', noteMainRef.current.style.backgroundColor);
-        formData.set('bgImage', noteContainerRef.current.style.backgroundImage);
+
+        const bgColor = noteMainRef.current.style.backgroundColor || '';
+        const bgImage = noteContainerRef.current.style.backgroundImage || '';
+
+        formData.set('bgColor', bgColor);
+        formData.set('bgImage', bgImage);
         formData.set('isCbox', isCbox ? 'true' : 'false');
         formData.set('archived', isArchived ? 'true' : 'false');
         formData.set('trashed', isTrashed ? 'true' : 'false');
-        formData.set('reminder', reminder || '');
-        formData.set('checklists', JSON.stringify(checklists));
-        labels
-            .filter((label: LabelI) => label.added)
-            .forEach((label: LabelI) => {
+
+        if (reminder) {
+            formData.set('reminder', reminder);
+        }
+
+        if (checklists.length > 0) {
+            formData.set('checklists', JSON.stringify(checklists));
+        }
+
+        // Add labels
+        const addedLabels = labels.filter((label: LabelI) => label.added);
+        if (addedLabels.length > 0) {
+            addedLabels.forEach((label: LabelI) => {
                 formData.append('labels[]', label.name);
             });
-        images.forEach((img) => {
-            if (typeof img !== 'string') {
-                formData.append('images', img); // File
-            }
-        });
+        }
+
+        // Add images
+        if (images.length > 0) {
+            images.forEach((img) => {
+                if (typeof img !== 'string') {
+                    formData.append('images', img); // File
+                }
+            });
+        }
 
         console.log('FormData:', formData);
 
@@ -321,31 +355,36 @@ export default function NoteInput({
     );
 
     // Handle checkbox changes
-    const handleCheckboxChange = (id: number) => {
+    const handleCheckboxChange = (id: number | string) => {
         dispatch(
             updateChecklist({
                 id,
                 updates: {
-                    checked: !checklists.find((cb) => cb.id === id)?.checked,
+                    checked: !checklists.find(
+                        (cb) => cb.id === id || cb._id === id
+                    )?.checked,
                 },
             })
         );
     };
 
     // Handle checkbox removal
-    const handleCheckboxRemove = (id: number) => {
+    const handleCheckboxRemove = (id: number | string) => {
         dispatch(removeChecklist(id));
     };
 
     // Handle checkbox text update
-    const handleCheckboxUpdate = (id: number, value: string) => {
+    const handleCheckboxUpdate = (id: number | string, value: string) => {
         if (value.trim()) {
             dispatch(updateChecklist({ id, updates: { text: value } }));
         }
     };
 
     // Handle keyboard events for checkboxes
-    const handleCheckboxKeyDown = (e: React.KeyboardEvent, id: number) => {
+    const handleCheckboxKeyDown = (
+        e: React.KeyboardEvent,
+        id: number | string
+    ) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             const currentText = e.currentTarget.innerHTML;
@@ -364,11 +403,13 @@ export default function NoteInput({
         } else if (e.key === 'Backspace' && e.currentTarget.innerHTML === '') {
             e.preventDefault();
             handleCheckboxRemove(id);
-            const prevCheckbox = document.querySelector(
-                `[data-checkbox-id="${id - 1}"]`
-            );
-            if (prevCheckbox instanceof HTMLElement) {
-                prevCheckbox.focus();
+            if (typeof id === 'number') {
+                const prevCheckbox = document.querySelector(
+                    `[data-checkbox-id="${id - 1}"]`
+                );
+                if (prevCheckbox instanceof HTMLElement) {
+                    prevCheckbox.focus();
+                }
             }
         }
     };
@@ -381,22 +422,54 @@ export default function NoteInput({
     // Update labels state when server labels change
     useEffect(() => {
         if (serverLabels) {
-            const formattedLabels: LabelI[] = serverLabels.map((labelName) => ({
-                name: labelName,
-                added:
-                    (isEditing &&
-                        noteToEdit?.labels?.some((noteLabel) =>
-                            typeof noteLabel === 'string'
-                                ? noteLabel === labelName
-                                : noteLabel.name === labelName
-                        )) ||
-                    false,
-            }));
+            // Check if serverLabels or noteToEdit has actually changed
+            const currentLabelsStr = JSON.stringify(serverLabels);
+            const currentNoteToEditStr =
+                isEditing && noteToEdit
+                    ? JSON.stringify({
+                          id: noteToEdit._id,
+                          labels: noteToEdit.labels,
+                      })
+                    : '';
 
-            dispatch(setLabels(formattedLabels));
-            dispatch(setAvailableLabels(formattedLabels));
+            const prevLabelsStr = JSON.stringify(prevLabelsRef.current);
+            const prevNoteToEditStr = prevNoteToEditRef.current
+                ? JSON.stringify({
+                      id: prevNoteToEditRef.current._id,
+                      labels: prevNoteToEditRef.current.labels,
+                  })
+                : '';
+
+            // Update only if something actually changed
+            if (
+                currentLabelsStr !== prevLabelsStr ||
+                (isEditing && currentNoteToEditStr !== prevNoteToEditStr)
+            ) {
+                const formattedLabels: LabelI[] = serverLabels.map(
+                    (labelName) => ({
+                        name: labelName,
+                        added:
+                            (isEditing &&
+                                noteToEdit?.labels?.some((noteLabel) =>
+                                    typeof noteLabel === 'string'
+                                        ? noteLabel === labelName
+                                        : noteLabel.name === labelName
+                                )) ||
+                            false,
+                    })
+                );
+
+                dispatch(setLabels(formattedLabels));
+                dispatch(setAvailableLabels(formattedLabels));
+
+                // Update refs with current values
+                prevLabelsRef.current = [...serverLabels];
+                if (isEditing && noteToEdit) {
+                    prevNoteToEditRef.current = noteToEdit;
+                }
+            }
         }
-    }, [JSON.stringify(serverLabels), isEditing, JSON.stringify(noteToEdit)]); // safer deep compare
+    }, [serverLabels, isEditing, noteToEdit, dispatch]);
 
     // Toggle label
     const handleToggleLabel = async (labelName: string) => {
@@ -465,6 +538,12 @@ export default function NoteInput({
     // Initialize for editing
     useEffect(() => {
         if (isEditing && noteToEdit) {
+            // Only initialize if this is a different note than before
+            const noteId = noteToEdit._id?.toString();
+            if (noteId && noteInitializedRef.current === noteId) {
+                return; // Already initialized this note
+            }
+
             notePhClick();
 
             if (noteTitleRef.current)
@@ -485,7 +564,15 @@ export default function NoteInput({
 
             // Set checklists first
             if (noteToEdit.checklists && noteToEdit.checklists.length > 0) {
-                dispatch(setChecklists(noteToEdit.checklists));
+                // Normalize checkboxes to handle both id and _id formats
+                const normalizedChecklists = noteToEdit.checklists.map((cb) => {
+                    if (cb.id === undefined && cb._id !== undefined) {
+                        return { ...cb, id: cb._id };
+                    }
+                    return cb;
+                }) as CheckboxI[];
+
+                dispatch(setChecklists(normalizedChecklists));
                 dispatch(toggleCbox());
             }
 
@@ -505,6 +592,11 @@ export default function NoteInput({
                     cb: noteToEdit.checklists?.length || 0,
                 })
             );
+
+            // Mark as initialized for this note
+            if (noteId) {
+                noteInitializedRef.current = noteId;
+            }
         }
     }, [isEditing, noteToEdit, notePhClick, dispatch]);
 
@@ -647,8 +739,10 @@ export default function NoteInput({
                     <div
                         ref={noteTitleRef}
                         onFocus={() => {
-                            dispatch(setActiveField('title'));
-                            resetTranscript();
+                            if (noteTitleRef.current) {
+                                dispatch(setActiveField('title'));
+                                resetTranscript();
+                            }
                         }}
                         onInput={(e) =>
                             dispatch(
@@ -663,14 +757,38 @@ export default function NoteInput({
                         spellCheck
                     ></div>
 
+                    {/* Regular note body */}
+                    <div
+                        hidden={inputLength.body > 0}
+                        className={`note-input__body note-input__body--placeholder`}
+                    >
+                        Take a note…
+                    </div>
+                    <div
+                        ref={noteBodyRef}
+                        onFocus={() => {
+                            dispatch(setActiveField('body'));
+                            resetTranscript();
+                        }}
+                        onInput={(e) =>
+                            dispatch(
+                                updateInputLength({
+                                    body: e.currentTarget.innerHTML.length,
+                                })
+                            )
+                        }
+                        onPaste={pasteEvent}
+                        className='note-input__body'
+                        contentEditable
+                        spellCheck
+                    ></div>
+
                     {/* Note or checklists */}
                     {isCbox ? (
                         <>
                             {/* checklists */}
                             <CheckboxList
-                                checklists={checklists.filter(
-                                    (cb) => !cb.checked
-                                )}
+                                checklists={checklists}
                                 isCompletedCollapsed={
                                     isCboxCompletedListCollapsed
                                 }
@@ -697,164 +815,26 @@ export default function NoteInput({
                                     ></div>
                                 </div>
                             </div>
-
-                            {/* Optional description */}
-                            <div className='note-input__description-section'>
-                                <div
-                                    hidden={inputLength.body > 0}
-                                    className={`note-input__body note-input__body--placeholder`}
-                                >
-                                    Add a note (optional)...
-                                </div>
-                                <div
-                                    ref={noteBodyRef}
-                                    onFocus={() => {
-                                        dispatch(setActiveField('body'));
-                                        resetTranscript();
-                                    }}
-                                    onInput={(e) =>
-                                        dispatch(
-                                            updateInputLength({
-                                                body: e.currentTarget.innerHTML
-                                                    .length,
-                                            })
-                                        )
-                                    }
-                                    onPaste={pasteEvent}
-                                    className='note-input__body'
-                                    contentEditable
-                                    spellCheck
-                                ></div>
-                            </div>
-
-                            {/* Completed checkboxes */}
-                            {checklists.filter((cb: CheckboxI) => cb.checked)
-                                .length > 0 && (
-                                <>
-                                    <div className='note-input__checkbox-divider'></div>
-                                    <div
-                                        className='note-input__checkbox-completed-header'
-                                        onClick={handleToggleCompletedList}
-                                    >
-                                        <div
-                                            className={`note-input__checkbox-toggle ${
-                                                !isCboxCompletedListCollapsed
-                                                    ? 'note-input__checkbox-toggle--expanded'
-                                                    : ''
-                                            }`}
-                                        ></div>
-                                        <div>
-                                            <span>
-                                                (
-                                                {
-                                                    checklists.filter(
-                                                        (cb: CheckboxI) =>
-                                                            cb.checked
-                                                    ).length
-                                                }
-                                                ) Completed item
-                                            </span>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Show completed checkboxes if not collapsed */}
-                            {!isCboxCompletedListCollapsed &&
-                                checklists
-                                    .filter((cb: CheckboxI) => cb.checked)
-                                    .map((cb: CheckboxI) => (
-                                        <div
-                                            key={`done-${cb.id}`}
-                                            className='note-input__checkbox-container'
-                                        >
-                                            <div className='note-input__checkbox-move-icon'></div>
-                                            <div
-                                                className={`note-input__checkbox-icon note-input__checkbox-icon--checked`}
-                                                onClick={() =>
-                                                    handleCheckboxChange(cb.id)
-                                                }
-                                            ></div>
-                                            <div className='note-input__checkbox-content'>
-                                                <div
-                                                    className={`note-input__checkbox-item note-input__checkbox-item--completed`}
-                                                    contentEditable
-                                                    spellCheck
-                                                    onBlur={(e) =>
-                                                        handleCheckboxUpdate(
-                                                            cb.id,
-                                                            e.currentTarget
-                                                                .innerHTML
-                                                        )
-                                                    }
-                                                    onKeyDown={(e) =>
-                                                        handleCheckboxKeyDown(
-                                                            e,
-                                                            cb.id
-                                                        )
-                                                    }
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: cb.text,
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            <div
-                                                className={`note-input__checkbox-remove H`}
-                                                onClick={() =>
-                                                    handleCheckboxRemove(cb.id)
-                                                }
-                                            ></div>
-                                        </div>
-                                    ))}
                         </>
                     ) : (
-                        <>
-                            {/* Regular note body */}
-                            <div
-                                hidden={inputLength.body > 0}
-                                className={`note-input__body note-input__body--placeholder`}
-                            >
-                                Take a note…
-                            </div>
-                            <div
-                                ref={noteBodyRef}
-                                onFocus={() => {
-                                    dispatch(setActiveField('body'));
-                                    resetTranscript();
-                                }}
-                                onInput={(e) =>
-                                    dispatch(
-                                        updateInputLength({
-                                            body: e.currentTarget.innerHTML
-                                                .length,
-                                        })
-                                    )
-                                }
-                                onPaste={pasteEvent}
-                                className='note-input__body'
-                                contentEditable
-                                spellCheck
-                            ></div>
-
-                            <div
-                                className='note-input__speech-controls'
-                                style={{
-                                    marginTop: '10px',
-                                    display: 'flex',
-                                    gap: '10px',
-                                }}
-                            >
-                                <button onClick={startListening}>
-                                    🎙️ Start Speaking
-                                </button>
-                                <button onClick={stopListening}>🛑 Stop</button>
-                                <button onClick={resetTranscript}>
-                                    🔁 Clear
-                                </button>
-                                {isListening && <span>Listening...</span>}
-                            </div>
-                        </>
+                        <></>
                     )}
+
+                    <div
+                        className='note-input__speech-controls'
+                        style={{
+                            marginTop: '10px',
+                            display: 'flex',
+                            gap: '10px',
+                        }}
+                    >
+                        <button onClick={startListening}>
+                            🎙️ Start Speaking
+                        </button>
+                        <button onClick={stopListening}>🛑 Stop</button>
+                        <button onClick={resetTranscript}>🔁 Clear</button>
+                        {isListening && <span>Listening...</span>}
+                    </div>
 
                     {/* Labels */}
                     <div className='note-input__labels'>
