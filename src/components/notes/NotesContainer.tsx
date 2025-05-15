@@ -8,7 +8,6 @@ import {
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
-import '@/styles/components/notes/_noteContainer.scss';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import {
     Bell,
@@ -26,6 +25,7 @@ import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -349,15 +349,53 @@ const NotesContainer = ({
         }
     };
 
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                when: 'beforeChildren',
+                staggerChildren: 0.1,
+            },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: 'spring', stiffness: 300, damping: 24 },
+        },
+        exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
+    };
+
+    const modalVariants = {
+        hidden: { opacity: 0, scale: 0.9 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: { type: 'spring', damping: 25, stiffness: 300 },
+        },
+        exit: {
+            opacity: 0,
+            scale: 0.9,
+            transition: { duration: 0.2 },
+        },
+    };
+
     return (
-        <div className='notes-container'>
+        <div className='w-full max-w-7xl mx-auto px-4 py-6'>
             {/* Header with search and view toggle */}
-            <div className='notes-header'>
-                <div className='search-container'>
-                    <Search
-                        size={18}
-                        className='search-icon'
-                    />
+            <div className='flex items-center justify-between mb-6 gap-4'>
+                <div className='relative flex-grow max-w-2xl'>
+                    <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                        <Search
+                            size={18}
+                            className='text-gray-400'
+                        />
+                    </div>
                     <input
                         ref={searchInputRef}
                         type='text'
@@ -366,11 +404,11 @@ const NotesContainer = ({
                         onChange={(e) =>
                             handleSearchQueryChange(e.target.value)
                         }
-                        className='search-input'
+                        className='w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200'
                     />
                     {searchQuery && (
                         <button
-                            className='clear-search'
+                            className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200'
                             onClick={clearSearch}
                             aria-label='Clear search'
                         >
@@ -379,182 +417,345 @@ const NotesContainer = ({
                     )}
                 </div>
 
-                <div className='view-options'>
-                    <button
-                        className={`view-toggle ${
-                            viewType === 'grid' ? 'active' : ''
+                <div className='flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg'>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className={`p-2 rounded-md transition-all duration-200 ${
+                            viewType === 'grid'
+                                ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                         onClick={() => handleViewTypeChange('grid')}
                         aria-label='Grid view'
                     >
                         <Grid size={20} />
-                    </button>
-                    <button
-                        className={`view-toggle ${
-                            viewType === 'list' ? 'active' : ''
+                    </motion.button>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className={`p-2 rounded-md transition-all duration-200 ${
+                            viewType === 'list'
+                                ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                         onClick={() => handleViewTypeChange('list')}
                         aria-label='List view'
                     >
                         <List size={20} />
-                    </button>
+                    </motion.button>
                 </div>
             </div>
 
             {/* Notes sections */}
             {isLoading ? (
-                <div className='loading-container'>
-                    <div className='loading-spinner'></div>
-                    <p>Loading notes...</p>
-                </div>
+                <motion.div
+                    className='flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400'
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <div className='w-12 h-12 border-4 border-gray-300 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin mb-4'></div>
+                    <p className='text-lg font-medium'>Loading notes...</p>
+                </motion.div>
             ) : isError ? (
-                <div className='error-container'>
-                    <p>Error loading notes. Please try again later.</p>
-                    <button
+                <motion.div
+                    className='flex flex-col items-center justify-center py-12 text-gray-700 dark:text-gray-300'
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <p className='text-lg font-medium mb-4'>
+                        Error loading notes. Please try again later.
+                    </p>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => refetch()}
-                        className='retry-button'
+                        className='px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg shadow-sm transition-all duration-200'
                     >
                         Retry
-                    </button>
-                </div>
+                    </motion.button>
+                </motion.div>
             ) : filteredNotes.length === 0 ? (
-                <div className='empty-state'>
-                    <p>
+                <motion.div
+                    className='flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400'
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <p className='text-lg font-medium mb-4'>
                         No notes found
                         {searchQuery ? ' matching your search' : ''}
                     </p>
                     {searchQuery && (
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={clearSearch}
-                            className='clear-search-button'
+                            className='px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg shadow-sm transition-all duration-200'
                         >
                             Clear Search
-                        </button>
+                        </motion.button>
                     )}
-                </div>
+                </motion.div>
             ) : (
-                <>
-                    {pinnedNotes.length > 0 && (
-                        <section className='notes-section'>
-                            <h3 className='section-title'>
-                                <span>Pinned Notes</span>
-                                <span className='note-count'>
-                                    {pinnedNotes.length}
-                                </span>
-                            </h3>
-                            <div className={`notes-list ${viewType}`}>
-                                {pinnedNotes.map((note: NoteI) => (
-                                    <NoteCard
-                                        key={note._id}
-                                        note={note}
-                                        onPinToggle={handlePinToggle}
-                                        onArchiveToggle={handleArchiveToggle}
-                                        onTrash={handleMoveToTrash}
-                                        onEdit={openNote}
-                                        onChangeColor={handleChangeColor}
-                                        onClone={handleCloneNote}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                <AnimatePresence mode='wait'>
+                    <motion.div
+                        key='notes-sections'
+                        initial='hidden'
+                        animate='visible'
+                        exit='hidden'
+                        variants={containerVariants}
+                        className='space-y-8'
+                    >
+                        {pinnedNotes.length > 0 && (
+                            <motion.section
+                                variants={itemVariants}
+                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
+                            >
+                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                        <span>📌 Pinned Notes</span>
+                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                            {pinnedNotes.length}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div
+                                    className={`p-4 ${
+                                        viewType === 'grid'
+                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                                            : 'flex flex-col space-y-3 '
+                                    }`}
+                                >
+                                    <AnimatePresence>
+                                        {pinnedNotes.map((note: NoteI) => (
+                                            <motion.div
+                                                key={note._id}
+                                                variants={itemVariants}
+                                                initial='hidden'
+                                                animate='visible'
+                                                exit='exit'
+                                                layout
+                                            >
+                                                <NoteCard
+                                                    note={note}
+                                                    onPinToggle={
+                                                        handlePinToggle
+                                                    }
+                                                    onArchiveToggle={
+                                                        handleArchiveToggle
+                                                    }
+                                                    onTrash={handleMoveToTrash}
+                                                    onEdit={openNote}
+                                                    onChangeColor={
+                                                        handleChangeColor
+                                                    }
+                                                    onClone={handleCloneNote}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </motion.section>
+                        )}
 
-                    {unpinnedNotes.length > 0 && (
-                        <section className='notes-section'>
-                            <h3 className='section-title'>
-                                <span>Notes</span>
-                                <span className='note-count'>
-                                    {unpinnedNotes.length}
-                                </span>
-                            </h3>
-                            <div className={`notes-list ${viewType}`}>
-                                {unpinnedNotes.map((note: NoteI) => (
-                                    <NoteCard
-                                        key={note._id}
-                                        note={note}
-                                        onPinToggle={handlePinToggle}
-                                        onArchiveToggle={handleArchiveToggle}
-                                        onTrash={handleMoveToTrash}
-                                        onEdit={openNote}
-                                        onChangeColor={handleChangeColor}
-                                        onClone={handleCloneNote}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                        {unpinnedNotes.length > 0 && (
+                            <motion.section
+                                variants={itemVariants}
+                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
+                            >
+                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                        <span>Notes</span>
+                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                            {unpinnedNotes.length}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div
+                                    className={`p-4 ${
+                                        viewType === 'grid'
+                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                                            : 'flex flex-col space-y-3'
+                                    }`}
+                                >
+                                    <AnimatePresence>
+                                        {unpinnedNotes.map((note: NoteI) => (
+                                            <motion.div
+                                                key={note._id}
+                                                variants={itemVariants}
+                                                initial='hidden'
+                                                animate='visible'
+                                                exit='exit'
+                                                layout
+                                            >
+                                                <NoteCard
+                                                    note={note}
+                                                    onPinToggle={
+                                                        handlePinToggle
+                                                    }
+                                                    onArchiveToggle={
+                                                        handleArchiveToggle
+                                                    }
+                                                    onTrash={handleMoveToTrash}
+                                                    onEdit={openNote}
+                                                    onChangeColor={
+                                                        handleChangeColor
+                                                    }
+                                                    onClone={handleCloneNote}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </motion.section>
+                        )}
 
-                    {archivedNotes.length > 0 && searchQuery && (
-                        <section className='notes-section'>
-                            <h3 className='section-title'>
-                                <span>Archived Notes</span>
-                                <span className='note-count'>
-                                    {archivedNotes.length}
-                                </span>
-                            </h3>
-                            <div className={`notes-list ${viewType}`}>
-                                {archivedNotes.map((note: NoteI) => (
-                                    <NoteCard
-                                        key={note._id}
-                                        note={note}
-                                        onPinToggle={handlePinToggle}
-                                        onArchiveToggle={handleArchiveToggle}
-                                        onTrash={handleMoveToTrash}
-                                        onEdit={openNote}
-                                        onChangeColor={handleChangeColor}
-                                        onClone={handleCloneNote}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                        {archivedNotes.length > 0 && searchQuery && (
+                            <motion.section
+                                variants={itemVariants}
+                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
+                            >
+                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                        <span>Archived Notes</span>
+                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                            {archivedNotes.length}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div
+                                    className={`p-4 ${
+                                        viewType === 'grid'
+                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                                            : 'flex flex-col space-y-3'
+                                    }`}
+                                >
+                                    <AnimatePresence>
+                                        {archivedNotes.map((note: NoteI) => (
+                                            <motion.div
+                                                key={note._id}
+                                                variants={itemVariants}
+                                                initial='hidden'
+                                                animate='visible'
+                                                exit='exit'
+                                                layout
+                                            >
+                                                <NoteCard
+                                                    note={note}
+                                                    onPinToggle={
+                                                        handlePinToggle
+                                                    }
+                                                    onArchiveToggle={
+                                                        handleArchiveToggle
+                                                    }
+                                                    onTrash={handleMoveToTrash}
+                                                    onEdit={openNote}
+                                                    onChangeColor={
+                                                        handleChangeColor
+                                                    }
+                                                    onClone={handleCloneNote}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </motion.section>
+                        )}
 
-                    {trashedNotes.length > 0 && searchQuery && (
-                        <section className='notes-section'>
-                            <h3 className='section-title'>
-                                <span>Trash</span>
-                                <span className='note-count'>
-                                    {trashedNotes.length}
-                                </span>
-                            </h3>
-                            <div className={`notes-list ${viewType}`}>
-                                {trashedNotes.map((note: NoteI) => (
-                                    <NoteCard
-                                        key={note._id}
-                                        note={note}
-                                        onRestore={handleRestoreFromTrash}
-                                        onDelete={handleDeletePermanently}
-                                        onEdit={openNote}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                </>
+                        {trashedNotes.length > 0 && searchQuery && (
+                            <motion.section
+                                variants={itemVariants}
+                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
+                            >
+                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                        <span>Trash</span>
+                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                            {trashedNotes.length}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <div
+                                    className={`p-4 ${
+                                        viewType === 'grid'
+                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+                                            : 'flex flex-col space-y-3'
+                                    }`}
+                                >
+                                    <AnimatePresence>
+                                        {trashedNotes.map((note: NoteI) => (
+                                            <motion.div
+                                                key={note._id}
+                                                variants={itemVariants}
+                                                initial='hidden'
+                                                animate='visible'
+                                                exit='exit'
+                                                layout
+                                            >
+                                                <NoteCard
+                                                    note={note}
+                                                    onRestore={
+                                                        handleRestoreFromTrash
+                                                    }
+                                                    onDelete={
+                                                        handleDeletePermanently
+                                                    }
+                                                    onEdit={openNote}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </motion.section>
+                        )}
+                    </motion.div>
+                </AnimatePresence>
             )}
 
             {/* Note edit/create modal */}
-            {isModalOpen && editingNote && (
-                <div
-                    className='modal-overlay'
-                    onClick={closeModal}
-                >
-                    <div
-                        className='modal-content improved-modal'
-                        onClick={(e) => e.stopPropagation()}
-                        style={getModalStyle}
+            <AnimatePresence>
+                {isModalOpen && editingNote && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className='fixed inset-0 backdrop-blur-xs flex items-center justify-center p-4 z-50'
+                        onClick={closeModal}
                     >
-                        <div className='modal-header'>
-                            <h2>{editingNote.pinned ? '📌 ' : ''}Edit Note</h2>
-                            <div className='modal-actions'>
+                        <motion.div
+                            variants={modalVariants}
+                            initial='hidden'
+                            animate='visible'
+                            exit='exit'
+                            className='bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-hidden'
+                            onClick={(e) => e.stopPropagation()}
+                            style={getModalStyle}
+                        >
+                            <div className=' border-gray-200 dark:border-gray-800 px-2 py-4'>
+                                <div className='flex items-center justify-between'>
+                                    <h2 className='text-xl font-semibold text-gray-800 dark:text-gray-200'>
+                                        {editingNote.pinned ? '📌 ' : ''}Edit
+                                        Note
+                                    </h2>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200'
+                                        onClick={closeModal}
+                                        aria-label='Close modal'
+                                        title='Close (Esc)'
+                                    >
+                                        <CloseIcon size={20} />
+                                    </motion.button>
+                                </div>
+
                                 {editingNote.labels &&
                                     editingNote.labels.length > 0 && (
-                                        <div className='modal-labels'>
+                                        <div className='flex flex-wrap gap-2 mt-3'>
                                             {editingNote.labels.map(
                                                 (label, index) => (
                                                     <span
                                                         key={index}
-                                                        className='modal-label'
+                                                        className='bg-green-50 dark:bg-blue-900 text-green-700 dark:text-blue-200 text-sm font-medium px-2.5 py-0.5 rounded-full'
                                                     >
                                                         {typeof label ===
                                                         'string'
@@ -565,162 +766,159 @@ const NotesContainer = ({
                                             )}
                                         </div>
                                     )}
-                                <button
-                                    className='close-modal'
-                                    onClick={closeModal}
-                                    aria-label='Close modal'
-                                    title='Close (Esc)'
-                                >
-                                    <CloseIcon size={20} />
-                                </button>
                             </div>
-                        </div>
 
-                        {/* Reminder & Collaborators Info Bar */}
-                        {(editingNote.reminder ||
-                            (editingNote.collaborators &&
-                                editingNote.collaborators.length > 0)) && (
-                            <div className='modal-info-bar'>
-                                {editingNote.reminder && (
-                                    <div
-                                        className='modal-reminder'
-                                        title={`Reminder: ${formatReminderDate(
-                                            editingNote.reminder
-                                        )}`}
-                                    >
-                                        <Bell size={14} />
-                                        <span>
-                                            {formatReminderDate(
-                                                editingNote.reminder
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {editingNote.collaborators &&
-                                    editingNote.collaborators.length > 0 && (
+                            {/* Reminder & Collaborators Info Bar */}
+                            {(editingNote.reminder ||
+                                (editingNote.collaborators &&
+                                    editingNote.collaborators.length > 0)) && (
+                                <div className='bg-gray-50 dark:bg-gray-800 px-2 py-2 flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 rounded-full'>
+                                    {editingNote.reminder && (
                                         <div
-                                            className='modal-collaborators'
-                                            title={`Shared with ${
-                                                editingNote.collaborators.length
-                                            } ${
-                                                editingNote.collaborators
-                                                    .length === 1
-                                                    ? 'person'
-                                                    : 'people'
-                                            }`}
+                                            className='flex items-center bg-amber-100 p-2 rounded-full gap-1.5'
+                                            title={`Reminder: ${formatReminderDate(
+                                                editingNote.reminder
+                                            )}`}
                                         >
-                                            <Users size={14} />
+                                            <Bell
+                                                size={14}
+                                                className='text-amber-500'
+                                            />
                                             <span>
-                                                Shared with{' '}
-                                                {
-                                                    editingNote.collaborators
-                                                        .length
-                                                }
-                                                {editingNote.collaborators
-                                                    .length === 1
-                                                    ? ' person'
-                                                    : ' people'}
-                                            </span>
-                                            <div className='modal-avatar-stack'>
-                                                {editingNote.collaborators
-                                                    .slice(0, 3)
-                                                    .map(
-                                                        (
-                                                            collaborator,
-                                                            index
-                                                        ) => (
-                                                            <div
-                                                                key={
-                                                                    collaborator.firebaseUid ||
-                                                                    index
-                                                                } // Better to use a unique ID if available
-                                                                className='modal-avatar'
-                                                                title={
-                                                                    collaborator.email
-                                                                }
-                                                                style={{
-                                                                    zIndex:
-                                                                        3 -
-                                                                        index,
-                                                                }}
-                                                            >
-                                                                {collaborator.photo ? (
-                                                                    <Image
-                                                                        src={
-                                                                            collaborator.photo
-                                                                        }
-                                                                        alt={
-                                                                            collaborator.name ||
-                                                                            collaborator.email ||
-                                                                            'Collaborator'
-                                                                        }
-                                                                        width={
-                                                                            40
-                                                                        }
-                                                                        height={
-                                                                            40
-                                                                        }
-                                                                        className='w-full h-full rounded-full object-cover'
-                                                                    />
-                                                                ) : (
-                                                                    getInitials(
-                                                                        collaborator.name ||
-                                                                            collaborator.email ||
-                                                                            ''
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    )}
-                                                {editingNote.collaborators
-                                                    .length > 3 && (
-                                                    <div className='modal-avatar modal-avatar-more'>
-                                                        +
-                                                        {editingNote
-                                                            .collaborators
-                                                            .length - 3}
-                                                    </div>
+                                                {formatReminderDate(
+                                                    editingNote.reminder
                                                 )}
-                                            </div>
+                                            </span>
                                         </div>
                                     )}
-                            </div>
-                        )}
 
-                        <div className='modal-body'>
-                            <NoteInput
-                                isEditing={true}
-                                noteToEdit={editingNote}
-                                onSuccess={() => {
-                                    closeModal();
-                                    refetch();
-                                }}
-                            />
-                        </div>
+                                    {editingNote.collaborators &&
+                                        editingNote.collaborators.length >
+                                            0 && (
+                                            <div
+                                                className='flex items-center gap-2 bg-blue-100 p-2 rounded-full'
+                                                title={`Shared with ${
+                                                    editingNote.collaborators
+                                                        .length
+                                                } ${
+                                                    editingNote.collaborators
+                                                        .length === 1
+                                                        ? 'person'
+                                                        : 'people'
+                                                }`}
+                                            >
+                                                <Users
+                                                    size={14}
+                                                    className='text-blue-500'
+                                                />
+                                                <span>
+                                                    Shared with{' '}
+                                                    {
+                                                        editingNote
+                                                            .collaborators
+                                                            .length
+                                                    }
+                                                    {editingNote.collaborators
+                                                        .length === 1
+                                                        ? ' person'
+                                                        : ' people'}
+                                                </span>
+                                                <div className='flex -space-x-2 ml-1'>
+                                                    {editingNote.collaborators
+                                                        .slice(0, 3)
+                                                        .map(
+                                                            (
+                                                                collaborator,
+                                                                index
+                                                            ) => (
+                                                                <div
+                                                                    key={
+                                                                        collaborator.firebaseUid ||
+                                                                        index
+                                                                    }
+                                                                    className='w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 ring-2 ring-white dark:ring-gray-900 overflow-hidden'
+                                                                    title={
+                                                                        collaborator.email
+                                                                    }
+                                                                >
+                                                                    {collaborator.photo ? (
+                                                                        <Image
+                                                                            src={
+                                                                                collaborator.photo
+                                                                            }
+                                                                            alt={
+                                                                                collaborator.name ||
+                                                                                collaborator.email ||
+                                                                                'Collaborator'
+                                                                            }
+                                                                            width={
+                                                                                40
+                                                                            }
+                                                                            height={
+                                                                                40
+                                                                            }
+                                                                            className='w-full h-full object-cover'
+                                                                        />
+                                                                    ) : (
+                                                                        getInitials(
+                                                                            collaborator.name ||
+                                                                                collaborator.email ||
+                                                                                ''
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    {editingNote.collaborators
+                                                        .length > 3 && (
+                                                        <div className='w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 ring-2 ring-white dark:ring-gray-900'>
+                                                            +
+                                                            {editingNote
+                                                                .collaborators
+                                                                .length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                </div>
+                            )}
 
-                        <div className='modal-footer'>
-                            <div className='modal-date'>
-                                {editingNote.updatedAt ? (
-                                    <span>
-                                        Edited{' '}
-                                        {new Date(
-                                            editingNote.updatedAt
-                                        ).toLocaleString()}
-                                    </span>
-                                ) : (
-                                    <span>
-                                        Created{' '}
-                                        {new Date(
-                                            editingNote.createdAt || Date.now()
-                                        ).toLocaleString()}
-                                    </span>
-                                )}
+                            <div className='modal-body'>
+                                <NoteInput
+                                    isEditing={true}
+                                    noteToEdit={editingNote}
+                                    onSuccess={() => {
+                                        closeModal();
+                                        refetch();
+                                    }}
+                                />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+
+                            <div className='modal-footer'>
+                                <div className='modal-date pt-4 border-t border-gray-700 px-2  text-sm text-gray-900 '>
+                                    {editingNote.updatedAt ? (
+                                        <span>
+                                            Edited{' '}
+                                            {new Date(
+                                                editingNote.updatedAt
+                                            ).toLocaleString()}
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            Created{' '}
+                                            {new Date(
+                                                editingNote.createdAt ||
+                                                    Date.now()
+                                            ).toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
