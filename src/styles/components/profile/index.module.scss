@@ -242,3 +242,25 @@
         transform: translateX(26px);
     }
 }
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.helperText {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+.formError {
+    font-size: 0.875rem;
+    color: $danger-color;
+    background-color: rgba($danger-color, 0.1);
+    padding: 8px 12px;
+    border-radius: $border-radius;
+    margin-bottom: 16px;
+}

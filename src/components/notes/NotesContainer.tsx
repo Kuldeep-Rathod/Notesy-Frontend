@@ -535,8 +535,9 @@ const NotesContainer = ({
                                             <Masonry
                                                 columns={{
                                                     xs: 1,
-                                                    sm: 2,
-                                                    md: 3,
+                                                    sm: 3,
+                                                    md: 4,
+                                                    xl: 5,
                                                 }}
                                                 spacing={2}
                                             >
@@ -661,8 +662,9 @@ const NotesContainer = ({
                                             <Masonry
                                                 columns={{
                                                     xs: 1,
-                                                    sm: 2,
-                                                    md: 3,
+                                                    sm: 3,
+                                                    md: 4,
+                                                    xl: 5,
                                                 }}
                                                 spacing={2}
                                             >
@@ -822,8 +824,9 @@ const NotesContainer = ({
                                         <Masonry
                                             columns={{
                                                 xs: 1,
-                                                sm: 2,
-                                                md: 3,
+                                                sm: 3,
+                                                md: 4,
+                                                xl: 5,
                                             }}
                                             spacing={2}
                                         >

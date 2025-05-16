@@ -6,6 +6,10 @@ import {
     signInWithEmailAndPassword,
     signInWithPopup,
     User,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
+    deleteUser,
 } from 'firebase/auth';
 
 export const authAPI = createApi({
@@ -76,47 +80,86 @@ export const authAPI = createApi({
             },
         }),
 
-        // Check auth state and get ID token
-        // checkAuthState: builder.query<User, void>({
-        //     queryFn: async () => {
-        //         try {
-        //             return new Promise((resolve) => {
-        //                 const unsubscribe = auth.onAuthStateChanged(
-        //                     async (firebaseUser) => {
-        //                         if (firebaseUser) {
-        //                             try {
-        //                                 const idToken =
-        //                                     await firebaseUser.getIdToken(); // ✅ Get the ID token
+        // Change password (requires reauthentication)
+        changePassword: builder.mutation<
+            void,
+            { currentPassword: string; newPassword: string }
+        >({
+            queryFn: async ({ currentPassword, newPassword }) => {
+                try {
+                    const user = auth.currentUser;
 
-        //                                 // Pass the token to your backend for verification (or verify locally if needed)
-        //                                 const response =
-        //                                     await axiosInstance.get(
-        //                                         '/api/v1/auth/verify',
-        //                                         {
-        //                                             headers: {
-        //                                                 Authorization: `Bearer ${idToken}`, // ✅ Send as Bearer token
-        //                                             },
-        //                                         }
-        //                                     );
+                    if (!user) {
+                        throw new Error('User not authenticated');
+                    }
 
-        //                                 const user = response.data;
-        //                                 resolve({ data: user });
-        //                             } catch (err: any) {
-        //                                 resolve({ error: err.message });
-        //                             }
-        //                         } else {
-        //                             resolve({ error: 'Not authenticated' });
-        //                         }
+                    if (!user.email) {
+                        throw new Error('User has no email for authentication');
+                    }
 
-        //                         unsubscribe();
-        //                     }
-        //                 );
-        //             });
-        //         } catch (error: any) {
-        //             return { error: error.message };
-        //         }
-        //     },
-        // }),
+                    // Create credential with current password
+                    const credential = EmailAuthProvider.credential(
+                        user.email,
+                        currentPassword
+                    );
+
+                    // Re-authenticate the user
+                    await reauthenticateWithCredential(user, credential);
+
+                    // Update the password
+                    await updatePassword(user, newPassword);
+
+                    return { data: undefined };
+                } catch (error: any) {
+                    return {
+                        error: error.message || 'Failed to change password',
+                    };
+                }
+            },
+        }),
+
+        // Delete account (requires reauthentication)
+        deleteAccount: builder.mutation<void, { password?: string }>({
+            queryFn: async ({ password }) => {
+                try {
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        throw new Error('User not authenticated');
+                    }
+
+                    if (password && user.email) {
+                        // Create credential with current password
+                        const credential = EmailAuthProvider.credential(
+                            user.email,
+                            password
+                        );
+
+                        // Re-authenticate the user
+                        await reauthenticateWithCredential(user, credential);
+                        console.log('User reauthenticated');
+                    }
+
+                    const idToken = await user.getIdToken(true);
+
+                    await axiosInstance.delete('/api/v1/users/me', {
+                        headers: {
+                            Authorization: `Bearer ${idToken}`,
+                        },
+                    });
+
+                    // Delete the user from Firebase
+                    await deleteUser(user);
+
+                    return { data: undefined };
+                } catch (error: any) {
+                    console.error('Account deletion failed:', error);
+                    return {
+                        error: error.message || 'Failed to delete account',
+                    };
+                }
+            },
+        }),
     }),
 });
 
@@ -124,5 +167,6 @@ export const {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
     useLogoutMutation,
-    // useCheckAuthStateQuery,
+    useChangePasswordMutation,
+    useDeleteAccountMutation,
 } = authAPI;
