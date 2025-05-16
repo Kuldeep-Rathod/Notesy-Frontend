@@ -17,6 +17,7 @@ import {
 import Image from 'next/image';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
+import { AnimatedTooltip } from '../ui/animated-tooltip';
 
 interface NoteCardProps {
     note: NoteI;
@@ -80,6 +81,7 @@ const NoteCard = ({
         }
     ) as { data: CollaboratorsData | undefined };
 
+    console.log('Collaborators Data:', collaboratorsData);
     const handleEditClick = () => {
         if (onEdit) onEdit(note);
     };
@@ -100,6 +102,18 @@ const NoteCard = ({
         if (!email) return '?';
         return email.charAt(0).toUpperCase();
     };
+
+    const transformedCollabData = collaboratorsData?.collaborators?.map(
+        (collab, index) => ({
+            id: index,
+            name: collab.name,
+            designation:
+                collab.firebaseUid === collaboratorsData.ownerId
+                    ? 'Owner'
+                    : 'Member',
+            image: collab.photo || '',
+        })
+    );
 
     return (
         <div
@@ -192,52 +206,53 @@ const NoteCard = ({
 
             {/* Collaborators display */}
             {note.collaborators && note.collaborators.length > 0 && (
-                <div
-                    className='note-collaborators'
-                    title={`Shared with ${note.collaborators.length} ${
-                        note.collaborators.length === 1 ? 'person' : 'people'
-                    }`}
-                >
-                    <div className='note-avatar-stack'>
-                        {note.collaborators
-                            .slice(0, 3)
-                            .map((collaborator, index) => (
-                                <div
-                                    key={collaborator.firebaseUid || index}
-                                    className='note-avatar'
-                                    title={collaborator.email}
-                                    style={{
-                                        zIndex: 3 - index,
-                                    }}
-                                >
-                                    {collaborator.photo ? (
-                                        <Image
-                                            src={collaborator.photo}
-                                            alt={
-                                                collaborator.name ||
-                                                collaborator.email ||
-                                                'Collaborator'
-                                            }
-                                            width={40}
-                                            height={40}
-                                            className='w-full h-full rounded-full object-cover'
-                                        />
-                                    ) : (
-                                        getInitials(
-                                            collaborator.name ||
-                                                collaborator.email ||
-                                                ''
-                                        )
-                                    )}
-                                </div>
-                            ))}
-                        {note.collaborators.length > 3 && (
-                            <div className='note-avatar note-avatar-more'>
-                                +{note.collaborators.length - 3}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                // <div
+                //     className='note-collaborators'
+                //     title={`Shared with ${note.collaborators.length} ${
+                //         note.collaborators.length === 1 ? 'person' : 'people'
+                //     }`}
+                // >
+                //     <div className='note-avatar-stack'>
+                //         {note.collaborators
+                //             .slice(0, 3)
+                //             .map((collaborator, index) => (
+                //                 <div
+                //                     key={collaborator.firebaseUid || index}
+                //                     className='note-avatar'
+                //                     title={collaborator.email}
+                //                     style={{
+                //                         zIndex: 3 - index,
+                //                     }}
+                //                 >
+                //                     {collaborator.photo ? (
+                //                         <Image
+                //                             src={collaborator.photo}
+                //                             alt={
+                //                                 collaborator.name ||
+                //                                 collaborator.email ||
+                //                                 'Collaborator'
+                //                             }
+                //                             width={40}
+                //                             height={40}
+                //                             className='w-full h-full rounded-full object-cover'
+                //                         />
+                //                     ) : (
+                //                         getInitials(
+                //                             collaborator.name ||
+                //                                 collaborator.email ||
+                //                                 ''
+                //                         )
+                //                     )}
+                //                 </div>
+                //             ))}
+                //         {note.collaborators.length > 3 && (
+                //             <div className='note-avatar note-avatar-more'>
+                //                 +{note.collaborators.length - 3}
+                //             </div>
+                //         )}
+                //     </div>
+                // </div>
+                <AnimatedTooltip items={transformedCollabData || []} />
             )}
 
             <div className='note-actions'>
