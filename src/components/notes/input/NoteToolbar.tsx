@@ -16,10 +16,9 @@ import {
     toggleLabelMenu,
     toggleMoreMenu,
     toggleReminderMenu,
-    toggleTrash
+    toggleTrash,
 } from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
-import '@/styles/components/notes/_noteInput.scss';
 import { format } from 'date-fns';
 import {
     Archive,
@@ -29,9 +28,10 @@ import {
     Redo2,
     Trash2,
     Undo2,
-    UserPlus
+    UserPlus,
+    Image as ImageIcon,
 } from 'lucide-react';
-import { ChangeEvent, useEffect } from 'react';
+import { ChangeEvent, useEffect, useRef } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
@@ -47,6 +47,7 @@ export default function NoteToolbar({
     isEditing = false,
 }: NoteToolbarProps) {
     const dispatch = useDispatch();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const reminderString = useSelector(
         (state: RootState) => state.noteInput.reminder
     );
@@ -61,7 +62,6 @@ export default function NoteToolbar({
             colorMenuOpen,
             collaboratorMenuOpen,
             reminderMenuOpen,
-            imageMenuOpen,
         },
     } = useSelector(selectNoteInput);
 
@@ -79,6 +79,10 @@ export default function NoteToolbar({
 
     const handleReminderSet = (date: Date | null) => {
         setReminder(date ? date.toISOString() : null);
+    };
+
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
     };
 
     const changeImageHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -103,8 +107,8 @@ export default function NoteToolbar({
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
             if (
-                !target.closest('.note-input__reminder-menu') &&
-                !target.closest('.note-input__toolbar-icon--alarm')
+                !target.closest('.reminder-menu') &&
+                !target.closest('.reminder-button')
             ) {
                 dispatch(closeReminderMenu());
             }
@@ -146,149 +150,177 @@ export default function NoteToolbar({
 
     if (isTrashed) {
         return (
-            <div className={`note-input__toolbar note-input__toolbar--minimal`}>
-                <div className='note-input__toolbar-icons'>
-                    <div
-                        className={`note-input__toolbar-icon note-input__toolbar-icon--delete H`}
+            <div className='flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200 rounded-lg'>
+                <div className='flex space-x-4'>
+                    <button
+                        className='text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200'
+                        title='Delete permanently'
                     >
-                        <Trash2 />
-                    </div>
-                    <div
-                        className={`note-input__toolbar-icon note-input__toolbar-icon--restore H`}
+                        <Trash2 className='h-5 w-5' />
+                    </button>
+                    <button
+                        className='text-green-500 hover:text-green-600 transition-colors duration-200 p-2 rounded-full hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-200'
+                        title='Restore note'
                     >
-                        <MdRestoreFromTrash />
-                    </div>
+                        <MdRestoreFromTrash className='h-5 w-5' />
+                    </button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='note-input__toolbar'>
-            <div className='note-input__toolbar-icons'>
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--alarm note-input--tooltip ${
-                        reminder ? 'active' : ''
+        <div className='flex items-center justify-between px-3 py-2 bg-white border-t border-gray-200 rounded-lg shadow-sm relative'>
+            <div className='flex flex-wrap items-center gap-1'>
+                <button
+                    className={`p-2 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group reminder-button ${
+                        reminder ? 'text-blue-500' : 'text-gray-500'
                     }`}
-                    data-tooltip={
-                        reminder
-                            ? format(new Date(reminder), 'MMM d, h:mm a')
-                            : 'Remind me'
-                    }
                     onClick={handleReminderClick}
+                    aria-label='Set reminder'
                 >
                     <Bell className='h-5 w-5' />
-                </div>
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap'>
+                        {reminder
+                            ? format(new Date(reminder), 'MMM d, h:mm a')
+                            : 'Remind me'}
+                    </span>
+                </button>
 
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop note-input--tooltip`}
-                    data-tooltip='Collaborator'
+                <button
+                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
                     onClick={handleCollaboratorClick}
+                    aria-label='Add collaborator'
                 >
-                    <UserPlus />
-                </div>
-                {collaboratorMenuOpen && (
-                    <CollaboratorMenu onClose={handleCollaboratorClick} />
-                )}
+                    <UserPlus className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Collaborator
+                    </span>
+                </button>
 
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--color H pop note-input--tooltip`}
-                    data-tooltip='Background Options'
+                <button
+                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
                     onClick={() => dispatch(toggleColorMenu())}
+                    aria-label='Background options'
                 >
-                    <Palette />
-                </div>
-                {/* <div
-                    className='note-input__toolbar-icon note-input__toolbar-icon--image H pop note-input--tooltip'
-                    data-tooltip='Add image'
-                    onClick={() => dispatch(toggleImageMenu())}
+                    <Palette className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Background Options
+                    </span>
+                </button>
+
+                <button
+                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
+                    onClick={handleImageClick}
+                    aria-label='Add image'
                 >
-                    <ImagePlus /> */}
+                    <ImageIcon className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Add image
+                    </span>
+                </button>
                 <input
+                    ref={fileInputRef}
                     type='file'
                     accept='image/*'
                     multiple
                     onChange={changeImageHandler}
-                    className='block w-full text-sm text-gray-500
-                       file:mr-4 file:py-2 file:px-4
-                       file:rounded file:border-0
-                       file:text-sm file:font-semibold
-                       file:bg-blue-50 file:text-blue-700
-                       hover:file:bg-blue-100
-                       cursor-pointer'
+                    className='hidden'
                 />
-                {/* </div> */}
 
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--archive H pop note-input--tooltip`}
+                <button
+                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
                     onClick={handleArchive}
-                    data-tooltip='Archive'
+                    aria-label='Archive'
                 >
-                    <Archive />
-                </div>
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--more H pop note-input--tooltip`}
-                    data-tooltip='More'
-                    onClick={() => dispatch(toggleMoreMenu())}
-                >
-                    <EllipsisVertical />
-                </div>
+                    <Archive className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Archive
+                    </span>
+                </button>
 
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--undo disabled pop note-input--tooltip`}
-                    data-tooltip='Undo'
+                <button
+                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
+                    onClick={() => dispatch(toggleMoreMenu())}
+                    aria-label='More options'
                 >
-                    <Undo2 />
-                </div>
-                <div
-                    className={`note-input__toolbar-icon note-input__toolbar-icon--redo disabled note-input--tooltip`}
-                    data-tooltip='Redo'
+                    <EllipsisVertical className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        More
+                    </span>
+                </button>
+
+                <div className='h-6 mx-1 border-l border-gray-300'></div>
+
+                <button
+                    className='p-2 rounded-full text-gray-300 cursor-not-allowed transition-all duration-200 relative group'
+                    aria-label='Undo'
+                    disabled
                 >
-                    <Redo2 />
-                </div>
+                    <Undo2 className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Undo
+                    </span>
+                </button>
+
+                <button
+                    className='p-2 rounded-full text-gray-300 cursor-not-allowed transition-all duration-200 relative group'
+                    aria-label='Redo'
+                    disabled
+                >
+                    <Redo2 className='h-5 w-5' />
+                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                        Redo
+                    </span>
+                </button>
             </div>
-            <div
-                className='note-input__button--close'
+
+            <button
+                className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-sm font-medium'
                 onClick={onSaveClick}
             >
                 Save
-            </div>
+            </button>
 
             {/* More menu */}
             {moreMenuOpen && (
-                <div
-                    className='note-input__menu'
-                    data-tooltip='true'
-                    data-is-tooltip-open='true'
-                >
-                    <div
+                <div className='absolute left-1/3 bottom-14 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-40 z-10'>
+                    <button
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
                         onClick={() => {
                             dispatch(toggleMoreMenu());
                             dispatch(toggleLabelMenu());
                         }}
                     >
                         Add label
-                    </div>
+                    </button>
 
-                    <div
+                    <button
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
                         onClick={() => {
                             moreMenu.toggleCbox();
                             dispatch(toggleMoreMenu());
                         }}
                     >
                         {isCbox ? 'Hide checkboxes' : 'Show checkboxes'}
-                    </div>
+                    </button>
+
+                    <button
+                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-red-500 text-sm'
+                        onClick={() => {
+                            moreMenu.trash();
+                            dispatch(toggleMoreMenu());
+                        }}
+                    >
+                        Move to trash
+                    </button>
                 </div>
             )}
 
             {/* Color menu */}
             {colorMenuOpen && (
-                <div
-                    className='note-input__color-menu'
-                    data-tooltip='true'
-                    data-is-tooltip-open='true'
-                >
-                    <div className='note-input__color-menu-row'>
+                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10'>
+                    <div className='grid grid-cols-4 gap-2 mb-2'>
                         {Object.entries(bgColors).map(([key, value]) => (
                             <div
                                 key={key}
@@ -298,15 +330,14 @@ export default function NoteToolbar({
                                     colorMenu.bgColor(value);
                                     dispatch(toggleColorMenu());
                                 }}
-                                className={
-                                    value === ''
-                                        ? 'note-input__color-menu-option--transparent'
-                                        : 'note-input__color-menu-option'
-                                }
+                                className={`w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all duration-200 ${
+                                    value === '' ? 'border border-gray-300' : ''
+                                }`}
+                                title={key}
                             ></div>
                         ))}
                     </div>
-                    <div className='note-input__color-menu-row'>
+                    <div className='grid grid-cols-4 gap-2'>
                         {Object.entries(bgImages).map(([key, value]) => (
                             <div
                                 key={key}
@@ -316,11 +347,10 @@ export default function NoteToolbar({
                                     colorMenu.bgImage(value);
                                     dispatch(toggleColorMenu());
                                 }}
-                                className={
-                                    value === ''
-                                        ? 'note-input__color-menu-option--transparent'
-                                        : 'note-input__color-menu-option'
-                                }
+                                className={`w-8 h-8 rounded-lg cursor-pointer bg-center bg-cover hover:ring-2 hover:ring-blue-400 transition-all duration-200 ${
+                                    value === '' ? 'border border-gray-300' : ''
+                                }`}
+                                title={key}
                             ></div>
                         ))}
                     </div>
@@ -328,31 +358,16 @@ export default function NoteToolbar({
             )}
 
             {reminderMenuOpen && (
-                <div className='note-input__reminder-menu'>
+                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 reminder-menu'>
                     <ReminderPicker onReminderSet={handleReminderSet} />
                 </div>
             )}
 
-            {/* {imageMenuOpen && (
-                <div className='note-input__reminder-menu p-4 rounded-lg shadow-lg bg-white w-80 mx-auto'>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>
-                        Upload Image
-                    </label>
-                    <input
-                        type='file'
-                        accept='image/*'
-                        multiple
-                        onChange={changeImageHandler}
-                        className='block w-full text-sm text-gray-500
-                       file:mr-4 file:py-2 file:px-4
-                       file:rounded file:border-0
-                       file:text-sm file:font-semibold
-                       file:bg-blue-50 file:text-blue-700
-                       hover:file:bg-blue-100
-                       cursor-pointer'
-                    />
+            {collaboratorMenuOpen && (
+                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 z-10'>
+                    <CollaboratorMenu onClose={handleCollaboratorClick} />
                 </div>
-            )} */}
+            )}
         </div>
     );
 }

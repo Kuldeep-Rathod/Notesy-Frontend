@@ -1101,7 +1101,7 @@ const NotesContainer = ({
                                 </div>
                             )}
 
-                            <div className='modal-body'>
+                            <div className='modal-body my-4'>
                                 <NoteInput
                                     isEditing={true}
                                     noteToEdit={editingNote}
