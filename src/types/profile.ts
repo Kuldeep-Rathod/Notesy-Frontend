@@ -2,8 +2,8 @@ export interface UserProfile {
     name: string;
     email: string;
     photoUrl: string;
-    createdAt: string;
-    lastLogin: string;
+    createdAt?: string;
+    lastLogin?: string;
 }
 
 export interface UserStats {

@@ -2,30 +2,17 @@
 
 import Profile from '@/components/profile';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import {
-    Label,
-    Preferences,
-    UserProfile,
-    UserStats,
-    VoiceStats,
-} from '@/types/profile';
+import { UserStats } from '@/types/profile';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 const ProfilePage = () => {
     // State for different profile sections
-    const [activeSection, setActiveSection] = useState<'profile' | 'preferences' | 'stats'>('profile');
+    const [activeSection, setActiveSection] = useState<
+        'profile' | 'preferences' | 'stats'
+    >('profile');
 
-    // Sample data - replace with real data from your API/state
-    const user: UserProfile = {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        photoUrl:
-            'https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?t=st=1746532076~exp=1746535676~hmac=cda4cf154965a8f6e9660ea80d22ad065e732f580db367b7112355220e8d79ff&w=740',
-        createdAt: 'January 15, 2023',
-        lastLogin: 'Today, 10:30 AM',
-    };
-
+    // Sample stats data - this would normally come from an API
     const stats: UserStats = {
         totalNotes: 142,
         totalChecklists: 28,
@@ -35,35 +22,16 @@ const ProfilePage = () => {
         trashedNotes: 5,
     };
 
-    const voiceStats: VoiceStats = {
-        totalMinutesTranscribed: 87,
-        lastVoiceCommand: 'Create shopping list',
-        preferredLanguage: 'English (US)',
-        voiceTipsEnabled: true,
-    };
-
-    const labels: Label[] = [
-        { id: '1', name: 'Work' },
-        { id: '2', name: 'Personal' },
-        { id: '3', name: 'Shopping' },
-        { id: '4', name: 'Ideas' },
-        { id: '5', name: 'Important' },
-    ];
-
-    const preferences: Preferences = {
-        defaultView: 'grid',
-        defaultNoteColor: '#ffffff',
-        appTheme: 'dark',
-        speechToTextLanguage: 'English (US)',
-        defaultReminderTime: '9:00 AM',
-    };
-
     // Set up voice commands for this page
     const { isActive } = usePageVoiceCommands(
         {
             '/profile': [
                 {
-                    command: ['show profile', 'view profile', 'go to profile section'],
+                    command: [
+                        'show profile',
+                        'view profile',
+                        'go to profile section',
+                    ],
                     callback: () => {
                         setActiveSection('profile');
                         toast.info('Showing profile section');
@@ -72,7 +40,11 @@ const ProfilePage = () => {
                     fuzzyMatchingThreshold: 0.7,
                 },
                 {
-                    command: ['show preferences', 'view preferences', 'go to preferences'],
+                    command: [
+                        'show preferences',
+                        'view preferences',
+                        'go to preferences',
+                    ],
                     callback: () => {
                         setActiveSection('preferences');
                         toast.info('Showing preferences section');
@@ -81,7 +53,12 @@ const ProfilePage = () => {
                     fuzzyMatchingThreshold: 0.7,
                 },
                 {
-                    command: ['show statistics', 'view stats', 'show activity', 'show insights'],
+                    command: [
+                        'show statistics',
+                        'view stats',
+                        'show activity',
+                        'show insights',
+                    ],
                     callback: () => {
                         setActiveSection('stats');
                         toast.info('Showing statistics section');
@@ -90,15 +67,22 @@ const ProfilePage = () => {
                     fuzzyMatchingThreshold: 0.7,
                 },
                 {
-                    command: ['tell me about my notes', 'how many notes do I have'],
+                    command: [
+                        'tell me about my notes',
+                        'how many notes do I have',
+                    ],
                     callback: () => {
-                        toast.info(`You have ${stats.totalNotes} notes, including ${stats.totalChecklists} checklists`);
+                        toast.info(
+                            `You have ${stats.totalNotes} notes, including ${stats.totalChecklists} checklists`
+                        );
                     },
                 },
                 {
                     command: ['update profile picture', 'change my photo'],
                     callback: () => {
-                        toast.info('Voice command: To change your profile picture, click on your current photo');
+                        toast.info(
+                            'Voice command: To change your profile picture, click on your current photo'
+                        );
                     },
                 },
             ],
@@ -109,17 +93,13 @@ const ProfilePage = () => {
     return (
         <>
             <Profile
-                user={user}
                 stats={stats}
-                voiceStats={voiceStats}
-                labels={labels}
-                preferences={preferences}
                 activeSection={activeSection}
                 onSectionChange={setActiveSection}
             />
-            
+
             {isActive && (
-                <div 
+                <div
                     style={{
                         position: 'fixed',
                         bottom: '80px',

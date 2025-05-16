@@ -1,76 +1,191 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-    Label,
-    Preferences,
-    UserProfile,
-    UserStats,
-    VoiceStats,
-} from '../../types/profile';
-import LabelItem from './LabelItem';
+import styles from '@/styles/components/profile/index.module.scss';
+import React, { useEffect, useState } from 'react';
+import { UserProfile, UserStats } from '../../types/profile';
 import ProfileHeader from './ProfileHeader';
 import ProfileSection from './ProfileSection';
 import StatCard from './StatCard';
-import styles from '@/styles/components/profile/index.module.scss';
+import {
+    useGetCurrentUserQuery,
+    useUpdateUserProfileMutation,
+} from '@/redux/api/userAPI';
+import { DbUser } from '@/types/reducer-types';
+import { toast } from 'sonner';
 
 interface ProfileProps {
-    user: UserProfile;
     stats: UserStats;
-    voiceStats: VoiceStats;
-    labels: Label[];
-    preferences: Preferences;
     activeSection?: 'profile' | 'preferences' | 'stats';
     onSectionChange?: (section: 'profile' | 'preferences' | 'stats') => void;
 }
 
 const Profile: React.FC<ProfileProps> = ({
-    user,
     stats,
-    voiceStats,
-    labels,
-    preferences,
     activeSection = 'profile',
     onSectionChange,
 }) => {
-    const [currentLabels, setCurrentLabels] = useState<Label[]>(labels);
-    const [newLabel, setNewLabel] = useState('');
-    const [localActiveSection, setLocalActiveSection] = useState<'profile' | 'preferences' | 'stats'>(activeSection);
-    
+    const [localActiveSection, setLocalActiveSection] = useState<
+        'profile' | 'preferences' | 'stats'
+    >(activeSection);
+
+    const {
+        data: userData,
+        error,
+        isLoading,
+        refetch,
+    } = useGetCurrentUserQuery();
+
+    const [editableName, setEditableName] = useState('');
+    const [nameChanged, setNameChanged] = useState(false);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
+    const [updateUserProfile, { isLoading: isUpdating }] =
+        useUpdateUserProfileMutation();
+    const [nameUpdateTimer, setNameUpdateTimer] =
+        useState<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
         setLocalActiveSection(activeSection);
     }, [activeSection]);
-    
-    const handleSectionChange = (section: 'profile' | 'preferences' | 'stats') => {
+
+    useEffect(() => {
+        if (userData) {
+            setEditableName(userData.name);
+            // Reset local photo URL when userData changes
+            setLocalPhotoUrl(null);
+        }
+    }, [userData]);
+
+    // Effect to handle auto-saving of name changes
+    useEffect(() => {
+        if (nameChanged && userData && editableName !== userData.name) {
+            // Clear any existing timer
+            if (nameUpdateTimer) {
+                clearTimeout(nameUpdateTimer);
+            }
+
+            // Set a new timer
+            const timer = setTimeout(() => {
+                handleProfileUpdate(false);
+            }, 2000); // Wait 2 seconds after last change
+
+            setNameUpdateTimer(timer);
+
+            // Cleanup on unmount
+            return () => {
+                if (timer) clearTimeout(timer);
+            };
+        }
+    }, [editableName, nameChanged]);
+
+    // Clean up the timer on component unmount
+    useEffect(() => {
+        return () => {
+            if (nameUpdateTimer) {
+                clearTimeout(nameUpdateTimer);
+            }
+        };
+    }, []);
+
+    const handleSectionChange = (
+        section: 'profile' | 'preferences' | 'stats'
+    ) => {
         setLocalActiveSection(section);
         if (onSectionChange) {
             onSectionChange(section);
         }
     };
-    
+
     const effectiveSection = localActiveSection;
 
-    const handleDeleteLabel = (id: string) => {
-        setCurrentLabels(currentLabels.filter((label) => label.id !== id));
+    const handleEditPhoto = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const target = e.target as HTMLInputElement;
+            if (target.files && target.files[0]) {
+                const file = target.files[0];
+                setPhotoFile(file);
+
+                // Create a local URL for immediate display
+                const localUrl = URL.createObjectURL(file);
+                setLocalPhotoUrl(localUrl);
+
+                // Auto-save when photo is selected
+                handleProfileUpdate(true, file);
+
+                // Show toast for photo selection
+                toast.info('Uploading your new profile photo...');
+            }
+        };
+        input.click();
     };
 
-    const handleAddLabel = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newLabel.trim()) {
-            setCurrentLabels([
-                ...currentLabels,
-                {
-                    id: Date.now().toString(),
-                    name: newLabel.trim(),
-                },
-            ]);
-            setNewLabel('');
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEditableName(e.target.value);
+        setNameChanged(true);
+    };
+
+    const handleProfileUpdate = async (
+        isPhotoUpdate = false,
+        newPhotoFile: File | null = null
+    ) => {
+        if (!userData) return;
+
+        const formData = new FormData();
+        formData.append('name', editableName);
+
+        const fileToUpload = newPhotoFile || photoFile;
+        if (fileToUpload) {
+            formData.append('photo', fileToUpload);
+        }
+
+        try {
+            const updatedUser = await updateUserProfile(formData).unwrap();
+            console.log('Profile updated:', updatedUser);
+
+            // Refetch user data to ensure UI is up to date
+            await refetch();
+
+            if (isPhotoUpdate) {
+                toast.success('Profile photo updated!');
+            } else {
+                toast.success('Profile name updated!');
+            }
+            setNameChanged(false);
+        } catch (error) {
+            console.error('Update failed:', error);
+            toast.error('Failed to update profile');
         }
     };
 
-    const handleEditPhoto = () => {
-        // Implement photo editing logic
-        console.log('Edit photo clicked');
+    if (isLoading) {
+        return (
+            <div className={styles.loadingState}>Loading your profile...</div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={styles.errorState}>
+                Error loading profile. Please try again.
+            </div>
+        );
+    }
+
+    if (!userData) {
+        return <div className={styles.errorState}>No user data available.</div>;
+    }
+
+    // Convert DbUser to UserProfile format for the ProfileHeader
+    const userProfile: UserProfile = {
+        name: userData.name,
+        email: userData.email,
+        // Use local photo URL if available (for immediate display after selection)
+        photoUrl: localPhotoUrl || userData.photo || '',
+        createdAt: userData.createdAt,
+        lastLogin: new Date().toISOString(), // This would normally come from the backend
     };
 
     return (
@@ -80,7 +195,7 @@ const Profile: React.FC<ProfileProps> = ({
             </header>
 
             <ProfileHeader
-                user={user}
+                user={userProfile}
                 onEditPhoto={handleEditPhoto}
             />
 
@@ -91,20 +206,39 @@ const Profile: React.FC<ProfileProps> = ({
             >
                 <div className={styles.preferenceItem}>
                     <span>Name</span>
-                    <span>{user.name}</span>
+                    <input
+                        type='text'
+                        value={editableName}
+                        onChange={handleNameChange}
+                        className={styles.editableInput}
+                    />
                 </div>
                 <div className={styles.preferenceItem}>
                     <span>Email</span>
-                    <span>{user.email}</span>
+                    <span>{userData.email}</span>
                 </div>
                 <div className={styles.preferenceItem}>
                     <span>Account Creation Date</span>
-                    <span>{user.createdAt}</span>
+                    <span>
+                        {new Date(userData.createdAt).toLocaleDateString()}
+                    </span>
                 </div>
                 <div className={styles.preferenceItem}>
-                    <span>Last Login</span>
-                    <span>{user.lastLogin}</span>
+                    <span>Last Updated</span>
+                    <span>
+                        {new Date(userData.updatedAt).toLocaleDateString()}
+                    </span>
                 </div>
+                {nameChanged && nameUpdateTimer && (
+                    <div className={styles.saveIndicator}>
+                        Auto-saving changes...
+                    </div>
+                )}
+                {isUpdating && (
+                    <div className={styles.saveIndicator}>
+                        Updating profile...
+                    </div>
+                )}
             </ProfileSection>
 
             {/* Activity Insights */}
@@ -132,100 +266,6 @@ const Profile: React.FC<ProfileProps> = ({
                     />
                 </div>
             </ProfileSection>
-
-            {/* Voice Feature Usage */}
-            {/* <ProfileSection title='Voice Feature Usage'>
-                <div className={styles.statsGrid}>
-                    <StatCard
-                        title='Total Minutes Transcribed'
-                        value={voiceStats.totalMinutesTranscribed}
-                    />
-                    <StatCard
-                        title='Last Voice Command'
-                        value={voiceStats.lastVoiceCommand}
-                    />
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>Preferred Speech Language</span>
-                    <span>{voiceStats.preferredLanguage}</span>
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>Voice Tips</span>
-                    <label className={styles.toggleSwitch}>
-                        <input
-                            type='checkbox'
-                            checked={voiceStats.voiceTipsEnabled}
-                            onChange={() => {}}
-                        />
-                        <span className={styles.slider}></span>
-                    </label>
-                </div>
-            </ProfileSection> */}
-
-            {/* Top Labels */}
-            <ProfileSection title='Your Top Labels'>
-                <div className={styles.statsGrid}>
-                    {currentLabels.slice(0, 3).map((label, index) => (
-                        <StatCard
-                            key={label.id}
-                            title={`Most Used Label #${index + 1}`}
-                            value={label.name}
-                        />
-                    ))}
-                </div>
-            </ProfileSection>
-
-            {/* Labels Management */}
-            <ProfileSection title='Labels Management'>
-                <div className={styles.labelsList}>
-                    {currentLabels.map((label) => (
-                        <LabelItem
-                            key={label.id}
-                            label={label.name}
-                            onDelete={() => handleDeleteLabel(label.id)}
-                        />
-                    ))}
-                </div>
-                <form
-                    onSubmit={handleAddLabel}
-                    className={styles.addLabelForm}
-                >
-                    <input
-                        type='text'
-                        placeholder='Add new label...'
-                        value={newLabel}
-                        onChange={(e) => setNewLabel(e.target.value)}
-                    />
-                    <button type='submit'>Add</button>
-                </form>
-            </ProfileSection>
-
-            {/* Personal Preferences */}
-            {/* <ProfileSection
-                title='Personal Preferences'
-                onEdit={() => console.log('Edit preferences')}
-            >
-                <div className={styles.preferenceItem}>
-                    <span>Default View</span>
-                    <span>{preferences.defaultView}</span>
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>Default Note Color</span>
-                    <span>{preferences.defaultNoteColor}</span>
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>App Theme</span>
-                    <span>{preferences.appTheme}</span>
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>Speech-to-Text Language</span>
-                    <span>{preferences.speechToTextLanguage}</span>
-                </div>
-                <div className={styles.preferenceItem}>
-                    <span>Default Reminder Time</span>
-                    <span>{preferences.defaultReminderTime}</span>
-                </div>
-            </ProfileSection> */}
 
             {/* Account Settings */}
             <ProfileSection title='Account Settings'>

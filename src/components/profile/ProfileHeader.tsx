@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import styles from '@/styles/components/profile/ProfileHeader.module.scss';
 import { UserProfile } from '../../types/profile';
@@ -9,16 +11,30 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditPhoto }) => {
+    if (!user) {
+        return (
+            <div className={styles.profileHeaderLoading}>
+                Loading profile...
+            </div>
+        );
+    }
+
     return (
         <div className={styles.profileHeader}>
             <div className={styles.profilePhotoContainer}>
-                <Image
-                    src={user.photoUrl}
-                    alt='Profile'
-                    width={100}
-                    height={100}
-                    className={styles.profilePhoto}
-                />
+                {user.photoUrl ? (
+                    <Image
+                        src={user.photoUrl}
+                        alt='Profile'
+                        width={100}
+                        height={100}
+                        className={styles.profilePhoto}
+                    />
+                ) : (
+                    <div className={styles.defaultProfilePhoto}>
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                )}
 
                 <button
                     onClick={onEditPhoto}
@@ -30,12 +46,18 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditPhoto }) => {
             <div className={styles.profileInfo}>
                 <h2 className={styles.profileName}>{user.name}</h2>
                 <p className={styles.profileEmail}>{user.email}</p>
-                <p className={styles.profileMeta}>
-                    Account created: {user.createdAt}
-                </p>
-                <p className={styles.profileMeta}>
-                    Last login: {user.lastLogin}
-                </p>
+                {user.createdAt && (
+                    <p className={styles.profileMeta}>
+                        Account created:{' '}
+                        {new Date(user.createdAt).toLocaleDateString()}
+                    </p>
+                )}
+                {user.lastLogin && (
+                    <p className={styles.profileMeta}>
+                        Last active:{' '}
+                        {new Date(user.lastLogin).toLocaleDateString()}
+                    </p>
+                )}
             </div>
         </div>
     );

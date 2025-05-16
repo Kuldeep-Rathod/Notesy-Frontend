@@ -13,7 +13,19 @@ export const userAPI = createApi({
         getAllUsers: builder.query<DbUser[], void>({
             query: () => 'users',
         }),
+
+        updateUserProfile: builder.mutation<DbUser, FormData>({
+            query: (formData) => ({
+                url: 'users/profile',
+                method: 'PUT',
+                body: formData,
+            }),
+        }),
     }),
 });
 
-export const { useGetCurrentUserQuery, useGetAllUsersQuery } = userAPI;
+export const {
+    useGetCurrentUserQuery,
+    useGetAllUsersQuery,
+    useUpdateUserProfileMutation,
+} = userAPI;
