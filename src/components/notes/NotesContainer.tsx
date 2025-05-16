@@ -3,34 +3,35 @@
 import { NoteI } from '@/interfaces/notes';
 import {
     useCreateNoteMutation,
+    useDeleteNoteMutation,
     useGetUserNotesQuery,
     useMoveNoteToBinMutation,
+    useRestoreNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
 import { RootState } from '@/redux/store';
+import { Masonry } from '@mui/lab';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Bell,
-    Clock,
-    UserCircle,
-    Users,
     X as CloseIcon,
     Grid,
     List,
     Search,
+    Users,
     X,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
     initialSearchQuery?: string;
-    filterType?: 'reminder' | 'label' | 'archive' | 'trash';
+    filterType?: string;
     filterValue?: string;
     onViewTypeChange?: (viewType: 'grid' | 'list') => void;
     onSearchQueryChange?: (query: string) => void;
@@ -61,6 +62,8 @@ const NotesContainer = ({
     const [createNote] = useCreateNoteMutation();
     const [updateNote] = useUpdateNoteMutation();
     const [moveToBin] = useMoveNoteToBinMutation();
+    const [restoreNote] = useRestoreNoteMutation();
+    const [deleteNote] = useDeleteNoteMutation();
 
     // UI state
     const [viewType, setViewType] = useState<'grid' | 'list'>(initialViewType);
@@ -116,15 +119,12 @@ const NotesContainer = ({
         }
 
         // Apply filterType
+        // Apply filterType
         switch (filterType) {
             case 'reminder':
                 filtered = filtered.filter(
-                    (note: NoteI) => !!note.reminder && !note.trashed
-                );
-                break;
-            case 'label':
-                filtered = filtered.filter((note: NoteI) =>
-                    note.labels?.some((label) => label === filterValue)
+                    (note: NoteI) =>
+                        !!note.reminder && !note.trashed && !note.archived
                 );
                 break;
             case 'archive':
@@ -135,7 +135,12 @@ const NotesContainer = ({
             case 'trash':
                 filtered = filtered.filter((note: NoteI) => note.trashed);
                 break;
-            default:
+            case `${filterType}`:
+                filtered = filtered.filter((note: NoteI) =>
+                    note.labels?.some((label) => label === filterType)
+                );
+                break;
+            default: // Default view (non-archived, non-trashed notes)
                 filtered = filtered.filter(
                     (note: NoteI) => !note.archived && !note.trashed
                 );
@@ -143,8 +148,10 @@ const NotesContainer = ({
         }
 
         return {
-            pinnedNotes: filtered.filter((n: NoteI) => n.pinned),
-            unpinnedNotes: filtered.filter((n: NoteI) => !n.pinned),
+            pinnedNotes: filtered.filter((n: NoteI) => n.pinned && !n.trashed),
+            unpinnedNotes: filtered.filter(
+                (n: NoteI) => !n.pinned && !n.trashed
+            ),
             trashedNotes: filtered.filter((n: NoteI) => n.trashed),
             archivedNotes: filtered.filter(
                 (n: NoteI) => n.archived && !n.trashed
@@ -197,21 +204,22 @@ const NotesContainer = ({
     };
 
     const handleRestoreFromTrash = async (noteId: string) => {
-        // try {
-        //     await restoreFromBin(noteId).unwrap();
-        //     refetch();
-        // } catch (error) {
-        //     console.error('Failed to restore note:', error);
-        // }
+        try {
+            console.log('Restoring note:', noteId);
+            await restoreNote(noteId).unwrap();
+            refetch();
+        } catch (error) {
+            console.error('Failed to restore note:', error);
+        }
     };
 
     const handleDeletePermanently = async (noteId: string) => {
-        // try {
-        //     await deleteNotePermanently(noteId).unwrap();
-        //     refetch();
-        // } catch (error) {
-        //     console.error('Failed to delete note permanently:', error);
-        // }
+        try {
+            await deleteNote(noteId).unwrap();
+            refetch();
+        } catch (error) {
+            console.error('Failed to delete note permanently:', error);
+        }
     };
 
     const handleChangeColor = async (noteId: string, color: string) => {
@@ -505,107 +513,243 @@ const NotesContainer = ({
                         className='space-y-8'
                     >
                         {pinnedNotes.length > 0 && (
-                            <motion.section
-                                variants={itemVariants}
-                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                            >
-                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                        <span>📌 Pinned Notes</span>
-                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                            {pinnedNotes.length}
-                                        </span>
-                                    </h3>
-                                </div>
-                                <div
-                                    className={`p-4 ${
-                                        viewType === 'grid'
-                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
-                                            : 'flex flex-col space-y-3 '
-                                    }`}
+                            <AnimatePresence>
+                                <motion.section
+                                    variants={itemVariants}
+                                    initial='hidden'
+                                    animate='visible'
+                                    exit='exit'
+                                    className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
                                 >
-                                    <AnimatePresence>
-                                        {pinnedNotes.map((note: NoteI) => (
-                                            <motion.div
-                                                key={note._id}
-                                                variants={itemVariants}
-                                                initial='hidden'
-                                                animate='visible'
-                                                exit='exit'
-                                                layout
+                                    <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                        <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                            <span>📌 Pinned Notes</span>
+                                            <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                                {pinnedNotes.length}
+                                            </span>
+                                        </h3>
+                                    </div>
+
+                                    <div className='p-4'>
+                                        {viewType === 'grid' ? (
+                                            <Masonry
+                                                columns={{
+                                                    xs: 1,
+                                                    sm: 2,
+                                                    md: 3,
+                                                }}
+                                                spacing={2}
                                             >
-                                                <NoteCard
-                                                    note={note}
-                                                    onPinToggle={
-                                                        handlePinToggle
-                                                    }
-                                                    onArchiveToggle={
-                                                        handleArchiveToggle
-                                                    }
-                                                    onTrash={handleMoveToTrash}
-                                                    onEdit={openNote}
-                                                    onChangeColor={
-                                                        handleChangeColor
-                                                    }
-                                                    onClone={handleCloneNote}
-                                                />
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            </motion.section>
+                                                <AnimatePresence mode='popLayout'>
+                                                    {pinnedNotes.map(
+                                                        (note: NoteI) => (
+                                                            <motion.div
+                                                                key={note._id}
+                                                                layout
+                                                                initial='hidden'
+                                                                animate='visible'
+                                                                exit='exit'
+                                                                variants={
+                                                                    itemVariants
+                                                                }
+                                                            >
+                                                                <NoteCard
+                                                                    note={note}
+                                                                    onPinToggle={
+                                                                        handlePinToggle
+                                                                    }
+                                                                    onArchiveToggle={
+                                                                        handleArchiveToggle
+                                                                    }
+                                                                    onTrash={
+                                                                        handleMoveToTrash
+                                                                    }
+                                                                    onEdit={
+                                                                        openNote
+                                                                    }
+                                                                    onChangeColor={
+                                                                        handleChangeColor
+                                                                    }
+                                                                    onClone={
+                                                                        handleCloneNote
+                                                                    }
+                                                                    onRestore={
+                                                                        handleRestoreFromTrash
+                                                                    }
+                                                                    onDelete={
+                                                                        handleDeletePermanently
+                                                                    }
+                                                                />
+                                                            </motion.div>
+                                                        )
+                                                    )}
+                                                </AnimatePresence>
+                                            </Masonry>
+                                        ) : (
+                                            <div className='flex flex-col gap-4'>
+                                                <AnimatePresence mode='popLayout'>
+                                                    {pinnedNotes.map(
+                                                        (note: NoteI) => (
+                                                            <motion.div
+                                                                key={note._id}
+                                                                layout
+                                                                initial='hidden'
+                                                                animate='visible'
+                                                                exit='exit'
+                                                                variants={
+                                                                    itemVariants
+                                                                }
+                                                            >
+                                                                <NoteCard
+                                                                    note={note}
+                                                                    onPinToggle={
+                                                                        handlePinToggle
+                                                                    }
+                                                                    onArchiveToggle={
+                                                                        handleArchiveToggle
+                                                                    }
+                                                                    onTrash={
+                                                                        handleMoveToTrash
+                                                                    }
+                                                                    onEdit={
+                                                                        openNote
+                                                                    }
+                                                                    onChangeColor={
+                                                                        handleChangeColor
+                                                                    }
+                                                                    onClone={
+                                                                        handleCloneNote
+                                                                    }
+                                                                    onRestore={
+                                                                        handleRestoreFromTrash
+                                                                    }
+                                                                    onDelete={
+                                                                        handleDeletePermanently
+                                                                    }
+                                                                />
+                                                            </motion.div>
+                                                        )
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.section>
+                            </AnimatePresence>
                         )}
 
                         {unpinnedNotes.length > 0 && (
-                            <motion.section
-                                variants={itemVariants}
-                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                            >
-                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                        <span>Notes</span>
-                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                            {unpinnedNotes.length}
-                                        </span>
-                                    </h3>
-                                </div>
-                                <div
-                                    className={`p-4 ${
-                                        viewType === 'grid'
-                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
-                                            : 'flex flex-col space-y-3'
-                                    }`}
+                            <AnimatePresence>
+                                <motion.section
+                                    variants={itemVariants}
+                                    initial='hidden'
+                                    animate='visible'
+                                    exit='exit'
+                                    className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
                                 >
-                                    <AnimatePresence>
-                                        {unpinnedNotes.map((note: NoteI) => (
-                                            <motion.div
-                                                key={note._id}
-                                                variants={itemVariants}
-                                                initial='hidden'
-                                                animate='visible'
-                                                exit='exit'
-                                                layout
+                                    <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
+                                        <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
+                                            <span>📝 Notes</span>
+                                            <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
+                                                {unpinnedNotes.length}
+                                            </span>
+                                        </h3>
+                                    </div>
+
+                                    <div className='p-4'>
+                                        {viewType === 'grid' ? (
+                                            <Masonry
+                                                columns={{
+                                                    xs: 1,
+                                                    sm: 2,
+                                                    md: 3,
+                                                }}
+                                                spacing={2}
                                             >
-                                                <NoteCard
-                                                    note={note}
-                                                    onPinToggle={
-                                                        handlePinToggle
-                                                    }
-                                                    onArchiveToggle={
-                                                        handleArchiveToggle
-                                                    }
-                                                    onTrash={handleMoveToTrash}
-                                                    onEdit={openNote}
-                                                    onChangeColor={
-                                                        handleChangeColor
-                                                    }
-                                                    onClone={handleCloneNote}
-                                                />
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            </motion.section>
+                                                <AnimatePresence mode='popLayout'>
+                                                    {unpinnedNotes.map(
+                                                        (note: NoteI) => (
+                                                            <motion.div
+                                                                key={note._id}
+                                                                layout
+                                                                initial='hidden'
+                                                                animate='visible'
+                                                                exit='exit'
+                                                                variants={
+                                                                    itemVariants
+                                                                }
+                                                            >
+                                                                <NoteCard
+                                                                    note={note}
+                                                                    onPinToggle={
+                                                                        handlePinToggle
+                                                                    }
+                                                                    onArchiveToggle={
+                                                                        handleArchiveToggle
+                                                                    }
+                                                                    onTrash={
+                                                                        handleMoveToTrash
+                                                                    }
+                                                                    onEdit={
+                                                                        openNote
+                                                                    }
+                                                                    onChangeColor={
+                                                                        handleChangeColor
+                                                                    }
+                                                                    onClone={
+                                                                        handleCloneNote
+                                                                    }
+                                                                />
+                                                            </motion.div>
+                                                        )
+                                                    )}
+                                                </AnimatePresence>
+                                            </Masonry>
+                                        ) : (
+                                            <div className='flex flex-col gap-4'>
+                                                <AnimatePresence mode='popLayout'>
+                                                    {unpinnedNotes.map(
+                                                        (note: NoteI) => (
+                                                            <motion.div
+                                                                key={note._id}
+                                                                layout
+                                                                initial='hidden'
+                                                                animate='visible'
+                                                                exit='exit'
+                                                                variants={
+                                                                    itemVariants
+                                                                }
+                                                            >
+                                                                <NoteCard
+                                                                    note={note}
+                                                                    onPinToggle={
+                                                                        handlePinToggle
+                                                                    }
+                                                                    onArchiveToggle={
+                                                                        handleArchiveToggle
+                                                                    }
+                                                                    onTrash={
+                                                                        handleMoveToTrash
+                                                                    }
+                                                                    onEdit={
+                                                                        openNote
+                                                                    }
+                                                                    onChangeColor={
+                                                                        handleChangeColor
+                                                                    }
+                                                                    onClone={
+                                                                        handleCloneNote
+                                                                    }
+                                                                />
+                                                            </motion.div>
+                                                        )
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.section>
+                            </AnimatePresence>
                         )}
 
                         {archivedNotes.length > 0 && searchQuery && (
@@ -660,7 +804,7 @@ const NotesContainer = ({
                             </motion.section>
                         )}
 
-                        {trashedNotes.length > 0 && searchQuery && (
+                        {trashedNotes.length > 0 && (
                             <motion.section
                                 variants={itemVariants}
                                 className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
@@ -673,36 +817,109 @@ const NotesContainer = ({
                                         </span>
                                     </h3>
                                 </div>
-                                <div
-                                    className={`p-4 ${
-                                        viewType === 'grid'
-                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
-                                            : 'flex flex-col space-y-3'
-                                    }`}
-                                >
-                                    <AnimatePresence>
-                                        {trashedNotes.map((note: NoteI) => (
-                                            <motion.div
-                                                key={note._id}
-                                                variants={itemVariants}
-                                                initial='hidden'
-                                                animate='visible'
-                                                exit='exit'
-                                                layout
-                                            >
-                                                <NoteCard
-                                                    note={note}
-                                                    onRestore={
-                                                        handleRestoreFromTrash
-                                                    }
-                                                    onDelete={
-                                                        handleDeletePermanently
-                                                    }
-                                                    onEdit={openNote}
-                                                />
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                                <div className='p-4'>
+                                    {viewType === 'grid' ? (
+                                        <Masonry
+                                            columns={{
+                                                xs: 1,
+                                                sm: 2,
+                                                md: 3,
+                                            }}
+                                            spacing={2}
+                                        >
+                                            <AnimatePresence mode='popLayout'>
+                                                {trashedNotes.map(
+                                                    (note: NoteI) => (
+                                                        <motion.div
+                                                            key={note._id}
+                                                            layout
+                                                            initial='hidden'
+                                                            animate='visible'
+                                                            exit='exit'
+                                                            variants={
+                                                                itemVariants
+                                                            }
+                                                        >
+                                                            <NoteCard
+                                                                note={note}
+                                                                onPinToggle={
+                                                                    handlePinToggle
+                                                                }
+                                                                onArchiveToggle={
+                                                                    handleArchiveToggle
+                                                                }
+                                                                onTrash={
+                                                                    handleMoveToTrash
+                                                                }
+                                                                onEdit={
+                                                                    openNote
+                                                                }
+                                                                onChangeColor={
+                                                                    handleChangeColor
+                                                                }
+                                                                onClone={
+                                                                    handleCloneNote
+                                                                }
+                                                                onRestore={
+                                                                    handleRestoreFromTrash
+                                                                }
+                                                                onDelete={
+                                                                    handleDeletePermanently
+                                                                }
+                                                            />
+                                                        </motion.div>
+                                                    )
+                                                )}
+                                            </AnimatePresence>
+                                        </Masonry>
+                                    ) : (
+                                        <div className='flex flex-col gap-4'>
+                                            <AnimatePresence mode='popLayout'>
+                                                {trashedNotes.map(
+                                                    (note: NoteI) => (
+                                                        <motion.div
+                                                            key={note._id}
+                                                            layout
+                                                            initial='hidden'
+                                                            animate='visible'
+                                                            exit='exit'
+                                                            variants={
+                                                                itemVariants
+                                                            }
+                                                        >
+                                                            <NoteCard
+                                                                note={note}
+                                                                onPinToggle={
+                                                                    handlePinToggle
+                                                                }
+                                                                onArchiveToggle={
+                                                                    handleArchiveToggle
+                                                                }
+                                                                onTrash={
+                                                                    handleMoveToTrash
+                                                                }
+                                                                onEdit={
+                                                                    openNote
+                                                                }
+                                                                onChangeColor={
+                                                                    handleChangeColor
+                                                                }
+                                                                onClone={
+                                                                    handleCloneNote
+                                                                }
+                                                                onRestore={
+                                                                    handleRestoreFromTrash
+                                                                }
+                                                                onDelete={
+                                                                    handleDeletePermanently
+                                                                }
+                                                            />
+                                                        </motion.div>
+                                                    )
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.section>
                         )}
@@ -726,7 +943,7 @@ const NotesContainer = ({
                             initial='hidden'
                             animate='visible'
                             exit='exit'
-                            className='bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-hidden'
+                            className='bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-auto'
                             onClick={(e) => e.stopPropagation()}
                             style={getModalStyle}
                         >
