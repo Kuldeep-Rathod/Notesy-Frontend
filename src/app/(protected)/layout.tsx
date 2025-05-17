@@ -4,7 +4,11 @@ import SidebarLink from '@/components/SidebarLink';
 import { Button } from '@/components/ui/button';
 import UserMenu from '@/components/UserMenu';
 import { cn } from '@/lib/utils';
+import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import AuthGuard from '@/utils/authGuard';
+import { axiosInstance } from '@/utils/axiosInstance';
+import { getAuth } from 'firebase/auth';
 import {
     Archive,
     Bell,
@@ -20,13 +24,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { default as icon, default as logo } from '../../../public/logo.svg';
-import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
-import { axiosInstance } from '@/utils/axiosInstance';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
-import { getAuth } from 'firebase/auth';
+import { default as icon, default as logo } from '../../../public/logo.svg';
 
 export default function DashboardLayout({
     children,
@@ -34,7 +34,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const { data: labelsData = [], isLoading } = useGetLabelsQuery();
-    const { data: DbUser, refetch } = useGetCurrentUserQuery();
+    const { data: DbUser } = useGetCurrentUserQuery();
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
