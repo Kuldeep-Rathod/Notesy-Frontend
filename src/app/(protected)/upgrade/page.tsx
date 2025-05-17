@@ -1,10 +1,11 @@
 'use client';
 
-// pages/subscription.tsx
-import React, { useState } from 'react';
+import { axiosInstance } from '@/utils/axiosInstance';
+import { loadStripe } from '@stripe/stripe-js';
+import { getAuth } from 'firebase/auth';
 import { Check } from 'lucide-react';
+import React, { useState } from 'react';
 
-// Define subscription plan types
 interface Plan {
     id: string;
     name: string;
@@ -14,15 +15,19 @@ interface Plan {
     features: string[];
     popular?: boolean;
     savePercent?: number;
+    stripePriceId?: string;
 }
 
 const SubscriptionPage: React.FC = () => {
-    // Define all subscription plans
+    const [selectedPlan, setSelectedPlan] = useState<string>('biannual');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     const plans: Plan[] = [
         {
             id: 'monthly',
             name: 'Monthly',
-            price: 9.99,
+            price: 499,
             duration: 'month',
             description: 'Perfect for trying out our premium features',
             features: [
@@ -32,11 +37,12 @@ const SubscriptionPage: React.FC = () => {
                 'Voice commands customization',
                 '5GB cloud storage',
             ],
+            stripePriceId: 'price_1RPNpeLpUOMFS1MrowS5zdZ5',
         },
         {
             id: 'quarterly',
             name: 'Quarterly',
-            price: 24.99,
+            price: 1349,
             duration: '3 months',
             description: 'Our most flexible premium option',
             features: [
@@ -48,11 +54,12 @@ const SubscriptionPage: React.FC = () => {
                 'Priority customer support',
             ],
             savePercent: 17,
+            stripePriceId: 'price_1RPNpeLpUOMFS1MrIVGrKBba',
         },
         {
             id: 'biannual',
             name: '6 Months',
-            price: 44.99,
+            price: 2499,
             duration: '6 months',
             description: 'Great value for committed users',
             features: [
@@ -66,11 +73,12 @@ const SubscriptionPage: React.FC = () => {
             ],
             popular: true,
             savePercent: 25,
+            stripePriceId: 'price_1RPNpeLpUOMFS1Mr9fYLVsRu',
         },
         {
             id: 'annual',
             name: 'Annual',
-            price: 79.99,
+            price: 4999,
             duration: 'year',
             description: 'Best value for our loyal users',
             features: [
@@ -84,52 +92,98 @@ const SubscriptionPage: React.FC = () => {
                 'Early access to new features',
             ],
             savePercent: 33,
+            stripePriceId: 'price_1RPNpeLpUOMFS1Mr02jBCFZg', // Replace with your actual Stripe price ID
         },
     ];
 
-    const [selectedPlan, setSelectedPlan] = useState<string>('biannual');
-
     const handlePlanSelection = (planId: string) => {
         setSelectedPlan(planId);
+        setError(null);
     };
 
-    const handleSubscribe = () => {
-        // This would be replaced with your actual payment processing logic
-        console.log(`Subscribing to plan: ${selectedPlan}`);
-        // Integrate with your payment gateway here
+    const handleSubscribe = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            // Find the selected plan
+            const selectedPlanData = plans.find(
+                (plan) => plan.id === selectedPlan
+            );
+
+            if (!selectedPlanData) {
+                throw new Error('Selected plan not found');
+            }
+
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
+            const idToken = await user.getIdToken(true);
+
+            const { data } = await axiosInstance.post(
+                '/pay/create-checkout-session',
+                {
+                    planType: selectedPlanData.id,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (!data || !data.sessionId) {
+                throw new Error('Invalid response from server');
+            }
+
+            // Redirect to Stripe checkout
+            const stripe = await loadStripe(
+                process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+            );
+
+            if (!stripe) {
+                throw new Error('Stripe failed to initialize');
+            }
+
+            const { error: stripeError } = await stripe.redirectToCheckout({
+                sessionId: data.sessionId,
+            });
+
+            if (stripeError) {
+                throw stripeError;
+            }
+        } catch (err: any) {
+            console.error('Checkout error:', err);
+            if (err.response?.status === 401) {
+                setError('Your session has expired. Please log in again.');
+            } else if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Failed to initiate checkout. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    // Find the selected plan data
+    const currentPlan = plans.find((plan) => plan.id === selectedPlan);
 
     return (
         <div className='min-h-screen relative bg-gradient-to-b from-white to-gray-50'>
-            {/* Navigation */}
-            {/* <nav className='bg-white shadow-sm'>
-                <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='flex justify-between h-16'>
-                        <div className='flex items-center'>
-                            <span className='text-xl font-bold text-indigo-600'>
-                                VoiceNotes
-                            </span>
-                        </div>
-                        <div className='flex items-center'>
-                            <button className='ml-4 px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100'>
-                                Sign In
-                            </button>
-                            <button className='ml-4 px-4 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700'>
-                                Sign Up
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav> */}
-
             {/* Header Section */}
             <div className='max-w-7xl mx-auto pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center'>
                 <h1 className='text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>
                     Upgrade to VoiceNotes Premium
                 </h1>
                 <p className='mt-5 max-w-xl mx-auto text-xl text-gray-500'>
-                    Unlock the full power of voice-controlled note taking
-                    and boost your productivity
+                    Unlock the full power of voice-controlled note taking and
+                    boost your productivity
                 </p>
             </div>
 
@@ -279,7 +333,7 @@ const SubscriptionPage: React.FC = () => {
                                 </p>
                                 <p className='mt-4'>
                                     <span className='text-3xl font-extrabold text-gray-900'>
-                                        ${plan.price}
+                                        ₹{plan.price}
                                     </span>
                                     <span className='text-base font-medium text-gray-500'>
                                         /{plan.duration}
@@ -333,12 +387,46 @@ const SubscriptionPage: React.FC = () => {
                     ))}
                 </div>
 
-                <div className='mt-12 flex justify-center'>
+                <div className='mt-12 flex justify-center flex-col items-center'>
+                    {error && (
+                        <div className='mb-4 p-4 bg-red-50 text-red-700 rounded-md'>
+                            {error}
+                        </div>
+                    )}
                     <button
                         onClick={handleSubscribe}
-                        className='inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                        disabled={isLoading}
+                        className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                            isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
                     >
-                        Subscribe Now
+                        {isLoading ? (
+                            <>
+                                <svg
+                                    className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <circle
+                                        className='opacity-25'
+                                        cx='12'
+                                        cy='12'
+                                        r='10'
+                                        stroke='currentColor'
+                                        strokeWidth='4'
+                                    ></circle>
+                                    <path
+                                        className='opacity-75'
+                                        fill='currentColor'
+                                        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                                    ></path>
+                                </svg>
+                                Processing...
+                            </>
+                        ) : (
+                            `Subscribe Now - ₹${currentPlan?.price}/${currentPlan?.duration}`
+                        )}
                     </button>
                 </div>
 
@@ -346,6 +434,9 @@ const SubscriptionPage: React.FC = () => {
                     <p className='text-sm text-gray-500'>
                         All plans include a 7-day free trial. No credit card
                         required until trial ends.
+                    </p>
+                    <p className='mt-2 text-xs text-gray-400'>
+                        Secure payment processing powered by Stripe
                     </p>
                 </div>
             </div>
@@ -374,11 +465,10 @@ const SubscriptionPage: React.FC = () => {
                                 </div>
                             </div>
                             <p className='text-gray-600'>
-                                &quot;VoiceNotes has completely transformed
-                                how I capture ideas on the go. The voice
-                                control is incredibly accurate and the
-                                organization features save me hours each
-                                week.&quot;
+                                &quot;VoiceNotes has completely transformed how
+                                I capture ideas on the go. The voice control is
+                                incredibly accurate and the organization
+                                features save me hours each week.&quot;
                             </p>
                         </div>
 
@@ -401,9 +491,8 @@ const SubscriptionPage: React.FC = () => {
                             <p className='text-gray-600'>
                                 &quot;As a writer, I need to capture ideas
                                 quickly. VoiceNotes Premium lets me speak my
-                                thoughts and organizes them perfectly. The
-                                cloud sync between my devices is
-                                seamless.&quot;
+                                thoughts and organizes them perfectly. The cloud
+                                sync between my devices is seamless.&quot;
                             </p>
                         </div>
 
@@ -425,10 +514,9 @@ const SubscriptionPage: React.FC = () => {
                             </div>
                             <p className='text-gray-600'>
                                 &quot;The custom voice commands feature is
-                                game-changing. I&apos;ve set up shortcuts
-                                for my most common notes and can now
-                                document meetings without touching my
-                                keyboard.&quot;
+                                game-changing. I&apos;ve set up shortcuts for my
+                                most common notes and can now document meetings
+                                without touching my keyboard.&quot;
                             </p>
                         </div>
                     </div>
@@ -447,10 +535,9 @@ const SubscriptionPage: React.FC = () => {
                         </h3>
                         <p className='mt-2 text-gray-600'>
                             You can start using all premium features
-                            immediately. We&apos;ll send you a reminder
-                            before your trial ends, and you won&apos;t be
-                            charged if you cancel before the trial period is
-                            over.
+                            immediately. We&apos;ll send you a reminder before
+                            your trial ends, and you won&apos;t be charged if
+                            you cancel before the trial period is over.
                         </p>
                     </div>
 
@@ -459,10 +546,10 @@ const SubscriptionPage: React.FC = () => {
                             Can I change my plan later?
                         </h3>
                         <p className='mt-2 text-gray-600'>
-                            Yes, you can upgrade or downgrade your plan at
-                            any time. When upgrading, you&apos;ll only pay
-                            the prorated difference. When downgrading, the
-                            new rate will apply to your next billing cycle.
+                            Yes, you can upgrade or downgrade your plan at any
+                            time. When upgrading, you&apos;ll only pay the
+                            prorated difference. When downgrading, the new rate
+                            will apply to your next billing cycle.
                         </p>
                     </div>
 
@@ -471,9 +558,8 @@ const SubscriptionPage: React.FC = () => {
                             What payment methods do you accept?
                         </h3>
                         <p className='mt-2 text-gray-600'>
-                            We accept all major credit cards, PayPal, and
-                            Apple Pay. All transactions are secure and
-                            encrypted.
+                            We accept all major credit cards, PayPal, and Apple
+                            Pay. All transactions are secure and encrypted.
                         </p>
                     </div>
 
@@ -483,9 +569,9 @@ const SubscriptionPage: React.FC = () => {
                         </h3>
                         <p className='mt-2 text-gray-600'>
                             Absolutely. We use bank-level encryption for all
-                            your notes and voice data. Your information is
-                            never shared with third parties and is fully
-                            encrypted end-to-end.
+                            your notes and voice data. Your information is never
+                            shared with third parties and is fully encrypted
+                            end-to-end.
                         </p>
                     </div>
                 </div>
@@ -582,8 +668,7 @@ const SubscriptionPage: React.FC = () => {
                     </div>
                     <div className='mt-8 md:mt-0 md:order-1'>
                         <p className='text-center text-base text-gray-400'>
-                            &copy; 2025 VoiceNotes, Inc. All rights
-                            reserved.
+                            &copy; 2025 VoiceNotes, Inc. All rights reserved.
                         </p>
                     </div>
                 </div>

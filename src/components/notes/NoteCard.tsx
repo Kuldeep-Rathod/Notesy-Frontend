@@ -81,7 +81,6 @@ const NoteCard = ({
         }
     ) as { data: CollaboratorsData | undefined };
 
-    console.log('Collaborators Data:', collaboratorsData);
     const handleEditClick = () => {
         if (onEdit) onEdit(note);
     };

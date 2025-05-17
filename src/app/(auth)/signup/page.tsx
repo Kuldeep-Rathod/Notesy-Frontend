@@ -59,7 +59,7 @@ export default function Signup() {
             console.log('Sending user data to server:', userData);
 
             const response = await axiosInstance.post(
-                '/api/v1/auth/register',
+                '/auth/register',
                 userData
             );
             console.log('Server response:', response.data);
@@ -114,7 +114,7 @@ export default function Signup() {
             if (!email) throw new Error('Email not found in user credential');
 
             try {
-                await axiosInstance.get(`/api/v1/auth/check?email=${email}`);
+                await axiosInstance.get(`/auth/check?email=${email}`);
             } catch (err) {
                 if (axios.isAxiosError(err) && err.response?.status === 404) {
                     // For Google sign-in, explicitly pass the photo URL

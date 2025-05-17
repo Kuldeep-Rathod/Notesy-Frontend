@@ -15,7 +15,7 @@ import {
 export const authAPI = createApi({
     reducerPath: 'authApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${process.env.SERVER_URL}/auth/`,
+        baseUrl: `${process.env.SERVER_URL}/api/v1/auth/`,
     }),
     endpoints: (builder) => ({
         // Firebase email/password login
@@ -32,11 +32,10 @@ export const authAPI = createApi({
                     );
 
                     //create this api in backend
-                    const response = await fetch(
-                        `http://localhost:3005/api/v1/auth/check?email=${userCredential.user.email}`
+                    const response = await axiosInstance.get(
+                        `/auth/check?email=${email}`
                     );
-                    const user = await response.json();
-                    return { data: user };
+                    return { data: response.data };
                 } catch (error: any) {
                     return { error: error.message };
                 }
@@ -54,7 +53,7 @@ export const authAPI = createApi({
                     const email = userCredential.user.email;
 
                     const response = await axiosInstance.get(
-                        `/api/v1/auth/check?email=${email}`
+                        `/auth/check?email=${email}`
                     );
                     return { data: response.data };
                 } catch (err: any) {
@@ -142,7 +141,7 @@ export const authAPI = createApi({
 
                     const idToken = await user.getIdToken(true);
 
-                    await axiosInstance.delete('/api/v1/users/me', {
+                    await axiosInstance.delete('/users/me', {
                         headers: {
                             Authorization: `Bearer ${idToken}`,
                         },
