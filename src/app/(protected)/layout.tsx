@@ -20,9 +20,13 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { default as icon, default as logo } from '../../../public/logo.svg';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
+import { axiosInstance } from '@/utils/axiosInstance';
+import { toast } from 'sonner';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import { getAuth } from 'firebase/auth';
 
 export default function DashboardLayout({
     children,
@@ -30,12 +34,43 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const { data: labelsData = [], isLoading } = useGetLabelsQuery();
+    const { data: DbUser, refetch } = useGetCurrentUserQuery();
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const toggleSidebar = () => {
         setIsSidebarOpen((prev) => !prev);
+    };
+
+    const handleManagePlan = async () => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error('User not authenticated');
+                return;
+            }
+
+            const idToken = await user.getIdToken(); // ✅ await here
+
+            const res = await axiosInstance.post(
+                '/pay/create-portal-session',
+                {}, // no body needed
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            window.location.href = res.data.url;
+        } catch (err) {
+            console.error('Error redirecting to Stripe portal:', err);
+            toast.error('Error redirecting to Stripe portal');
+        }
     };
 
     return (
@@ -165,11 +200,20 @@ export default function DashboardLayout({
                         </div>
 
                         <div className='flex items-center space-x-4'>
-                            <Link href='/upgrade'>
-                                <Button className='bg-[#0052CC] hover:bg-[#0052CC]/80 text-white px-4 py-2 text-sm hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md'>
-                                    Upgrade
+                            {DbUser?.isPremium ? (
+                                <Button
+                                    onClick={handleManagePlan}
+                                    className='bg-[#0052CC] hover:bg-[#0052CC]/80 text-white px-4 py-2 text-sm hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md'
+                                >
+                                    Manage Plan
                                 </Button>
-                            </Link>
+                            ) : (
+                                <Link href='/upgrade'>
+                                    <Button className='bg-[#0052CC] hover:bg-[#0052CC]/80 text-white px-4 py-2 text-sm hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md'>
+                                        Upgrade
+                                    </Button>
+                                </Link>
+                            )}
 
                             <UserMenu />
                         </div>

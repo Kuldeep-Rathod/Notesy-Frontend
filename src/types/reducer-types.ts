@@ -18,6 +18,10 @@ export interface DbUser {
     firebaseUid: string;
     labels: string[];
     photo: string | null;
+    stripeSubscriptionId?: string;
+    isPremium?: boolean;
+    planType?: 'monthly' | 'quarterly' | 'biannual' | 'annual';
+    premiumExpiresAt?: Date | null;
     createdAt: string;
     updatedAt: string;
 }
