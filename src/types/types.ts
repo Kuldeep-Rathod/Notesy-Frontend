@@ -9,6 +9,28 @@ export interface NoteInputProps {
     onSuccess?: () => void; // Add this line
 }
 
+export type NotesStatsResponse = {
+    success: boolean;
+    data: {
+        totalNotes: number;
+        checklistStats: {
+            completed: number;
+            incomplete: number;
+        };
+        labelStats: {
+            [label: string]: number;
+        };
+        pinned: number;
+        archived: number;
+        trashed: number;
+        reminderCount: number;
+        sharedNotes: number;
+        bgColorStats: {
+            [color: string]: number;
+        };
+    };
+};
+
 export interface NoteInputState {
     checklists: CheckboxI[];
     labels: LabelI[];

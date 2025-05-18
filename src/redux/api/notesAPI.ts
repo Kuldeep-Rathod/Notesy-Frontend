@@ -2,12 +2,18 @@
 import { NoteI } from '@/interfaces/notes';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import customBaseQuery from './customBaseQuery';
+import { NotesStatsResponse } from '@/types/types';
 
 export const notesAPI = createApi({
     reducerPath: 'notesApi',
     baseQuery: customBaseQuery,
     tagTypes: ['Note', 'TrashedNote', 'ArchivedNote', 'SharedNote'],
     endpoints: (builder) => ({
+        noteStats: builder.query<NotesStatsResponse, void>({
+            query: () => 'stats',
+            providesTags: ['Note', 'TrashedNote', 'ArchivedNote', 'SharedNote'],
+        }),
+
         createNote: builder.mutation<NoteI, Partial<NoteI>>({
             query: (noteData) => ({
                 url: 'notes',
@@ -170,6 +176,7 @@ export const notesAPI = createApi({
 });
 
 export const {
+    useNoteStatsQuery,
     useCreateNoteMutation,
     useGetUserNotesQuery,
     useGetTrashedNotesQuery,

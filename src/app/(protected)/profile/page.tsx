@@ -5,12 +5,17 @@ import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { UserStats } from '@/types/profile';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useNoteStatsQuery } from '@/redux/api/notesAPI';
 
 const ProfilePage = () => {
     // State for different profile sections
     const [activeSection, setActiveSection] = useState<
         'profile' | 'preferences' | 'stats'
     >('profile');
+
+    const { data: statsData } = useNoteStatsQuery();
+
+    console.log('Stats data:', statsData);
 
     // Sample stats data - this would normally come from an API
     const stats: UserStats = {

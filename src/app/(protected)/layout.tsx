@@ -12,6 +12,7 @@ import { getAuth } from 'firebase/auth';
 import {
     Archive,
     Bell,
+    ChartPie,
     ChevronLeft,
     ChevronRight,
     CircleUserRound,
@@ -175,6 +176,12 @@ export default function DashboardLayout({
                                 title='Trash'
                                 isSidebarOpen={isSidebarOpen}
                                 icon={<Trash2 className='w-5 h-5' />}
+                            />
+                            <SidebarLink
+                                href='/statistics'
+                                title='Statistics'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<ChartPie className='w-5 h-5' />}
                             />
 
                             <SidebarLink
