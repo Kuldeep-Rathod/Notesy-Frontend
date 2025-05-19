@@ -14,7 +14,7 @@ interface ReminderPickerProps {
     onReminderSet: (date: Date | null) => void;
 }
 
-const quickOptions = [
+export const quickOptions = [
     {
         label: 'Later today',
         time: () => {

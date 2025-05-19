@@ -44,6 +44,8 @@ import SpeechRecognition, {
 } from 'react-speech-recognition';
 import { CheckboxList } from './input/CheckboxList';
 import NoteToolbar from './input/NoteToolbar';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 
 export default function NoteInput({
     isEditing = false,
@@ -83,12 +85,24 @@ export default function NoteInput({
     const notePlaceholderRef = useRef<HTMLDivElement>(null);
     const noteMainRef = useRef<HTMLDivElement>(null);
     const noteContainerRef = useRef<HTMLDivElement>(null);
-    const noteTitleRef = useRef<HTMLDivElement>(null);
-    const noteBodyRef = useRef<HTMLDivElement>(null);
-    const notePinRef = useRef<HTMLDivElement>(null);
-    const cboxInputRef = useRef<HTMLDivElement>(null);
-    const cboxPhRef = useRef<HTMLDivElement>(null);
-    const labelSearchRef = useRef<HTMLInputElement>(null);
+    const noteTitleRef = useRef<HTMLDivElement>(
+        null
+    ) as React.RefObject<HTMLDivElement>;
+    const noteBodyRef = useRef<HTMLDivElement>(
+        null
+    ) as React.RefObject<HTMLDivElement>;
+    const notePinRef = useRef<HTMLDivElement>(
+        null
+    ) as React.RefObject<HTMLDivElement>;
+    const cboxInputRef = useRef<HTMLDivElement>(
+        null
+    ) as React.RefObject<HTMLDivElement>;
+    const cboxPhRef = useRef<HTMLDivElement>(
+        null
+    ) as React.RefObject<HTMLDivElement>;
+    const labelSearchRef = useRef<HTMLInputElement>(
+        null
+    ) as React.RefObject<HTMLInputElement>;
 
     // Get labels
     const { data: serverLabels = [], refetch: refetchLabels } =
@@ -672,6 +686,30 @@ export default function NoteInput({
         };
     }, [isListening]);
 
+    // Initialize voice commands for note input
+    const { isActive: isNoteVoiceActive } = usePageVoiceCommands(
+        {
+            '/dashboard': useNoteCommands({
+                refs: {
+                    noteTitleRef,
+                    noteBodyRef,
+                    labelSearchRef,
+                },
+                setters: {
+                    setCollaborators: (emails: string[]) => {
+                        // Add collaborator logic here
+                        console.log('Setting collaborators:', emails);
+                    },
+                },
+                labels: labels.map((label) => ({
+                    name: label.name,
+                    added: label.added || false,
+                })),
+            }),
+        },
+        { debug: true, requireWakeWord: true }
+    );
+
     if (!browserSupportsSpeechRecognition) {
         return (
             <p>
@@ -881,21 +919,23 @@ export default function NoteInput({
 
             {labelMenuOpen && (
                 <div
-                    className='note-input__label-menu'
+                    className='absolute z-10 w-80 bg-white shadow-lg rounded-md p-4'
                     data-tooltip='true'
                     data-is-tooltip-open='true'
                 >
-                    <div className='note-input__label-menu-title'>
-                        <p>Label note</p>
+                    <div className='flex justify-between items-center border-b pb-2 mb-3'>
+                        <p className='text-lg font-medium'>Label note</p>
                         <button
+                            className='text-red-500 hover:text-red-700 text-xl'
                             onClick={() => {
                                 dispatch(toggleLabelMenu());
                             }}
                         >
-                            X
+                            ×
                         </button>
                     </div>
-                    <div className='note-input__label-menu-search'>
+
+                    <div className='flex items-center border rounded-md overflow-hidden mb-4'>
                         <input
                             ref={labelSearchRef}
                             type='text'
@@ -906,15 +946,17 @@ export default function NoteInput({
                                 dispatch(setSearchQuery(e.target.value))
                             }
                             onKeyDown={handleLabelSearchKeyDown}
+                            className='w-full px-3 py-2 outline-none'
                         />
                         <div
-                            className='note-input__label-menu-search-icon'
+                            className='px-3 py-2 cursor-pointer bg-blue-500 text-white hover:bg-blue-600'
                             onClick={addNewLabel}
                         >
                             +
                         </div>
                     </div>
-                    <div className='note-input__label-menu-list'>
+
+                    <div className='max-h-60 overflow-y-auto space-y-2'>
                         {labels
                             .filter(
                                 (label: LabelI) =>
@@ -926,33 +968,42 @@ export default function NoteInput({
                             .map((label: LabelI) => (
                                 <div
                                     key={label.name}
-                                    className='note-input__label-menu-item'
+                                    className='flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-100'
                                     onClick={() =>
                                         handleToggleLabel(label.name)
                                     }
                                 >
-                                    <div
-                                        className='note-input__label-menu-item'
-                                        onClick={() =>
+                                    <input
+                                        type='checkbox'
+                                        checked={label.added}
+                                        onChange={() =>
                                             handleToggleLabel(label.name)
                                         }
-                                    >
-                                        <input
-                                            type='checkbox'
-                                            checked={label.added}
-                                            onChange={() =>
-                                                handleToggleLabel(label.name)
-                                            }
-                                            className='note-input__label-menu-checkbox'
-                                        />
-                                    </div>
-
-                                    <div className='note-input__label-menu-name'>
-                                        {label.name}
-                                    </div>
+                                        className='mr-2 cursor-pointer'
+                                    />
+                                    <span className='flex-1'>{label.name}</span>
                                 </div>
                             ))}
                     </div>
+                </div>
+            )}
+
+            {/* Voice Control Status Indicator */}
+            {isNoteVoiceActive && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: 80,
+                        right: 20,
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        padding: '8px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.8rem',
+                        zIndex: 100,
+                    }}
+                >
+                    🎙️ Note Voice Commands Active
                 </div>
             )}
         </div>

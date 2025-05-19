@@ -93,7 +93,8 @@ const usePageVoiceCommands = (
         const globalActiveNow = (window as any).voiceAssistantActive ?? false;
         const isDashboardNow = pathname.startsWith('/dashboard');
         const isArchiveNow = pathname.startsWith('/archive');
-        const shouldActivateNow = globalActiveNow && (isDashboardNow || isArchiveNow);
+        const shouldActivateNow =
+            globalActiveNow && (isDashboardNow || isArchiveNow);
 
         setIsActive(shouldActivateNow);
 
