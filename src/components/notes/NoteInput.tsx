@@ -695,12 +695,6 @@ export default function NoteInput({
                     noteBodyRef,
                     labelSearchRef,
                 },
-                setters: {
-                    setCollaborators: (emails: string[]) => {
-                        // Add collaborator logic here
-                        console.log('Setting collaborators:', emails);
-                    },
-                },
                 labels: labels.map((label) => ({
                     name: label.name,
                     added: label.added || false,

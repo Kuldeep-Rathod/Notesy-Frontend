@@ -1,5 +1,6 @@
 import { quickOptions } from '@/components/notes/input/ReminderPicker';
 import { LabelI } from '@/interfaces/labels';
+import { useGetAllUsersQuery } from '@/redux/api/userAPI';
 import {
     addChecklist,
     setLabels,
@@ -14,6 +15,8 @@ import {
     selectNoteInput,
     toggleCollaboratorMenu,
     setCollaboratorSearchTerm,
+    removeCollaborator,
+    addCollaborator,
 } from '@/redux/reducer/noteInputReducer';
 import { setDate } from 'date-fns';
 import { format } from 'path';
@@ -25,15 +28,11 @@ interface NoteCommandsParams {
         noteBodyRef: React.RefObject<HTMLDivElement>;
         labelSearchRef: React.RefObject<HTMLInputElement>;
     };
-    setters: {
-        setCollaborators: (emails: string[]) => void;
-    };
     labels: LabelI[];
 }
 
 export const useNoteCommands = ({
     refs,
-    setters,
     labels,
 }: NoteCommandsParams) => {
     const dispatch = useDispatch();
@@ -45,7 +44,33 @@ export const useNoteCommands = ({
             collaboratorMenuOpen,
             reminderMenuOpen,
         },
+        collaborators: { selectedUsers: selectedCollaborators },
     } = useSelector(selectNoteInput);
+
+    const { data: users = [] } = useGetAllUsersQuery();
+
+    const collabCommandPrefixes = {
+        userSearch: ['user search', 'user find', 'look for user'],
+        selectUser: ['select user', 'add user', 'share with'],
+        removeUser: ['remove user', 'unshare with', 'remove collaborator'],
+    };
+
+    const extractCleanUserName = (fullPhrase: string, prefixes: string[]) => {
+        for (const prefix of prefixes) {
+            if (fullPhrase.toLowerCase().startsWith(prefix)) {
+                return fullPhrase.substring(prefix.length).trim();
+            }
+        }
+        return fullPhrase.trim();
+    };
+
+    const findUser = (cleanUserName: string) => {
+        return users.find(
+            (u) =>
+                u.name?.toLowerCase() === cleanUserName.toLowerCase() ||
+                u.email?.toLowerCase() === cleanUserName.toLowerCase()
+        );
+    };
 
     return [
         // Title and Body Commands
@@ -218,30 +243,93 @@ export const useNoteCommands = ({
             },
         },
 
-        // // Collaborator Commands
-        // {
-        //     command: ['add collaborator', 'share with', 'invite'],
-        //     callback: () => {
-        //         dispatch(toggleCollaboratorMenu());
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.6,
-        // },
-        // {
-        //     command: ['user search *', 'user find *', 'look for user *'],
-        //     callback: (userName: string) => {
-        //         if (collaboratorMenuOpen) return;
+        // Collaborator Commands
+        {
+            command: ['add collaborator', 'share with user', 'invite', 'done'],
+            callback: () => {
+                dispatch(toggleCollaboratorMenu());
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.6,
+        },
+        {
+            command: collabCommandPrefixes.userSearch,
+            callback: (userName: string, fullPhrase: string) => {
+                if (!collaboratorMenuOpen) {
+                    dispatch(toggleCollaboratorMenu());
+                }
 
-        //         const cleanUserName = userName.replace(
-        //             /^(user search|user find|look for user)\s+/i,
-        //             ''
-        //         );
+                const cleanUserName = extractCleanUserName(
+                    fullPhrase,
+                    collabCommandPrefixes.userSearch
+                );
 
-        //         console.log('cleanUserName', cleanUserName);
+                console.log('Final clean user:', cleanUserName);
+                dispatch(setCollaboratorSearchTerm(cleanUserName));
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['clear user search', 'reset user search'],
+            callback: () => {
+                if (!collaboratorMenuOpen) {
+                    dispatch(toggleCollaboratorMenu());
+                }
 
-        //         dispatch(setCollaboratorSearchTerm(cleanUserName));
-        //     },
-        // },
+                dispatch(setCollaboratorSearchTerm(''));
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: collabCommandPrefixes.selectUser,
+            callback: (userName: string, fullPhrase: string) => {
+                if (!collaboratorMenuOpen) {
+                    dispatch(toggleCollaboratorMenu());
+                }
+
+                const cleanUserName = extractCleanUserName(
+                    fullPhrase,
+                    collabCommandPrefixes.selectUser
+                );
+
+                console.log('cleanusername:: ', cleanUserName);
+                const user = findUser(cleanUserName);
+
+                if (user) {
+                    dispatch(
+                        addCollaborator({
+                            uid: user.firebaseUid,
+                            email: user.email,
+                            name: user.name || user.email,
+                        })
+                    );
+                }
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: collabCommandPrefixes.removeUser,
+            callback: (userName: string, fullPhrase: string) => {
+                if (!collaboratorMenuOpen) {
+                    dispatch(toggleCollaboratorMenu());
+                }
+                const cleanUserName = extractCleanUserName(
+                    fullPhrase,
+                    collabCommandPrefixes.removeUser
+                );
+
+                const user = findUser(cleanUserName);
+
+                if (user) {
+                    dispatch(removeCollaborator(user.firebaseUid));
+                }
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
 
         // //Set Label Commands
         // {
