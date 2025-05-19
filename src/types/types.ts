@@ -24,6 +24,10 @@ export type NotesStatsResponse = {
         archived: number;
         trashed: number;
         reminderCount: number;
+        reminderStats: {
+            upcoming: number;
+            past: number;
+        };
         sharedNotes: number;
         bgColorStats: {
             [color: string]: number;

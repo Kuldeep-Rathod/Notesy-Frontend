@@ -24,26 +24,12 @@ import styles from '@/styles/components/profile/index.module.scss';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { UserProfile, UserStats } from '../../types/profile';
+import { UserProfile } from '../../types/profile';
 import ProfileHeader from './ProfileHeader';
 import ProfileSection from './ProfileSection';
-import StatCard from './StatCard';
 
-interface ProfileProps {
-    stats: UserStats;
-    activeSection?: 'profile' | 'preferences' | 'stats';
-    onSectionChange?: (section: 'profile' | 'preferences' | 'stats') => void;
-}
-
-const Profile: React.FC<ProfileProps> = ({
-    stats,
-    activeSection = 'profile',
-    onSectionChange,
-}) => {
+const Profile: React.FC = () => {
     const router = useRouter();
-    const [localActiveSection, setLocalActiveSection] = useState<
-        'profile' | 'preferences' | 'stats'
-    >(activeSection);
 
     const {
         data: userData,
@@ -96,10 +82,6 @@ const Profile: React.FC<ProfileProps> = ({
     }, []);
 
     useEffect(() => {
-        setLocalActiveSection(activeSection);
-    }, [activeSection]);
-
-    useEffect(() => {
         if (userData) {
             setEditableName(userData.name);
             setLocalPhotoUrl(null);
@@ -131,17 +113,6 @@ const Profile: React.FC<ProfileProps> = ({
             }
         };
     }, []);
-
-    const handleSectionChange = (
-        section: 'profile' | 'preferences' | 'stats'
-    ) => {
-        setLocalActiveSection(section);
-        if (onSectionChange) {
-            onSectionChange(section);
-        }
-    };
-
-    const effectiveSection = localActiveSection;
 
     const handleEditPhoto = () => {
         const input = document.createElement('input');
@@ -365,32 +336,6 @@ const Profile: React.FC<ProfileProps> = ({
                         Updating profile...
                     </div>
                 )}
-            </ProfileSection>
-
-            {/* Activity Insights */}
-            <ProfileSection title='Your Activity Insights'>
-                <div className={styles.statsGrid}>
-                    <StatCard
-                        title='Total Notes Created'
-                        value={stats.totalNotes}
-                    />
-                    <StatCard
-                        title='Total Checklists'
-                        value={stats.totalChecklists}
-                    />
-                    <StatCard
-                        title='Reminders Set'
-                        value={stats.totalReminders}
-                    />
-                    <StatCard
-                        title='Archived Notes'
-                        value={stats.archivedNotes}
-                    />
-                    <StatCard
-                        title='Trashed Notes'
-                        value={stats.trashedNotes}
-                    />
-                </div>
             </ProfileSection>
 
             {/* Account Settings */}

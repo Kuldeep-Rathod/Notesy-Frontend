@@ -8,6 +8,7 @@ import {
 import { useNoteStatsQuery } from '@/redux/api/notesAPI';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import CountUp from 'react-countup';
 
 const StatisticsPage = () => {
     const { data: statsData, isError, error, isLoading } = useNoteStatsQuery();
@@ -42,11 +43,11 @@ const StatisticsPage = () => {
             <div className='max-w-7xl mx-auto space-y-12'>
                 {/* Header */}
                 <header className='text-center space-y-3'>
-                    <h1 className='text-4xl font-bold text-gray-900 bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent'>
+                    <h1 className='text-4xl font-bold bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 text-transparent'>
                         Notes Analytics Dashboard
                     </h1>
                     <p className='text-gray-500 text-lg max-w-2xl mx-auto'>
-                        Visual insights into your notes' patterns and usage
+                        Visual insights into your notes patterns and usage
                     </p>
                 </header>
 
@@ -56,25 +57,25 @@ const StatisticsPage = () => {
                         title='Total Notes'
                         value={stats.totalNotes}
                         icon='📝'
-                        trend='up'
+                        borderColor='#3b82f6'
                     />
                     <StatCard
                         title='Pinned'
                         value={stats.pinned}
                         icon='📌'
-                        trend='neutral'
+                        borderColor='#6366f1'
                     />
                     <StatCard
                         title='Archived'
                         value={stats.archived}
                         icon='🗄️'
-                        trend='down'
+                        borderColor='#8b5cf6'
                     />
                     <StatCard
                         title='Trashed'
                         value={stats.trashed}
                         icon='🗑️'
-                        trend='neutral'
+                        borderColor='#ec4899'
                     />
                 </div>
 
@@ -104,12 +105,12 @@ const StatisticsPage = () => {
                         </LegendGroup>
                     </ChartCard>
 
-                    <ChartCard title='Checklist Distribution'>
+                    <ChartCard title='Reminder Status'>
                         <DoughnutChart
-                            labels={['Completed', 'Incomplete']}
+                            labels={['Upcoming', 'Past']}
                             data={[
-                                stats.checklistStats.completed,
-                                stats.checklistStats.incomplete,
+                                stats.reminderStats.past,
+                                stats.reminderStats.upcoming,
                             ]}
                             backgroundColor={['#3b82f6', '#f59e0b']}
                             legends={false}
@@ -118,12 +119,12 @@ const StatisticsPage = () => {
                         <LegendGroup>
                             <LegendItem
                                 color='#3b82f6'
-                                label='Completed'
+                                label='Upcoming'
                                 value={stats.checklistStats.completed}
                             />
                             <LegendItem
                                 color='#f59e0b'
-                                label='Incomplete'
+                                label='Past'
                                 value={stats.checklistStats.incomplete}
                             />
                         </LegendGroup>
@@ -175,7 +176,10 @@ const StatisticsPage = () => {
                         </div>
                     </div>
 
-                    <ChartCard title='Color Preferences' fullWidth>
+                    <ChartCard
+                        title='Color Preferences'
+                        fullWidth
+                    >
                         <BarChart
                             data_1={Object.values(stats.bgColorStats)}
                             title_1='Backgrounds'
@@ -214,48 +218,39 @@ const ChartCard = ({
     </div>
 );
 
+type StatCardProps = {
+    title: string;
+    value: number;
+    icon: string;
+    borderColor?: string;
+};
+
 const StatCard = ({
     title,
     value,
     icon,
-    trend,
-}: {
-    title: string;
-    value: number;
-    icon: string;
-    trend: 'up' | 'down' | 'neutral';
-}) => {
-    const trendColors = {
-        up: 'text-green-500',
-        down: 'text-red-500',
-        neutral: 'text-gray-500',
-    };
-
-    const trendIcons = {
-        up: '↑',
-        down: '↓',
-        neutral: '→',
-    };
-
+    borderColor = '#3b82f6',
+}: StatCardProps) => {
     return (
-        <div className='bg-white/80 backdrop-blur-sm rounded-lg p-5 shadow-sm border border-gray-100/50 hover:shadow-md transition-all'>
+        <div
+            className='bg-white/80 backdrop-blur-sm rounded-lg p-5 shadow-sm border border-gray-100/50 hover:shadow-md transition-all'
+            style={{ borderLeft: `5px solid ${borderColor}` }}
+        >
             <div className='flex justify-between items-start'>
                 <div>
-                    <p className='text-sm font-medium text-gray-500'>{title}</p>
-                    <h3 className='text-2xl font-bold text-gray-800 mt-1'>
-                        {value}
+                    <p className='text-sm font-semibold text-gray-600 tracking-wide'>
+                        {title}
+                    </p>
+                    <h3 className='text-3xl font-bold text-gray-800 mt-1'>
+                        <CountUp
+                            end={value}
+                            duration={1.5}
+                            separator=','
+                        />
                     </h3>
                 </div>
-                <span className='text-2xl'>{icon}</span>
+                <span className='text-3xl text-gray-500'>{icon}</span>
             </div>
-            {trend !== 'neutral' && (
-                <div
-                    className={`flex items-center mt-2 text-sm ${trendColors[trend]}`}
-                >
-                    <span>{trendIcons[trend]}</span>
-                    <span className='ml-1'>5% from last week</span>
-                </div>
-            )}
         </div>
     );
 };
