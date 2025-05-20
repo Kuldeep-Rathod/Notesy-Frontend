@@ -699,6 +699,10 @@ export default function NoteInput({
                     name: label.name,
                     added: label.added || false,
                 })),
+                handlers: {
+                    onAddLabel: addNewLabel,
+                    handleToggleLabel,
+                },
             }),
         },
         { debug: true, requireWakeWord: true }

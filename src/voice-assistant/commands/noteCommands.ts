@@ -29,11 +29,16 @@ interface NoteCommandsParams {
         labelSearchRef: React.RefObject<HTMLInputElement>;
     };
     labels: LabelI[];
+    handlers: {
+        onAddLabel: () => void;
+        handleToggleLabel: (labelName: string) => void;
+    };
 }
 
 export const useNoteCommands = ({
     refs,
     labels,
+    handlers,
 }: NoteCommandsParams) => {
     const dispatch = useDispatch();
 
@@ -331,45 +336,59 @@ export const useNoteCommands = ({
             fuzzyMatchingThreshold: 0.7,
         },
 
-        // //Set Label Commands
-        // {
-        //     command: ['add label *', 'take with *', 'label as *'],
-        //     callback: () => {
-        //         dispatch(toggleLabelMenu());
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
-        // {
-        //     command: ['take search *', 'label find *', 'look for label *'],
-        //     callback: (labelName: string) => {
-        //         const cleanLabelName = labelName.replace(
-        //             /^(search label|find label|look for label)\s+/i,
-        //             ''
-        //         );
-        //         if (refs.labelSearchRef.current) {
-        //             refs.labelSearchRef.current.value = cleanLabelName;
-        //             dispatch(setSearchQuery(cleanLabelName));
-        //         }
-        //     },
-        // },
-        // {
-        //     command: ['remove label *', 'delete label *', 'untag *'],
-        //     callback: (labelName: string) => {
-        //         const cleanLabelName = labelName.replace(
-        //             /^(remove label|delete label|untag)\s+/i,
-        //             ''
-        //         );
-        //         const label = labels.find(
-        //             (l) => l.name.toLowerCase() === cleanLabelName.toLowerCase()
-        //         );
-        //         if (label && label.added) {
-        //             dispatch(toggleLabel(label.name));
-        //         }
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
+        //Set Label Commands
+        {
+            command: ['open label menu', 'open take menu'],
+            callback: () => {
+                dispatch(toggleLabelMenu());
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['take search *', 'label find *', 'look for label *'],
+            callback: (labelName: string) => {
+                const cleanLabelName = labelName.replace(
+                    /^(search label|find label|look for label)\s+/i,
+                    ''
+                );
+                if (refs.labelSearchRef.current) {
+                    refs.labelSearchRef.current.value = cleanLabelName;
+                    dispatch(setSearchQuery(cleanLabelName));
+                }
+            },
+        },
+        {
+            command: ['clear take search', 'reset take search'],
+            callback: () => {
+                dispatch(setSearchQuery(''));
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['create label', 'create tag'],
+            callback: () => {
+                handlers.onAddLabel();
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['take with *', 'label with *'],
+            callback: (labelName: string, fullPhrase: string) => {
+                const cleanLabelName = extractCleanUserName(fullPhrase, [
+                    'take with',
+                    'label with',
+                ]);
+
+                if (cleanLabelName) {
+                    handlers.handleToggleLabel(cleanLabelName);
+                }
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
 
         // // Checkbox Commands
         // {
