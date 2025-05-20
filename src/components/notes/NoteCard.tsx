@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { AnimatedTooltip } from '../ui/animated-tooltip';
+import { bgColors } from '@/interfaces/tooltip';
 
 interface NoteCardProps {
     note: NoteI;
@@ -44,19 +45,7 @@ interface CollaboratorsData {
     ownerId: string;
 }
 
-const colorOptions = [
-    '#ffffff',
-    '#f28b82',
-    '#fbbc04',
-    '#fff475',
-    '#ccff90',
-    '#a7ffeb',
-    '#cbf0f8',
-    '#d7aefb',
-    '#fdcfe8',
-    '#e6c9a8',
-    '#e8eaed',
-];
+const colorOptions = bgColors;
 
 const NoteCard = ({
     note,
@@ -196,7 +185,13 @@ const NoteCard = ({
 
             {note.reminder && (
                 <div className='note-labels'>
-                    <span className='label-chip flex items-center gap-1'>
+                    <span
+                        className={`label-chip flex items-center gap-1 ${
+                            new Date(note.reminder) < new Date()
+                                ? 'line-through text-gray-400'
+                                : ''
+                        }`}
+                    >
                         <Bell className='h-4 w-4' />
                         {format(new Date(note.reminder), 'MMM d, h:mm a')}
                     </span>
@@ -205,52 +200,6 @@ const NoteCard = ({
 
             {/* Collaborators display */}
             {note.collaborators && note.collaborators.length > 0 && (
-                // <div
-                //     className='note-collaborators'
-                //     title={`Shared with ${note.collaborators.length} ${
-                //         note.collaborators.length === 1 ? 'person' : 'people'
-                //     }`}
-                // >
-                //     <div className='note-avatar-stack'>
-                //         {note.collaborators
-                //             .slice(0, 3)
-                //             .map((collaborator, index) => (
-                //                 <div
-                //                     key={collaborator.firebaseUid || index}
-                //                     className='note-avatar'
-                //                     title={collaborator.email}
-                //                     style={{
-                //                         zIndex: 3 - index,
-                //                     }}
-                //                 >
-                //                     {collaborator.photo ? (
-                //                         <Image
-                //                             src={collaborator.photo}
-                //                             alt={
-                //                                 collaborator.name ||
-                //                                 collaborator.email ||
-                //                                 'Collaborator'
-                //                             }
-                //                             width={40}
-                //                             height={40}
-                //                             className='w-full h-full rounded-full object-cover'
-                //                         />
-                //                     ) : (
-                //                         getInitials(
-                //                             collaborator.name ||
-                //                                 collaborator.email ||
-                //                                 ''
-                //                         )
-                //                     )}
-                //                 </div>
-                //             ))}
-                //         {note.collaborators.length > 3 && (
-                //             <div className='note-avatar note-avatar-more'>
-                //                 +{note.collaborators.length - 3}
-                //             </div>
-                //         )}
-                //     </div>
-                // </div>
                 <AnimatedTooltip items={transformedCollabData || []} />
             )}
 
@@ -291,17 +240,21 @@ const NoteCard = ({
                                     className='color-picker'
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    {colorOptions.map((color) => (
-                                        <div
-                                            key={color}
-                                            className='color-option'
-                                            style={{ backgroundColor: color }}
-                                            onClick={() =>
-                                                handleColorChange(color)
-                                            }
-                                            aria-label={`Color ${color}`}
-                                        />
-                                    ))}
+                                    {Object.entries(colorOptions).map(
+                                        ([key, value]) => (
+                                            <div
+                                                key={key}
+                                                className='color-option'
+                                                style={{
+                                                    backgroundColor: value,
+                                                }}
+                                                onClick={() =>
+                                                    handleColorChange(value)
+                                                }
+                                                aria-label={`Color ${key}`}
+                                            />
+                                        )
+                                    )}
                                 </div>
                             )}
                         </div>
