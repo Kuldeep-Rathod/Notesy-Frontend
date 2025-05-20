@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { auth, googleProvider } from '@/lib/firebase';
 import '@/styles/app/_signup.scss';
 import { axiosInstance } from '@/utils/axiosInstance';
+import GuestGuard from '@/utils/guestGuard';
 import axios from 'axios';
 import {
     createUserWithEmailAndPassword,
@@ -154,134 +155,138 @@ export default function Signup() {
     };
 
     return (
-        <div className='signup-container'>
-            <div className='signup-card'>
-                <div className='signup-header'>
-                    <h1>Create your account</h1>
-                    <p>Get started with Notesy today</p>
-                </div>
-
-                {firebaseError && (
-                    <div className='firebase-error'>
-                        <p>{firebaseError}</p>
-                    </div>
-                )}
-
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className='signup-form'
-                >
-                    <div className='form-group'>
-                        <Label htmlFor='email'>Email</Label>
-                        <Input
-                            id='email'
-                            type='email'
-                            placeholder='your@email.com'
-                            {...register('email', {
-                                required: 'Email is required',
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: 'Invalid email address',
-                                },
-                            })}
-                            className={errors.email ? 'input-error' : ''}
-                        />
-                        {errors.email && (
-                            <span className='error-message'>
-                                {errors.email.message as string}
-                            </span>
-                        )}
+        <GuestGuard>
+            <div className='signup-container'>
+                <div className='signup-card'>
+                    <div className='signup-header'>
+                        <h1>Create your account</h1>
+                        <p>Get started with Notesy today</p>
                     </div>
 
-                    <div className='form-group'>
-                        <Label htmlFor='password'>Password</Label>
-                        <Input
-                            id='password'
-                            type='password'
-                            placeholder='••••••••'
-                            {...register('password', {
-                                required: 'Password is required',
-                                minLength: {
-                                    value: 6,
-                                    message:
-                                        'Password must be at least 6 characters',
-                                },
-                            })}
-                            className={errors.password ? 'input-error' : ''}
-                        />
-                        {errors.password && (
-                            <span className='error-message'>
-                                {errors.password.message as string}
-                            </span>
-                        )}
-                    </div>
+                    {firebaseError && (
+                        <div className='firebase-error'>
+                            <p>{firebaseError}</p>
+                        </div>
+                    )}
 
-                    <div className='form-group'>
-                        <Label htmlFor='confirmPassword'>
-                            Confirm Password
-                        </Label>
-                        <Input
-                            id='confirmPassword'
-                            type='password'
-                            placeholder='••••••••'
-                            {...register('confirmPassword', {
-                                required: 'Please confirm your password',
-                                validate: (value) =>
-                                    value === watch('password') ||
-                                    'Passwords do not match',
-                            })}
-                            className={
-                                errors.confirmPassword ? 'input-error' : ''
-                            }
-                        />
-                        {errors.confirmPassword && (
-                            <span className='error-message'>
-                                {errors.confirmPassword.message as string}
-                            </span>
-                        )}
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className='signup-form'
+                    >
+                        <div className='form-group'>
+                            <Label htmlFor='email'>Email</Label>
+                            <Input
+                                id='email'
+                                type='email'
+                                placeholder='your@email.com'
+                                {...register('email', {
+                                    required: 'Email is required',
+                                    pattern: {
+                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                        message: 'Invalid email address',
+                                    },
+                                })}
+                                className={errors.email ? 'input-error' : ''}
+                            />
+                            {errors.email && (
+                                <span className='error-message'>
+                                    {errors.email.message as string}
+                                </span>
+                            )}
+                        </div>
+
+                        <div className='form-group'>
+                            <Label htmlFor='password'>Password</Label>
+                            <Input
+                                id='password'
+                                type='password'
+                                placeholder='••••••••'
+                                {...register('password', {
+                                    required: 'Password is required',
+                                    minLength: {
+                                        value: 6,
+                                        message:
+                                            'Password must be at least 6 characters',
+                                    },
+                                })}
+                                className={errors.password ? 'input-error' : ''}
+                            />
+                            {errors.password && (
+                                <span className='error-message'>
+                                    {errors.password.message as string}
+                                </span>
+                            )}
+                        </div>
+
+                        <div className='form-group'>
+                            <Label htmlFor='confirmPassword'>
+                                Confirm Password
+                            </Label>
+                            <Input
+                                id='confirmPassword'
+                                type='password'
+                                placeholder='••••••••'
+                                {...register('confirmPassword', {
+                                    required: 'Please confirm your password',
+                                    validate: (value) =>
+                                        value === watch('password') ||
+                                        'Passwords do not match',
+                                })}
+                                className={
+                                    errors.confirmPassword ? 'input-error' : ''
+                                }
+                            />
+                            {errors.confirmPassword && (
+                                <span className='error-message'>
+                                    {errors.confirmPassword.message as string}
+                                </span>
+                            )}
+                        </div>
+
+                        <Button
+                            type='submit'
+                            className='signup-button'
+                            disabled={isLoading}
+                        >
+                            {isLoading
+                                ? 'Creating account...'
+                                : 'Create account'}
+                        </Button>
+                    </form>
+
+                    <div className='signup-divider'>
+                        <span>or</span>
                     </div>
 
                     <Button
-                        type='submit'
-                        className='signup-button'
+                        variant='outline'
+                        className='google-signup-button'
+                        onClick={signInWithGoogle}
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Creating account...' : 'Create account'}
+                        <GoogleIcon />
+                        Sign up with Google
                     </Button>
-                </form>
 
-                <div className='signup-divider'>
-                    <span>or</span>
+                    <div className='login-footer'>
+                        <p>
+                            Already have an account?{' '}
+                            <Link
+                                href='/login'
+                                className='login-link'
+                            >
+                                Log in
+                            </Link>
+                        </p>
+                    </div>
                 </div>
 
-                <Button
-                    variant='outline'
-                    className='google-signup-button'
-                    onClick={signInWithGoogle}
-                    disabled={isLoading}
-                >
-                    <GoogleIcon />
-                    Sign up with Google
-                </Button>
-
-                <div className='login-footer'>
-                    <p>
-                        Already have an account?{' '}
-                        <Link
-                            href='/login'
-                            className='login-link'
-                        >
-                            Log in
-                        </Link>
-                    </p>
+                <div className='signup-graphics'>
+                    <div className='graphic-circle'></div>
+                    <div className='graphic-blur'></div>
                 </div>
             </div>
-
-            <div className='signup-graphics'>
-                <div className='graphic-circle'></div>
-                <div className='graphic-blur'></div>
-            </div>
-        </div>
+        </GuestGuard>
     );
 }
 

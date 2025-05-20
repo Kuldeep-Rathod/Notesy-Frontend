@@ -6,6 +6,7 @@ import {
     useEditLabelMutation,
     useGetLabelsQuery,
 } from '@/redux/api/labelsAPI';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import styles from '@/styles/app/EditLabelsPage.module.scss';
 import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -29,6 +30,8 @@ const EditLabelsPage = () => {
     const [addLabel] = useAddLabelMutation();
     const [editLabel] = useEditLabelMutation();
     const [deleteLabel] = useDeleteLabelMutation();
+    const { data: userData, isLoading: userLoading } = useGetCurrentUserQuery();
+    const isPremium = userData?.isPremium;
 
     const [labels, setLabels] = useState<Label[]>([]);
     const [newLabelName, setNewLabelName] = useState('');
@@ -65,14 +68,15 @@ const EditLabelsPage = () => {
             return;
         }
 
-        // Check label limit (example: max 10 labels)
-        if (labels.length >= 10) {
-            setError({
-                type: 'limit',
-                message:
-                    'Label limit reached. Delete an existing label to add a new one.',
-            });
-            return;
+        if (!isPremium) {
+            if (labels.length >= 3) {
+                setError({
+                    type: 'limit',
+                    message:
+                        'Label limit reached for free users. Delete an existing label or upgrade to premium to create more.',
+                });
+                return;
+            }
         }
 
         try {
@@ -137,6 +141,16 @@ const EditLabelsPage = () => {
             });
         }
     };
+
+    if (userLoading) {
+        return (
+            <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
+                <div className='text-xl font-medium text-primary animate-pulse'>
+                    Loading user...
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading)
         return <div className={styles.editLabelsPage}>Loading...</div>;

@@ -35,7 +35,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const { data: labelsData = [], isLoading } = useGetLabelsQuery();
-    const { data: DbUser } = useGetCurrentUserQuery();
+    const { data: DbUser, isLoading: dbUserLoading } = useGetCurrentUserQuery();
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -43,6 +43,10 @@ export default function DashboardLayout({
     const toggleSidebar = () => {
         setIsSidebarOpen((prev) => !prev);
     };
+
+    if (dbUserLoading) {
+        <div>loading</div>;
+    }
 
     const handleManagePlan = async () => {
         try {
@@ -54,7 +58,7 @@ export default function DashboardLayout({
                 return;
             }
 
-            const idToken = await user.getIdToken(); // ✅ await here
+            const idToken = await user.getIdToken();
 
             const res = await axiosInstance.post(
                 '/pay/create-portal-session',
@@ -177,12 +181,14 @@ export default function DashboardLayout({
                                 isSidebarOpen={isSidebarOpen}
                                 icon={<Trash2 className='w-5 h-5' />}
                             />
-                            <SidebarLink
-                                href='/statistics'
-                                title='Statistics'
-                                isSidebarOpen={isSidebarOpen}
-                                icon={<ChartPie className='w-5 h-5' />}
-                            />
+                            {DbUser?.isPremium && (
+                                <SidebarLink
+                                    href='/statistics'
+                                    title='Statistics'
+                                    isSidebarOpen={isSidebarOpen}
+                                    icon={<ChartPie className='w-5 h-5' />}
+                                />
+                            )}
 
                             <SidebarLink
                                 href='/profile'

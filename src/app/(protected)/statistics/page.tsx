@@ -9,12 +9,31 @@ import { useNoteStatsQuery } from '@/redux/api/notesAPI';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import CountUp from 'react-countup';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 
 const StatisticsPage = () => {
     const { data: statsData, isError, error, isLoading } = useNoteStatsQuery();
+    const { data: userData, isLoading: userLoading } = useGetCurrentUserQuery();
+    const isPremium = userData?.isPremium;
+
     const router = useRouter();
 
     const stats = statsData?.data;
+
+    if (userLoading) {
+        return (
+            <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
+                <div className='text-xl font-medium text-primary animate-pulse'>
+                    Loading user...
+                </div>
+            </div>
+        );
+    }
+
+    if (!isPremium) {
+        toast.error('Upgrade to premium to access statistics');
+        return router.push('/dashboard');
+    }
 
     if (isError && error) {
         toast.error('Failed to fetch statistics');

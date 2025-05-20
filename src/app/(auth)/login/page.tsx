@@ -12,6 +12,7 @@ import {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
 } from '@/redux/api/authAPI';
+import GuestGuard from '@/utils/guestGuard';
 
 type LoginFormData = {
     email: string;
@@ -87,113 +88,115 @@ export default function Login() {
     };
 
     return (
-        <div className='login-container'>
-            <div className='login-card'>
-                <div className='login-header'>
-                    <h1>Welcome back</h1>
-                    <p>Log in to your Notesy account</p>
-                </div>
-
-                {firebaseError && (
-                    <div className='firebase-error'>
-                        <p>{firebaseError}</p>
-                    </div>
-                )}
-
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className='login-form'
-                >
-                    <div className='form-group'>
-                        <Label htmlFor='email'>Email</Label>
-                        <Input
-                            id='email'
-                            type='email'
-                            placeholder='your@email.com'
-                            {...register('email', {
-                                required: 'Email is required',
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: 'Invalid email address',
-                                },
-                            })}
-                            className={errors.email ? 'input-error' : ''}
-                        />
-                        {errors.email && (
-                            <span className='error-message'>
-                                {errors.email.message as string}
-                            </span>
-                        )}
+        <GuestGuard>
+            <div className='login-container'>
+                <div className='login-card'>
+                    <div className='login-header'>
+                        <h1>Welcome back</h1>
+                        <p>Log in to your Notesy account</p>
                     </div>
 
-                    <div className='form-group'>
-                        <div className='password-label-container'>
-                            <Label htmlFor='password'>Password</Label>
-                            <Link
-                                href='/forgot-password'
-                                className='forgot-password'
-                            >
-                                Forgot password?
-                            </Link>
+                    {firebaseError && (
+                        <div className='firebase-error'>
+                            <p>{firebaseError}</p>
                         </div>
-                        <Input
-                            id='password'
-                            type='password'
-                            placeholder='••••••••'
-                            {...register('password', {
-                                required: 'Password is required',
-                            })}
-                            className={errors.password ? 'input-error' : ''}
-                        />
-                        {errors.password && (
-                            <span className='error-message'>
-                                {errors.password.message as string}
-                            </span>
-                        )}
-                    </div>
+                    )}
 
-                    <Button
-                        type='submit'
-                        className='login-button'
-                        disabled={isLoading}
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className='login-form'
                     >
-                        {isLoading ? 'Logging in...' : 'Log in'}
-                    </Button>
-                </form>
+                        <div className='form-group'>
+                            <Label htmlFor='email'>Email</Label>
+                            <Input
+                                id='email'
+                                type='email'
+                                placeholder='your@email.com'
+                                {...register('email', {
+                                    required: 'Email is required',
+                                    pattern: {
+                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                        message: 'Invalid email address',
+                                    },
+                                })}
+                                className={errors.email ? 'input-error' : ''}
+                            />
+                            {errors.email && (
+                                <span className='error-message'>
+                                    {errors.email.message as string}
+                                </span>
+                            )}
+                        </div>
 
-                <div className='login-footer'>
-                    <p>
-                        Don&apos;t have an account?{' '}
-                        <Link
-                            href='/signup'
-                            className='signup-link'
-                        >
-                            Sign up
-                        </Link>
-                    </p>
-                </div>
+                        <div className='form-group'>
+                            <div className='password-label-container'>
+                                <Label htmlFor='password'>Password</Label>
+                                <Link
+                                    href='/forgot-password'
+                                    className='forgot-password'
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                            <Input
+                                id='password'
+                                type='password'
+                                placeholder='••••••••'
+                                {...register('password', {
+                                    required: 'Password is required',
+                                })}
+                                className={errors.password ? 'input-error' : ''}
+                            />
+                            {errors.password && (
+                                <span className='error-message'>
+                                    {errors.password.message as string}
+                                </span>
+                            )}
+                        </div>
 
-                <div className='social-login'>
-                    <p className='divider'>or continue with</p>
-                    <div className='social-buttons'>
                         <Button
-                            variant='outline'
-                            className='social-button'
-                            onClick={signInWithGoogle}
+                            type='submit'
+                            className='login-button'
                             disabled={isLoading}
                         >
-                            <GoogleIcon /> Google
+                            {isLoading ? 'Logging in...' : 'Log in'}
                         </Button>
-                        {/* You can add GitHub auth similarly if needed */}
+                    </form>
+
+                    <div className='login-footer'>
+                        <p>
+                            Don&apos;t have an account?{' '}
+                            <Link
+                                href='/signup'
+                                className='signup-link'
+                            >
+                                Sign up
+                            </Link>
+                        </p>
+                    </div>
+
+                    <div className='social-login'>
+                        <p className='divider'>or continue with</p>
+                        <div className='social-buttons'>
+                            <Button
+                                variant='outline'
+                                className='social-button'
+                                onClick={signInWithGoogle}
+                                disabled={isLoading}
+                            >
+                                <GoogleIcon /> Google
+                            </Button>
+                            {/* You can add GitHub auth similarly if needed */}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className='login-graphics'>
-                <div className='graphic-circle'></div>
-                <div className='graphic-blur'></div>
+                <div className='login-graphics'>
+                    <div className='graphic-circle'></div>
+                    <div className='graphic-blur'></div>
+                </div>
             </div>
-        </div>
+        </GuestGuard>
     );
 }
 
