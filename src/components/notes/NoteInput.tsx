@@ -27,14 +27,15 @@ import {
     toggleCbox,
     toggleCboxCompletedList,
     toggleLabel,
-    toggleLabelMenu,
     togglePinned,
     toggleTrash,
     updateChecklist,
-    updateInputLength,
+    updateInputLength
 } from '@/redux/reducer/noteInputReducer';
 import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
+import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
@@ -43,9 +44,8 @@ import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
 import { CheckboxList } from './input/CheckboxList';
+import LabelMenu from './input/LabelMenu';
 import NoteToolbar from './input/NoteToolbar';
-import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 
 export default function NoteInput({
     isEditing = false,
@@ -192,11 +192,6 @@ export default function NoteInput({
         if (noteTitleRef.current) noteTitleRef.current.innerHTML = '';
         if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
     }, [mouseDownEvent, toggleNoteVisibility, dispatch]);
-
-    // Toggle checkbox mode
-    const handleToggleCbox = useCallback(() => {
-        dispatch(toggleCbox());
-    }, [dispatch]);
 
     // Save note
     const saveNote = useCallback(async () => {
@@ -542,13 +537,6 @@ export default function NoteInput({
         }
     };
 
-    // Handle label search key down
-    const handleLabelSearchKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            addNewLabel();
-        }
-    };
-
     // Initialize for editing
     useEffect(() => {
         if (isEditing && noteToEdit) {
@@ -629,11 +617,15 @@ export default function NoteInput({
             return;
         }
         dispatch(setListening(true));
+
+        // Reset transcript first to start fresh
+        resetTranscript();
+
         SpeechRecognition.startListening({
             continuous: true,
             language: 'en-US',
         });
-    }, [dispatch, browserSupportsSpeechRecognition]);
+    }, [dispatch, browserSupportsSpeechRecognition, resetTranscript]);
 
     const stopListening = useCallback(() => {
         dispatch(setListening(false));
@@ -641,25 +633,35 @@ export default function NoteInput({
     }, [dispatch]);
 
     const handleFieldFocus = useCallback(
-        (field: 'title' | 'body') => {
+        (field: 'title' | 'body', clearContent = false) => {
             dispatch(setActiveField(field));
             resetTranscript();
+
+            // Optionally clear the field content
+            if (clearContent) {
+                const fieldRef = field === 'title' ? noteTitleRef : noteBodyRef;
+                if (fieldRef.current) {
+                    fieldRef.current.textContent = '';
+                    dispatch(
+                        updateInputLength({
+                            [field]: 0,
+                        })
+                    );
+                }
+            }
         },
         [resetTranscript, dispatch]
     );
 
     // Handle speech recognition transcript updates
     useEffect(() => {
-        if (!isListening || !speechTranscript || !activeField) return;
+        if (!isListening || !activeField) return;
 
         const fieldRef = activeField === 'title' ? noteTitleRef : noteBodyRef;
         if (!fieldRef.current) return;
 
-        // Get current content
-        const currentContent = fieldRef.current.textContent || '';
-
-        // Append new transcript to current content
-        fieldRef.current.textContent = currentContent + ' ' + speechTranscript;
+        // Update the field with current transcript
+        fieldRef.current.textContent = speechTranscript;
 
         // Update input length
         dispatch(
@@ -869,7 +871,20 @@ export default function NoteInput({
                             🎙️ Start Speaking
                         </button>
                         <button onClick={stopListening}>🛑 Stop</button>
-                        <button onClick={resetTranscript}>🔁 Clear</button>
+                        <button
+                            onClick={() => {
+                                resetTranscript();
+                                if (
+                                    activeField &&
+                                    (activeField === 'title' ||
+                                        activeField === 'body')
+                                ) {
+                                    handleFieldFocus(activeField, true);
+                                }
+                            }}
+                        >
+                            🔁 Clear
+                        </button>
                         {isListening && <span>Listening...</span>}
                     </div>
 
@@ -917,74 +932,10 @@ export default function NoteInput({
             </div>
 
             {labelMenuOpen && (
-                <div
-                    className='absolute z-10 w-80 bg-white shadow-lg rounded-md p-4'
-                    data-tooltip='true'
-                    data-is-tooltip-open='true'
-                >
-                    <div className='flex justify-between items-center border-b pb-2 mb-3'>
-                        <p className='text-lg font-medium'>Label note</p>
-                        <button
-                            className='text-red-500 hover:text-red-700 text-xl'
-                            onClick={() => {
-                                dispatch(toggleLabelMenu());
-                            }}
-                        >
-                            ×
-                        </button>
-                    </div>
-
-                    <div className='flex items-center border rounded-md overflow-hidden mb-4'>
-                        <input
-                            ref={labelSearchRef}
-                            type='text'
-                            maxLength={50}
-                            placeholder='Enter label name'
-                            value={searchQuery}
-                            onChange={(e) =>
-                                dispatch(setSearchQuery(e.target.value))
-                            }
-                            onKeyDown={handleLabelSearchKeyDown}
-                            className='w-full px-3 py-2 outline-none'
-                        />
-                        <div
-                            className='px-3 py-2 cursor-pointer bg-blue-500 text-white hover:bg-blue-600'
-                            onClick={addNewLabel}
-                        >
-                            +
-                        </div>
-                    </div>
-
-                    <div className='max-h-60 overflow-y-auto space-y-2'>
-                        {labels
-                            .filter(
-                                (label: LabelI) =>
-                                    label.name
-                                        .toLowerCase()
-                                        .includes(searchQuery.toLowerCase()) ||
-                                    searchQuery === ''
-                            )
-                            .map((label: LabelI) => (
-                                <div
-                                    key={label.name}
-                                    className='flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-100'
-                                    onClick={() =>
-                                        handleToggleLabel(label.name)
-                                    }
-                                >
-                                    <input
-                                        type='checkbox'
-                                        checked={label.added}
-                                        onChange={() =>
-                                            handleToggleLabel(label.name)
-                                        }
-                                        className='mr-2 cursor-pointer'
-                                    />
-                                    <span className='flex-1'>{label.name}</span>
-                                </div>
-                            ))}
-                    </div>
-                </div>
+                <LabelMenu
+                    isEditing={isEditing}
+                    noteToEdit={noteToEdit}
+                />
             )}
 
             {/* Voice Control Status Indicator */}
