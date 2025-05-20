@@ -3,23 +3,21 @@ import { LabelI } from '@/interfaces/labels';
 import { useGetAllUsersQuery } from '@/redux/api/userAPI';
 import {
     addChecklist,
-    setLabels,
+    addCollaborator,
+    closeReminderMenu,
+    removeCollaborator,
+    selectNoteInput,
+    setCollaboratorSearchTerm,
     setReminder,
     setSearchQuery,
     toggleCbox,
-    toggleLabel,
+    toggleCollaboratorMenu,
+    toggleColorMenu,
     toggleLabelMenu,
+    togglePinned,
     toggleReminderMenu,
     updateChecklist,
-    closeReminderMenu,
-    selectNoteInput,
-    toggleCollaboratorMenu,
-    setCollaboratorSearchTerm,
-    removeCollaborator,
-    addCollaborator,
 } from '@/redux/reducer/noteInputReducer';
-import { setDate } from 'date-fns';
-import { format } from 'path';
 import { useDispatch, useSelector } from 'react-redux';
 
 interface NoteCommandsParams {
@@ -32,6 +30,7 @@ interface NoteCommandsParams {
     handlers: {
         onAddLabel: () => void;
         handleToggleLabel: (labelName: string) => void;
+        saveNote: () => void;
     };
 }
 
@@ -82,7 +81,7 @@ export const useNoteCommands = ({
     return [
         // Title and Body Commands
         {
-            command: ['set title *', 'title is *', 'note title *'],
+            command: ['set title', 'title is', 'note title'],
             callback: () => {
                 const inputEl = refs.noteTitleRef.current;
 
@@ -117,8 +116,8 @@ export const useNoteCommands = ({
             fuzzyMatchingThreshold: 0.7,
         },
         {
-            command: ['set description *', 'note content *', 'write *'],
-            callback: (content: string) => {
+            command: ['set description', 'note content', 'write'],
+            callback: () => {
                 const bodyEl = refs.noteBodyRef.current;
 
                 if (bodyEl) {
@@ -150,6 +149,20 @@ export const useNoteCommands = ({
             },
             isFuzzyMatch: true,
             fuzzyMatchingThreshold: 0.7,
+        },
+
+        {
+            command: ['pin not', 'pin note', 'pin'],
+            callback: () => {
+                dispatch(togglePinned());
+            },
+        },
+
+        {
+            command: ['save note', 'save', 'save not'],
+            callback: () => {
+                handlers.saveNote();
+            },
         },
 
         //Commands for set reminders
@@ -227,7 +240,7 @@ export const useNoteCommands = ({
         },
         {
             command: collabCommandPrefixes.userSearch,
-            callback: (userName: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
                     dispatch(toggleCollaboratorMenu());
                 }
@@ -237,7 +250,6 @@ export const useNoteCommands = ({
                     collabCommandPrefixes.userSearch
                 );
 
-                console.log('Final clean user:', cleanUserName);
                 dispatch(setCollaboratorSearchTerm(cleanUserName));
             },
             isFuzzyMatch: true,
@@ -257,7 +269,7 @@ export const useNoteCommands = ({
         },
         {
             command: collabCommandPrefixes.selectUser,
-            callback: (userName: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
                     dispatch(toggleCollaboratorMenu());
                 }
@@ -267,7 +279,6 @@ export const useNoteCommands = ({
                     collabCommandPrefixes.selectUser
                 );
 
-                console.log('cleanusername:: ', cleanUserName);
                 const user = findUser(cleanUserName);
 
                 if (user) {
@@ -285,7 +296,7 @@ export const useNoteCommands = ({
         },
         {
             command: collabCommandPrefixes.removeUser,
-            callback: (userName: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
                     dispatch(toggleCollaboratorMenu());
                 }
@@ -344,7 +355,7 @@ export const useNoteCommands = ({
         },
         {
             command: ['take with *', 'label with *'],
-            callback: (labelName: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 const cleanLabelName = extractCleanUserName(fullPhrase, [
                     'take with',
                     'label with',
@@ -361,7 +372,7 @@ export const useNoteCommands = ({
         // Checkbox Commands
         {
             command: ['add checkbox *', 'add item *', 'add task *'],
-            callback: (text: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 const cleanText = extractCleanUserName(fullPhrase, [
                     'add checkbox',
                     'add item',
@@ -383,7 +394,7 @@ export const useNoteCommands = ({
         },
         {
             command: ['mark task * as done', 'complete task *', 'check task *'],
-            callback: (taskText: string, fullPhrase: string) => {
+            callback: (fullPhrase: string) => {
                 const cleanTaskText = extractCleanUserName(fullPhrase, [
                     'mark task',
                     'complete task',
@@ -416,6 +427,22 @@ export const useNoteCommands = ({
             callback: () => {
                 dispatch(toggleCbox());
             },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+
+        // Background colour
+        {
+            command: ['colour options'],
+            callback: () => {
+                dispatch(toggleColorMenu());
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: 'set colour *',
+            callback: (fullPhrase: string) => {},
             isFuzzyMatch: true,
             fuzzyMatchingThreshold: 0.7,
         },
