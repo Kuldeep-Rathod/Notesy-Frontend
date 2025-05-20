@@ -43,6 +43,8 @@ export const useNoteCommands = ({
     const dispatch = useDispatch();
 
     const {
+        isCbox,
+        checklists,
         tooltips: {
             moreMenuOpen,
             colorMenuOpen,
@@ -159,40 +161,6 @@ export const useNoteCommands = ({
             isFuzzyMatch: true,
             fuzzyMatchingThreshold: 0.6,
         },
-        // {
-        //     command: ['remind me *', 'set reminder for *'],
-        //     callback: (dateInput: string) => {
-        //         console.log('Raw date input:', dateInput);
-
-        //         const cleanDate = dateInput.replace(
-        //             /^(remind me|set reminder for)\s+/i,
-        //             ''
-        //         );
-        //         console.log('cleanDate:', cleanDate);
-
-        //         const reminder = quickOptions.find((option) =>
-        //             option.label.toLowerCase().includes(cleanDate.toLowerCase())
-        //         );
-
-        //         if (reminder) {
-        //             const selectedDate = reminder.time();
-        //             console.log(
-        //                 'Setting reminder:',
-        //                 reminder.label,
-        //                 selectedDate
-        //             );
-        //             dispatch(setReminder(selectedDate.toISOString()));
-        //             dispatch(closeReminderMenu());
-        //         } else {
-        //             console.log(
-        //                 'No matching quick option found for:',
-        //                 cleanDate
-        //             );
-        //         }
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
         {
             command: 'remind me later today',
             callback: () => {
@@ -390,55 +358,66 @@ export const useNoteCommands = ({
             fuzzyMatchingThreshold: 0.7,
         },
 
-        // // Checkbox Commands
-        // {
-        //     command: ['add checkbox *', 'add item *', 'add task *'],
-        //     callback: (text: string) => {
-        //         const cleanText = text.replace(
-        //             /^(add checkbox|add item|add task)\s+/i,
-        //             ''
-        //         );
-        //         dispatch(toggleCbox());
-        //         dispatch(
-        //             addChecklist({
-        //                 id: Date.now(),
-        //                 text: cleanText,
-        //                 checked: false,
-        //             })
-        //         );
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
-        // {
-        //     command: ['mark task * as done', 'complete task *', 'check task *'],
-        //     callback: (taskText: string) => {
-        //         const cleanTaskText = taskText.replace(
-        //             /^(mark task|complete task|check task)\s+/i,
-        //             ''
-        //         );
-        //         const task = labels.find((l) =>
-        //             l.name.toLowerCase().includes(cleanTaskText.toLowerCase())
-        //         );
-        //         if (task) {
-        //             dispatch(
-        //                 updateChecklist({
-        //                     id: task.name,
-        //                     updates: { checked: true },
-        //                 })
-        //             );
-        //         }
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
-        // {
-        //     command: ['show checkboxes', 'show tasks', 'show list'],
-        //     callback: () => {
-        //         dispatch(toggleCbox());
-        //     },
-        //     isFuzzyMatch: true,
-        //     fuzzyMatchingThreshold: 0.7,
-        // },
+        // Checkbox Commands
+        {
+            command: ['add checkbox *', 'add item *', 'add task *'],
+            callback: (text: string, fullPhrase: string) => {
+                const cleanText = extractCleanUserName(fullPhrase, [
+                    'add checkbox',
+                    'add item',
+                    'add task',
+                ]);
+                if (!isCbox) {
+                    dispatch(toggleCbox());
+                }
+                dispatch(
+                    addChecklist({
+                        id: Date.now(),
+                        text: cleanText,
+                        checked: false,
+                    })
+                );
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['mark task * as done', 'complete task *', 'check task *'],
+            callback: (taskText: string, fullPhrase: string) => {
+                const cleanTaskText = extractCleanUserName(fullPhrase, [
+                    'mark task',
+                    'complete task',
+                    'check task',
+                ]);
+
+                const task = checklists.find((t) =>
+                    t.text.toLowerCase().includes(cleanTaskText.toLowerCase())
+                );
+
+                if (task) {
+                    dispatch(
+                        updateChecklist({
+                            id: task.id ?? '',
+                            updates: {
+                                checked: !checklists.find(
+                                    (cb) =>
+                                        cb.id === task.id || cb._id === task.id
+                                )?.checked,
+                            },
+                        })
+                    );
+                }
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: ['show checkboxes', 'show tasks', 'show list'],
+            callback: () => {
+                dispatch(toggleCbox());
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
     ];
 };
