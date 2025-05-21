@@ -35,6 +35,7 @@ interface NotesContainerProps {
     filterValue?: string;
     onViewTypeChange?: (viewType: 'grid' | 'list') => void;
     onSearchQueryChange?: (query: string) => void;
+    onModalStateChange?: (isOpen: boolean) => void;
 }
 
 const NotesContainer = ({
@@ -44,6 +45,7 @@ const NotesContainer = ({
     filterValue,
     onViewTypeChange,
     onSearchQueryChange,
+    onModalStateChange,
 }: NotesContainerProps = {}) => {
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
@@ -257,11 +259,13 @@ const NotesContainer = ({
         setEditingNote(note);
         setIsModalOpen(true);
         setSearchQuery('');
+        onModalStateChange?.(true);
     };
 
     const closeModal = () => {
         setEditingNote(null);
         setIsModalOpen(false);
+        onModalStateChange?.(false);
     };
 
     // Add event listener for Escape key to close modal

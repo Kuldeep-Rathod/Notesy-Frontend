@@ -56,9 +56,13 @@ export const useNoteCommands = ({
     const { data: users = [] } = useGetAllUsersQuery();
 
     const collabCommandPrefixes = {
-        userSearch: ['user search', 'user find', 'look for user'],
-        selectUser: ['select user', 'add user', 'share with'],
-        removeUser: ['remove user', 'unshare with', 'remove collaborator'],
+        userSearch: ['user search *', 'user find *', 'look for user *'],
+        selectUser: ['select user *', 'add user *', 'share with *'],
+        removeUser: [
+            'remove user *',
+            'unshare with *',
+            'remove collaborator *',
+        ],
     };
 
     const extractCleanUserName = (fullPhrase: string, prefixes: string[]) => {
@@ -252,8 +256,6 @@ export const useNoteCommands = ({
 
                 dispatch(setCollaboratorSearchTerm(cleanUserName));
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
         {
             command: ['clear user search', 'reset user search'],
@@ -279,6 +281,8 @@ export const useNoteCommands = ({
                     collabCommandPrefixes.selectUser
                 );
 
+                console.log('cleanUserName', cleanUserName);
+
                 const user = findUser(cleanUserName);
 
                 if (user) {
@@ -291,8 +295,6 @@ export const useNoteCommands = ({
                     );
                 }
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
         {
             command: collabCommandPrefixes.removeUser,

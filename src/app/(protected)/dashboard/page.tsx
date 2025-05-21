@@ -10,6 +10,7 @@ function Page() {
     const [recentlyAdded, setRecentlyAdded] = useState(false);
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const noteInputRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -51,11 +52,19 @@ function Page() {
         }
     };
 
+    // Track modal state from NotesContainer
+    const handleModalStateChange = (isOpen: boolean) => {
+        setIsModalOpen(isOpen);
+    };
+
     return (
         <div>
-            <div ref={noteInputRef}>
-                <NoteInput onSuccess={handleSuccess} />
-            </div>
+            {/* Only render the main NoteInput when modal is not open */}
+            {!isModalOpen && (
+                <div ref={noteInputRef}>
+                    <NoteInput onSuccess={handleSuccess} />
+                </div>
+            )}
 
             <div ref={forwardRefs}>
                 <NotesContainer
@@ -63,6 +72,7 @@ function Page() {
                     initialSearchQuery={searchQuery}
                     onViewTypeChange={setViewType}
                     onSearchQueryChange={setSearchQuery}
+                    onModalStateChange={handleModalStateChange}
                 />
             </div>
 
