@@ -128,8 +128,8 @@ const StatisticsPage = () => {
                         <DoughnutChart
                             labels={['Upcoming', 'Past']}
                             data={[
-                                stats.reminderStats.past,
                                 stats.reminderStats.upcoming,
+                                stats.reminderStats.past,
                             ]}
                             backgroundColor={['#3b82f6', '#f59e0b']}
                             legends={false}
@@ -139,12 +139,12 @@ const StatisticsPage = () => {
                             <LegendItem
                                 color='#3b82f6'
                                 label='Upcoming'
-                                value={stats.checklistStats.completed}
+                                value={stats.reminderStats.upcoming}
                             />
                             <LegendItem
                                 color='#f59e0b'
                                 label='Past'
-                                value={stats.checklistStats.incomplete}
+                                value={stats.reminderStats.past}
                             />
                         </LegendGroup>
                     </ChartCard>

@@ -23,6 +23,14 @@ export const notesAPI = createApi({
             invalidatesTags: ['Note'],
         }),
 
+        scheduleReminder: builder.mutation<any, void>({
+            query: () => ({
+                url: 'reminder/schedule',
+                method: 'POST',
+            }),
+            invalidatesTags: ['Note'],
+        }),
+
         getUserNotes: builder.query<NoteI[], void>({
             query: () => `notes`,
             providesTags: (result) =>
@@ -190,4 +198,5 @@ export const {
     useGetCollaboratorsQuery,
     useRemoveCollaboratorMutation,
     useLeaveSharedNoteMutation,
+    useScheduleReminderMutation,
 } = notesAPI;

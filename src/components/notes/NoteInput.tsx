@@ -9,6 +9,7 @@ import {
 } from '@/redux/api/labelsAPI';
 import {
     useCreateNoteMutation,
+    useScheduleReminderMutation,
     useShareNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
@@ -30,7 +31,7 @@ import {
     togglePinned,
     toggleTrash,
     updateChecklist,
-    updateInputLength
+    updateInputLength,
 } from '@/redux/reducer/noteInputReducer';
 import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
@@ -79,6 +80,7 @@ export default function NoteInput({
     const [createNote, { isLoading: isCreating }] = useCreateNoteMutation();
     const [updateNote, { isLoading: isUpdating }] = useUpdateNoteMutation();
     const [shareNote] = useShareNoteMutation();
+    const [scheduleReminder] = useScheduleReminderMutation();
 
     // Refs
     const mainRef = useRef<HTMLDivElement>(null);
@@ -294,6 +296,11 @@ export default function NoteInput({
                         emails: selectedUsers.map((user) => user.email),
                     }).unwrap();
                     console.log('Note shared successfully');
+                }
+
+                if (savedNoteId && reminder) {
+                    await scheduleReminder().unwrap();
+                    console.log('Reminder Scheduled');
                 }
 
                 onSuccess?.();
