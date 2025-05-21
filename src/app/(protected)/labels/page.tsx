@@ -8,6 +8,8 @@ import {
 } from '@/redux/api/labelsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import styles from '@/styles/app/EditLabelsPage.module.scss';
+import { useLabelPageCommands } from '@/voice-assistant/commands/label/labelPageCommands';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -142,6 +144,27 @@ const EditLabelsPage = () => {
         }
     };
 
+    // Initialize voice commands for note input
+    const { isActive } = usePageVoiceCommands(
+        {
+            '/labels': useLabelPageCommands({
+                labels: labels.map((label) => ({
+                    id: parseInt(label.id) || undefined,
+                    name: label.name,
+                })),
+                state: {
+                    setNewLabelName,
+                },
+                handlers: {
+                    createLabel,
+                    handleDeleteLabel,
+                    handleRenameLabel,
+                },
+            }),
+        },
+        { debug: true, requireWakeWord: true }
+    );
+
     if (userLoading) {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
@@ -244,6 +267,24 @@ const EditLabelsPage = () => {
                     ))}
                 </div>
             </div>
+            {isActive && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '80px',
+                        right: '20px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '14px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                        zIndex: 100,
+                    }}
+                >
+                    Labels voice commands active
+                </div>
+            )}
         </div>
     );
 };

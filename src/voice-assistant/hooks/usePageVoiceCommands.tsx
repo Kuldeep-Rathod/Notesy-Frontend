@@ -72,7 +72,9 @@ const usePageVoiceCommands = (
             const globalActive = customEvent.detail.isActive;
             const isDashboard = pathname.startsWith('/dashboard');
             const isArchive = pathname.startsWith('/archive');
-            const shouldActivate = globalActive && (isDashboard || isArchive);
+            const islabels = pathname.startsWith('/labels');
+            const shouldActivate =
+                globalActive && (isDashboard || isArchive || islabels);
 
             setIsActive(shouldActivate);
 
@@ -93,8 +95,9 @@ const usePageVoiceCommands = (
         const globalActiveNow = (window as any).voiceAssistantActive ?? false;
         const isDashboardNow = pathname.startsWith('/dashboard');
         const isArchiveNow = pathname.startsWith('/archive');
+        const isLabelsNow = pathname.startsWith('/labels');
         const shouldActivateNow =
-            globalActiveNow && (isDashboardNow || isArchiveNow);
+            globalActiveNow && (isDashboardNow || isArchiveNow || isLabelsNow);
 
         setIsActive(shouldActivateNow);
 

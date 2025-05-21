@@ -365,8 +365,6 @@ export const useNoteCommands = ({
                     handlers.handleToggleLabel(cleanLabelName);
                 }
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
 
         // Checkbox Commands
@@ -389,8 +387,6 @@ export const useNoteCommands = ({
                     })
                 );
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
         {
             command: ['mark task * as done', 'complete task *', 'check task *'],
@@ -419,8 +415,6 @@ export const useNoteCommands = ({
                     );
                 }
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
         {
             command: ['show checkboxes', 'show tasks', 'show list'],
@@ -443,8 +437,6 @@ export const useNoteCommands = ({
         {
             command: 'set colour *',
             callback: (fullPhrase: string) => {},
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
         },
     ];
 };
