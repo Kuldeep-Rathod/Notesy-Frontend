@@ -24,11 +24,14 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
 import { usePathname } from 'next/navigation';
-import { selectNoteInput } from '@/redux/reducer/noteInputReducer';
+import {
+    resetNoteInput,
+    selectNoteInput,
+} from '@/redux/reducer/noteInputReducer';
 import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 
@@ -51,6 +54,8 @@ const NotesContainer = ({
     onSearchQueryChange,
     onModalStateChange,
 }: NotesContainerProps = {}) => {
+    const dispatch = useDispatch();
+
     const { labels } = useSelector(selectNoteInput);
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
@@ -271,6 +276,7 @@ const NotesContainer = ({
         setEditingNote(null);
         setIsModalOpen(false);
         onModalStateChange?.(false);
+        dispatch(resetNoteInput());
     };
 
     // Add event listener for Escape key to close modal

@@ -325,16 +325,20 @@ export default function NoteToolbar({
                             <div
                                 key={key}
                                 data-bg-color={key}
-                                style={{ backgroundColor: value }}
+                                style={{ backgroundColor: value || '#fff' }}
                                 onClick={() => {
                                     colorMenu.bgColor(value);
                                     dispatch(toggleColorMenu());
                                 }}
-                                className={`w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all duration-200 ${
-                                    value === '' ? 'border border-gray-300' : ''
+                                className={`w-12 h-12 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all duration-200 flex items-center justify-center text-xs font-medium text-center ${
+                                    value === ''
+                                        ? 'border border-gray-300 text-gray-600'
+                                        : 'text-black'
                                 }`}
                                 title={key}
-                            ></div>
+                            >
+                                {key}
+                            </div>
                         ))}
                     </div>
                     <div className='grid grid-cols-4 gap-2'>

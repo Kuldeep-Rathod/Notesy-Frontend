@@ -1,5 +1,6 @@
 import { quickOptions } from '@/components/notes/input/ReminderPicker';
 import { LabelI } from '@/interfaces/labels';
+import { bgColors } from '@/interfaces/tooltip';
 import { useGetAllUsersQuery } from '@/redux/api/userAPI';
 import {
     addChecklist,
@@ -7,6 +8,7 @@ import {
     closeReminderMenu,
     removeCollaborator,
     selectNoteInput,
+    setBgColor,
     setCollaboratorSearchTerm,
     setReminder,
     setSearchQuery,
@@ -438,7 +440,18 @@ export const useNoteCommands = ({
         },
         {
             command: 'set colour *',
-            callback: (fullPhrase: string) => {},
+            callback: (fullPhrase: string) => {
+                const spokenColor = fullPhrase.split(' ').pop()?.toLowerCase(); // Get last word, e.g., "red"
+
+                // Check if the spoken color exists in bgColors
+                if (spokenColor && spokenColor in bgColors) {
+                    const hexColor =
+                        bgColors[spokenColor as keyof typeof bgColors];
+                    dispatch(setBgColor(hexColor));
+                } else {
+                    console.warn(`Unknown color: ${spokenColor}`);
+                }
+            },
         },
     ];
 };
