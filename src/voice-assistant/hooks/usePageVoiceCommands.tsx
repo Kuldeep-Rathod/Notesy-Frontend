@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import SpeechRecognition, {
-    useSpeechRecognition,
-} from 'react-speech-recognition';
-import { useSelector } from 'react-redux';
 import { selectNoteInput } from '@/redux/reducer/noteInputReducer';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useSpeechRecognition } from 'react-speech-recognition';
 
 type VoiceCommand = {
     command: string | string[];
@@ -69,6 +67,7 @@ const usePageVoiceCommands = (
             const isReminder = pathname.startsWith('/reminder');
             const isArchive = pathname.startsWith('/archive');
             const isLabels = pathname.startsWith('/labels');
+            const isTrash = pathname.startsWith('/trash');
             const isLabelPage = labelNames.includes(cleanPath);
 
             const shouldActivate =
@@ -77,7 +76,8 @@ const usePageVoiceCommands = (
                     isArchive ||
                     isReminder ||
                     isLabelPage ||
-                    isLabels);
+                    isLabels ||
+                    isTrash);
 
             setIsActive(shouldActivate);
 
@@ -99,6 +99,7 @@ const usePageVoiceCommands = (
         const isReminderNow = pathname.startsWith('/reminder');
         const isArchiveNow = pathname.startsWith('/archive');
         const isLabelsNow = pathname.startsWith('/labels');
+        const isTrashNow = pathname.startsWith('/trash');
         const isLabelPageNow = labelNames.includes(cleanPathNow);
 
         const shouldActivateNow =
@@ -107,15 +108,16 @@ const usePageVoiceCommands = (
                 isArchiveNow ||
                 isReminderNow ||
                 isLabelPageNow ||
-                isLabelsNow);
+                isLabelsNow ||
+                isTrashNow);
 
         setIsActive(shouldActivateNow);
 
-        if (debug) {
-            console.log(
-                `[VoiceAssistant Hook] Initial mount — Path: ${pathname}, Global: ${globalActiveNow}, Hook active: ${shouldActivateNow}`
-            );
-        }
+        // if (debug) {
+        //     console.log(
+        //         `[VoiceAssistant Hook] Initial mount — Path: ${pathname}, Global: ${globalActiveNow}, Hook active: ${shouldActivateNow}`
+        //     );
+        // }
 
         return () => {
             window.removeEventListener(

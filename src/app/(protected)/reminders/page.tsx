@@ -1,36 +1,22 @@
 'use client';
 
 import NotesContainer from '@/components/notes/NotesContainer';
-import '@/styles/components/notes/_noteCard.scss'; // Reuse existing SCSS
-import { useRef, useState } from 'react';
+import '@/styles/components/notes/_noteCard.scss';
+import { useState } from 'react';
 
 const ReminderNotesPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
-    const searchInputRef = useRef<HTMLInputElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const forwardRefs = (container: HTMLDivElement | null) => {
-        if (container) {
-            containerRef.current = container;
-            const searchInput = container.querySelector('input.search-input');
-            if (searchInput instanceof HTMLInputElement) {
-                searchInputRef.current = searchInput;
-            }
-        }
-    };
 
     return (
         <div>
-            <div ref={forwardRefs}>
-                <NotesContainer
-                    initialViewType={viewType}
-                    initialSearchQuery={searchQuery}
-                    onViewTypeChange={setViewType}
-                    onSearchQueryChange={setSearchQuery}
-                    filterType='reminder'
-                />
-            </div>
+            <NotesContainer
+                initialViewType={viewType}
+                initialSearchQuery={searchQuery}
+                onViewTypeChange={setViewType}
+                onSearchQueryChange={setSearchQuery}
+                filterType='reminder'
+            />
         </div>
     );
 };

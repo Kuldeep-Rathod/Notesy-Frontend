@@ -27,6 +27,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
+import { usePathname } from 'next/navigation';
+import { selectNoteInput } from '@/redux/reducer/noteInputReducer';
+import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -47,6 +51,7 @@ const NotesContainer = ({
     onSearchQueryChange,
     onModalStateChange,
 }: NotesContainerProps = {}) => {
+    const { labels } = useSelector(selectNoteInput);
     const user = useSelector((state: RootState) => state.auth.user);
     const uid = user?.uid;
 
@@ -396,6 +401,30 @@ const NotesContainer = ({
             transition: { duration: 0.2 },
         },
     };
+
+    const pathname = usePathname();
+    const path = pathname.slice(1);
+
+    const isLabelRoute = labels.some((label) => label.name === path);
+
+    const notesContainerCommands = getNotesContainerCommands({
+        refs: { searchInputRef },
+        setters: {
+            setSearchQuery: handleSearchQueryChange,
+            setViewType: handleViewTypeChange,
+        },
+    });
+
+    const {} = usePageVoiceCommands(
+        {
+            '/dashboard': notesContainerCommands,
+            '/archive': notesContainerCommands,
+            '/reminders': notesContainerCommands,
+            '/trash': notesContainerCommands,
+            ...(isLabelRoute ? { [pathname]: notesContainerCommands } : {}),
+        },
+        { debug: true, requireWakeWord: true }
+    );
 
     return (
         <div className='w-full max-w-7xl mx-auto px-4 py-6'>
