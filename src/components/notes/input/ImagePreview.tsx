@@ -68,6 +68,10 @@ export const ImagePreviewModal = ({
             <Image
                 src={imageUrl}
                 alt='Preview'
+                width={1200}
+                height={800}
+                priority
+                quality={90}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     maxWidth: '90%',
@@ -75,7 +79,10 @@ export const ImagePreviewModal = ({
                     objectFit: 'contain',
                     borderRadius: '8px',
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                    width: 'auto',
+                    height: 'auto',
                 }}
+                unoptimized
             />
         </div>
     );
@@ -128,6 +135,8 @@ export const ImagePreview = ({
                         <Image
                             src={imageUrl}
                             alt={`Preview ${index + 1}`}
+                            width={80}
+                            height={80}
                             onClick={() => onImageClick(imageUrl)}
                             style={{
                                 width: '80px',

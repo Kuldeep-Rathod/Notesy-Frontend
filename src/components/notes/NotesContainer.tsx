@@ -4,6 +4,7 @@ import { NoteI } from '@/interfaces/notes';
 import {
     useCreateNoteMutation,
     useDeleteNoteMutation,
+    useDeleteSingleImageMutation,
     useGetUserNotesQuery,
     useMoveNoteToBinMutation,
     useRestoreNoteMutation,
@@ -77,6 +78,8 @@ const NotesContainer = ({
     const [moveToBin] = useMoveNoteToBinMutation();
     const [restoreNote] = useRestoreNoteMutation();
     const [deleteNote] = useDeleteNoteMutation();
+    const [deleteSingleImage, { isLoading: isImageDeleting }] =
+        useDeleteSingleImageMutation();
 
     // UI state
     const [viewType, setViewType] = useState<'grid' | 'list'>(initialViewType);
@@ -1169,11 +1172,78 @@ const NotesContainer = ({
                                                 onImageClick={(imageUrl) =>
                                                     setPreviewImageUrl(imageUrl)
                                                 }
-                                                onImageRemove={(index) => {
-                                                    console.log(
-                                                        'Remove image at index:',
-                                                        index
-                                                    );
+                                                onImageRemove={async (
+                                                    index
+                                                ) => {
+                                                    try {
+                                                        const imageToDelete =
+                                                            editingNote
+                                                                .images?.[
+                                                                index
+                                                            ];
+
+                                                        const updatedImages = [
+                                                            ...(editingNote.images ||
+                                                                []),
+                                                        ];
+                                                        updatedImages.splice(
+                                                            index,
+                                                            1
+                                                        );
+
+                                                        setEditingNote({
+                                                            ...editingNote,
+                                                            images: updatedImages,
+                                                        });
+
+                                                        if (editingNote._id) {
+                                                            let imageUrl = '';
+
+                                                            // Handle different image types
+                                                            if (
+                                                                typeof imageToDelete ===
+                                                                'string'
+                                                            ) {
+                                                                imageUrl =
+                                                                    imageToDelete;
+                                                            } else if (
+                                                                imageToDelete instanceof
+                                                                File
+                                                            ) {
+                                                                imageUrl =
+                                                                    imageToDelete.name;
+                                                            } else {
+                                                                console.warn(
+                                                                    'Unknown image type:',
+                                                                    imageToDelete
+                                                                );
+                                                                return;
+                                                            }
+
+                                                            console.log(
+                                                                'Deleting image:',
+                                                                {
+                                                                    noteId: editingNote._id,
+                                                                    imageUrl,
+                                                                }
+                                                            );
+
+                                                            await deleteSingleImage(
+                                                                {
+                                                                    id: editingNote._id,
+                                                                    imageUrl:
+                                                                        imageUrl,
+                                                                }
+                                                            ).unwrap();
+                                                        }
+
+                                                        refetch();
+                                                    } catch (error) {
+                                                        console.error(
+                                                            'Failed to delete image:',
+                                                            error
+                                                        );
+                                                    }
                                                 }}
                                             />
                                         </div>

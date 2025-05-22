@@ -23,6 +23,21 @@ export const notesAPI = createApi({
             invalidatesTags: ['Note'],
         }),
 
+        deleteSingleImage: builder.mutation<
+            any,
+            { id: string; imageUrl: string }
+        >({
+            query: ({ id, imageUrl }) => {
+                const cleanImageUrl = encodeURIComponent(imageUrl);
+
+                return {
+                    url: `notes/image/${id}?imageUrl=${cleanImageUrl}`,
+                    method: 'DELETE',
+                };
+            },
+            invalidatesTags: ['Note'],
+        }),
+
         scheduleReminder: builder.mutation<any, void>({
             query: () => ({
                 url: 'reminder/schedule',
@@ -186,6 +201,7 @@ export const notesAPI = createApi({
 export const {
     useNoteStatsQuery,
     useCreateNoteMutation,
+    useDeleteSingleImageMutation,
     useGetUserNotesQuery,
     useGetTrashedNotesQuery,
     useGetArchivedNotesQuery,
