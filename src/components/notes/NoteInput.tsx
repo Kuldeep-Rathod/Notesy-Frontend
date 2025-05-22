@@ -16,6 +16,7 @@ import {
 import {
     addChecklist,
     removeChecklist,
+    removeImage,
     resetNoteInput,
     selectNoteInput,
     setActiveField,
@@ -38,16 +39,17 @@ import { NoteInputProps } from '@/types/types';
 import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
 import { useDispatch, useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
 import { CheckboxList } from './input/CheckboxList';
+import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import LabelMenu from './input/LabelMenu';
 import NoteToolbar from './input/NoteToolbar';
-import { usePathname } from 'next/navigation';
 
 export default function NoteInput({
     isEditing = false,
@@ -55,6 +57,9 @@ export default function NoteInput({
     onSuccess,
 }: NoteInputProps) {
     const dispatch = useDispatch();
+
+    // State for image preview modal
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Redux state
     const {
@@ -119,6 +124,19 @@ export default function NoteInput({
 
     // For tracking if we've already initialized for the current note
     const noteInitializedRef = useRef<string | null>(null);
+
+    // Image handling functions
+    const handleImageClick = (imageUrl: string) => {
+        setSelectedImage(imageUrl);
+    };
+
+    const handleImageRemove = (index: number) => {
+        dispatch(removeImage(index));
+    };
+
+    const closeImageModal = () => {
+        setSelectedImage(null);
+    };
 
     // Toggle note visibility
     const toggleNoteVisibility = useCallback((condition: boolean) => {
@@ -272,7 +290,8 @@ export default function NoteInput({
         if (
             noteObj.noteTitle?.length ||
             noteObj.noteBody?.length ||
-            checklists.length
+            checklists.length ||
+            images.length
         ) {
             try {
                 let savedNoteId: string | undefined;
@@ -839,6 +858,13 @@ export default function NoteInput({
                         spellCheck
                     ></div>
 
+                    {/* Image Preview Section */}
+                    <ImagePreview
+                        images={images}
+                        onImageClick={handleImageClick}
+                        onImageRemove={handleImageRemove}
+                    />
+
                     {/* Note or checklists */}
                     {isCbox ? (
                         <>
@@ -952,6 +978,14 @@ export default function NoteInput({
                 <LabelMenu
                     isEditing={isEditing}
                     noteToEdit={noteToEdit}
+                />
+            )}
+
+            {/* Image Preview Modal */}
+            {selectedImage && (
+                <ImagePreviewModal
+                    imageUrl={selectedImage}
+                    onClose={closeImageModal}
                 />
             )}
 

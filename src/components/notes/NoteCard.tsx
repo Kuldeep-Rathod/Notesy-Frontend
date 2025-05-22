@@ -129,6 +129,39 @@ const NoteCard = ({
                 )}
             </div>
 
+            {note.images && note.images.length > 0 && (
+                <div
+                    className='image-preview-container'
+                    onClick={handleEditClick}
+                >
+                    <div className='image-preview'>
+                        <Image
+                            src={
+                                typeof note.images[0] === 'string'
+                                    ? note.images[0]
+                                    : URL.createObjectURL(
+                                          note.images[0] as File
+                                      )
+                            }
+                            alt='Note attachment'
+                            width={200}
+                            height={150}
+                            className='object-cover rounded-t-lg'
+                            style={{
+                                width: '100%',
+                                height: '150px',
+                                objectFit: 'cover',
+                            }}
+                        />
+                    </div>
+                    {note.images.length > 1 && (
+                        <div className='image-count-badge'>
+                            +{note.images.length - 1} more
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div
                 className='note-content'
                 onClick={handleEditClick}

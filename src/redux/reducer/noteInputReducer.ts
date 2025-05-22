@@ -322,6 +322,9 @@ export const noteInputReducer = createSlice({
         setImagePreviews: (state, action: PayloadAction<string[]>) => {
             state.imagePreviews = action.payload;
         },
+        removeImage: (state, action: PayloadAction<number>) => {
+            state.images = state.images.filter((_, index) => index !== action.payload);
+        },
     },
 });
 
@@ -362,6 +365,7 @@ export const {
     closeReminderMenu,
     setImages,
     setImagePreviews,
+    removeImage,
 } = noteInputReducer.actions;
 
 export default noteInputReducer.reducer;

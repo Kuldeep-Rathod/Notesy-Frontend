@@ -34,6 +34,7 @@ import {
 } from '@/redux/reducer/noteInputReducer';
 import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -82,6 +83,7 @@ const NotesContainer = ({
     const [editingNote, setEditingNote] = useState<NoteI | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+    const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
     // When the props change, update the state
     useEffect(() => {
@@ -972,6 +974,7 @@ const NotesContainer = ({
             )}
 
             {/* Note edit/create modal */}
+
             <AnimatePresence>
                 {isModalOpen && editingNote && (
                     <motion.div
@@ -1154,10 +1157,31 @@ const NotesContainer = ({
                                         refetch();
                                     }}
                                 />
+                                {/* Image Preview Section - Add this after the labels */}
+                                {editingNote.images &&
+                                    editingNote.images.length > 0 && (
+                                        <div className='px-2 py-2'>
+                                            <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                                                Attached Images
+                                            </h3>
+                                            <ImagePreview
+                                                images={editingNote.images}
+                                                onImageClick={(imageUrl) =>
+                                                    setPreviewImageUrl(imageUrl)
+                                                }
+                                                onImageRemove={(index) => {
+                                                    console.log(
+                                                        'Remove image at index:',
+                                                        index
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                             </div>
 
                             <div className='modal-footer'>
-                                <div className='modal-date pt-4 border-t border-gray-700 px-2  text-sm text-gray-900 '>
+                                <div className='modal-date pt-4 border-t border-gray-700 px-2 text-sm text-gray-900'>
                                     {editingNote.updatedAt ? (
                                         <span>
                                             Edited{' '}
@@ -1178,6 +1202,14 @@ const NotesContainer = ({
                             </div>
                         </motion.div>
                     </motion.div>
+                )}
+
+                {/* Image Preview Modal */}
+                {previewImageUrl && (
+                    <ImagePreviewModal
+                        imageUrl={previewImageUrl}
+                        onClose={() => setPreviewImageUrl(null)}
+                    />
                 )}
             </AnimatePresence>
         </div>
