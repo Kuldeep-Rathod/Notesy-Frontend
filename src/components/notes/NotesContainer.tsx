@@ -413,6 +413,8 @@ const NotesContainer = ({
             setSearchQuery: handleSearchQueryChange,
             setViewType: handleViewTypeChange,
         },
+        notes: filteredNotes,
+        openNote,
     });
 
     const {} = usePageVoiceCommands(

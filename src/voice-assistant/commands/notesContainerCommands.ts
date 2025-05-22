@@ -1,4 +1,5 @@
 import { RefObject } from 'react';
+import { NoteI } from '@/interfaces/notes';
 
 interface NotesContainerCommandsParams {
     refs: {
@@ -8,11 +9,15 @@ interface NotesContainerCommandsParams {
         setSearchQuery: (query: string) => void;
         setViewType: (view: 'grid' | 'list') => void;
     };
+    notes: NoteI[];
+    openNote: (note: NoteI) => void;
 }
 
 export const getNotesContainerCommands = ({
     refs,
     setters,
+    notes,
+    openNote,
 }: NotesContainerCommandsParams) => [
     {
         command: ['search *', 'find *', 'look for *'],
@@ -78,5 +83,29 @@ export const getNotesContainerCommands = ({
         },
         isFuzzyMatch: true,
         fuzzyMatchingThreshold: 0.7,
+    },
+    {
+        command: [
+            'open note *',
+            'edit not *',
+            'open the note *',
+            'edit the note *',
+        ],
+        callback: (title: string) => {
+            if (!title?.trim() || !notes?.length) return;
+
+            console.log('title', title);
+
+            const normalizedTitle = title.toLowerCase().trim();
+            const matchingNote = notes.find((note) =>
+                note.noteTitle?.toLowerCase().includes(normalizedTitle)
+            );
+
+            if (matchingNote) {
+                openNote(matchingNote);
+            }
+        },
+        isFuzzyMatch: false,
+        matchInterim: false,
     },
 ];
