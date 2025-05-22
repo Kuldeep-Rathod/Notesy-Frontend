@@ -47,6 +47,7 @@ import SpeechRecognition, {
 import { CheckboxList } from './input/CheckboxList';
 import LabelMenu from './input/LabelMenu';
 import NoteToolbar from './input/NoteToolbar';
+import { usePathname } from 'next/navigation';
 
 export default function NoteInput({
     isEditing = false,
@@ -695,25 +696,34 @@ export default function NoteInput({
         };
     }, [isListening]);
 
-    // Initialize voice commands for note input
+    const pathname = usePathname();
+    const path = pathname.slice(1);
+
+    const isLabelRoute = labels.some((label) => label.name === path);
+
+    const commonNoteCommands = useNoteCommands({
+        refs: {
+            noteTitleRef,
+            noteBodyRef,
+            labelSearchRef,
+        },
+        labels: labels.map((label) => ({
+            name: label.name,
+            added: label.added || false,
+        })),
+        handlers: {
+            onAddLabel: addNewLabel,
+            handleToggleLabel,
+            saveNote,
+        },
+    });
+
     const { isActive: isNoteVoiceActive } = usePageVoiceCommands(
         {
-            '/dashboard': useNoteCommands({
-                refs: {
-                    noteTitleRef,
-                    noteBodyRef,
-                    labelSearchRef,
-                },
-                labels: labels.map((label) => ({
-                    name: label.name,
-                    added: label.added || false,
-                })),
-                handlers: {
-                    onAddLabel: addNewLabel,
-                    handleToggleLabel,
-                    saveNote,
-                },
-            }),
+            '/dashboard': commonNoteCommands,
+            '/archive': commonNoteCommands,
+            '/reminders': commonNoteCommands,
+            ...(isLabelRoute ? { [pathname]: commonNoteCommands } : {}),
         },
         { debug: true, requireWakeWord: true }
     );

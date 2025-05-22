@@ -25,6 +25,7 @@ const VoiceRouter = () => {
         'profile',
         'labels',
         'reminders',
+        'statistics',
     ];
 
     // Merge labels into routes

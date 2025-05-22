@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
+import { useSelector } from 'react-redux';
+import { selectNoteInput } from '@/redux/reducer/noteInputReducer';
 
 type VoiceCommand = {
     command: string | string[];
@@ -19,11 +21,6 @@ type PageCommands = {
     [path: string]: VoiceCommand[];
 };
 
-/**
- * Hook for adding page-specific voice commands
- * @param pageCommands Object with page paths as keys and arrays of commands as values
- * @param options Additional options
- */
 const usePageVoiceCommands = (
     pageCommands: PageCommands,
     options: {
@@ -35,13 +32,13 @@ const usePageVoiceCommands = (
     const [isActive, setIsActive] = useState(false);
     const [lastTranscript, setLastTranscript] = useState('');
 
-    // Default options
+    const { labels } = useSelector(selectNoteInput); // ✅ Access Redux labels
+    const labelNames = labels.map((label) => label.name);
+
     const { debug = false, requireWakeWord = true } = options;
 
-    // Get commands for current page
     const currentPageCommands = pageCommands[pathname] || [];
 
-    // Add wake word filter if required
     const processedCommands = requireWakeWord
         ? currentPageCommands.map((cmd) => ({
               ...cmd,
@@ -57,24 +54,30 @@ const usePageVoiceCommands = (
           }))
         : currentPageCommands;
 
-    // Initialize speech recognition with current page commands
     const { transcript, browserSupportsSpeechRecognition } =
         useSpeechRecognition({
             commands: processedCommands,
         });
 
-    // Listen for wake word from the global voice router
-    // Automatically activate voice assistant for specific paths
-
     useEffect(() => {
         const handleVoiceActivation = (event: Event) => {
-            const customEvent = event as CustomEvent; // Cast the event to CustomEvent
+            const customEvent = event as CustomEvent;
             const globalActive = customEvent.detail.isActive;
+
+            const cleanPath = pathname.replace(/^\//, '');
             const isDashboard = pathname.startsWith('/dashboard');
+            const isReminder = pathname.startsWith('/reminder');
             const isArchive = pathname.startsWith('/archive');
-            const islabels = pathname.startsWith('/labels');
+            const isLabels = pathname.startsWith('/labels');
+            const isLabelPage = labelNames.includes(cleanPath);
+
             const shouldActivate =
-                globalActive && (isDashboard || isArchive || islabels);
+                globalActive &&
+                (isDashboard ||
+                    isArchive ||
+                    isReminder ||
+                    isLabelPage ||
+                    isLabels);
 
             setIsActive(shouldActivate);
 
@@ -85,19 +88,26 @@ const usePageVoiceCommands = (
             }
         };
 
-        // Listen for the `voiceAssistantStateChange` event on mount
         window.addEventListener(
             'voiceAssistantStateChange',
             handleVoiceActivation as EventListener
         );
 
-        // Immediately check if voice assistant is active on mount
         const globalActiveNow = (window as any).voiceAssistantActive ?? false;
+        const cleanPathNow = pathname.replace(/^\//, '');
         const isDashboardNow = pathname.startsWith('/dashboard');
+        const isReminderNow = pathname.startsWith('/reminder');
         const isArchiveNow = pathname.startsWith('/archive');
         const isLabelsNow = pathname.startsWith('/labels');
+        const isLabelPageNow = labelNames.includes(cleanPathNow);
+
         const shouldActivateNow =
-            globalActiveNow && (isDashboardNow || isArchiveNow || isLabelsNow);
+            globalActiveNow &&
+            (isDashboardNow ||
+                isArchiveNow ||
+                isReminderNow ||
+                isLabelPageNow ||
+                isLabelsNow);
 
         setIsActive(shouldActivateNow);
 
@@ -108,15 +118,13 @@ const usePageVoiceCommands = (
         }
 
         return () => {
-            // Cleanup the event listener when the component unmounts
             window.removeEventListener(
                 'voiceAssistantStateChange',
                 handleVoiceActivation as EventListener
             );
         };
-    }, [pathname, debug]);
+    }, [pathname, debug, labelNames]);
 
-    // Log transcripts in debug mode
     useEffect(() => {
         if (debug && transcript && transcript !== lastTranscript) {
             console.log(`Page voice command transcript: ${transcript}`);
