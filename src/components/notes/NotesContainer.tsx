@@ -424,6 +424,12 @@ const NotesContainer = ({
             setSearchQuery: handleSearchQueryChange,
             setViewType: handleViewTypeChange,
         },
+        handlers: {
+            handleMoveToTrash,
+            handleArchiveToggle,
+            handleCloneNote,
+            handlePinToggle
+        },
         notes: filteredNotes,
         openNote,
     });

@@ -9,6 +9,12 @@ interface NotesContainerCommandsParams {
         setSearchQuery: (query: string) => void;
         setViewType: (view: 'grid' | 'list') => void;
     };
+    handlers: {
+        handleMoveToTrash: (noteId: string) => void;
+        handleArchiveToggle: (noteId: string) => void;
+        handleCloneNote: (noteId: string) => void;
+        handlePinToggle: (noteId: string) => void;
+    };
     notes: NoteI[];
     openNote: (note: NoteI) => void;
 }
@@ -16,6 +22,7 @@ interface NotesContainerCommandsParams {
 export const getNotesContainerCommands = ({
     refs,
     setters,
+    handlers,
     notes,
     openNote,
 }: NotesContainerCommandsParams) => [
@@ -103,6 +110,86 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote) {
                 openNote(matchingNote);
+            }
+        },
+        isFuzzyMatch: false,
+        matchInterim: false,
+    },
+
+    {
+        command: ['delete note *', 'delete not *', 'delete the note *'],
+        callback: (title: string) => {
+            if (!title?.trim() || !notes?.length) return;
+
+            console.log('title', title);
+
+            const normalizedTitle = title.toLowerCase().trim();
+            const matchingNote = notes.find((note) =>
+                note.noteTitle?.toLowerCase().includes(normalizedTitle)
+            );
+
+            if (matchingNote && matchingNote._id) {
+                handlers.handleMoveToTrash(matchingNote._id);
+            }
+        },
+        isFuzzyMatch: false,
+        matchInterim: false,
+    },
+
+    {
+        command: ['archive note *', 'archive not *', 'archive the note *'],
+        callback: (title: string) => {
+            if (!title?.trim() || !notes?.length) return;
+
+            console.log('title', title);
+
+            const normalizedTitle = title.toLowerCase().trim();
+            const matchingNote = notes.find((note) =>
+                note.noteTitle?.toLowerCase().includes(normalizedTitle)
+            );
+
+            if (matchingNote && matchingNote._id) {
+                handlers.handleArchiveToggle(matchingNote._id);
+            }
+        },
+        isFuzzyMatch: false,
+        matchInterim: false,
+    },
+
+    {
+        command: ['copy not *', 'clone not *', 'clone the note *'],
+        callback: (title: string) => {
+            if (!title?.trim() || !notes?.length) return;
+
+            console.log('title', title);
+
+            const normalizedTitle = title.toLowerCase().trim();
+            const matchingNote = notes.find((note) =>
+                note.noteTitle?.toLowerCase().includes(normalizedTitle)
+            );
+
+            if (matchingNote && matchingNote._id) {
+                handlers.handleCloneNote(matchingNote._id);
+            }
+        },
+        isFuzzyMatch: false,
+        matchInterim: false,
+    },
+
+    {
+        command: ['pin the note *', 'pin not *', 'pin a note *'],
+        callback: (title: string) => {
+            if (!title?.trim() || !notes?.length) return;
+
+            console.log('title', title);
+
+            const normalizedTitle = title.toLowerCase().trim();
+            const matchingNote = notes.find((note) =>
+                note.noteTitle?.toLowerCase().includes(normalizedTitle)
+            );
+
+            if (matchingNote && matchingNote._id) {
+                handlers.handlePinToggle(matchingNote._id);
             }
         },
         isFuzzyMatch: false,
