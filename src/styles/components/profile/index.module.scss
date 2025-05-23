@@ -1,4 +1,5 @@
-@import './variables';
+@use 'sass:color';
+@use './variables' as *;
 
 .profileContainer {
     max-width: 1200px;
@@ -194,7 +195,7 @@
     color: white;
 
     &:hover:not(:disabled) {
-        background: darken($danger-color, 10%);
+        background: color.adjust($danger-color, $lightness: -10%);
     }
 }
 
