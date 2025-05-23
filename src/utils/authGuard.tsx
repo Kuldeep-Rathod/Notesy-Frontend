@@ -1,19 +1,27 @@
-// components/AuthGuard.tsx
 'use client';
 
 import { app } from '@/lib/firebase';
 import { setUser } from '@/redux/reducer/authReducer';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
+interface AuthGuardProps {
+    children: React.ReactNode;
+    loginPath?: string;
+    loadingComponent?: React.ReactNode;
+}
+
+export default function AuthGuard({
+    children,
+    loginPath = '/login',
+    loadingComponent = <div>Loading...</div>,
+}: AuthGuardProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
-
-    // const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
         const auth = getAuth(app);
@@ -27,17 +35,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         profilePicture: firebaseUser.photoURL ?? '',
                     })
                 );
+                setLoading(false);
             } else {
                 dispatch(setUser(null));
-                router.replace('/login'); // or '/sign-in'
+                if (pathname !== loginPath) {
+                    router.replace(loginPath);
+                }
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [dispatch, router]);
+    }, [dispatch, router, loginPath, pathname]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return loadingComponent;
 
     return <>{children}</>;
 }

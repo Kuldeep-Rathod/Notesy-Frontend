@@ -45,7 +45,7 @@ export default function DashboardLayout({
     };
 
     if (dbUserLoading) {
-        <div>loading</div>;
+        return <div>loading</div>;
     }
 
     const handleManagePlan = async () => {

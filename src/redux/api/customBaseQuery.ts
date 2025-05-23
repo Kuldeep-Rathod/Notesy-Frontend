@@ -1,4 +1,3 @@
-// services/customBaseQuery.ts
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getAuth } from 'firebase/auth';
 

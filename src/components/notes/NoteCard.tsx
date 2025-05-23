@@ -149,9 +149,10 @@ const NoteCard = ({
                             className='object-cover rounded-t-lg'
                             style={{
                                 width: '100%',
-                                height: '150px',
+                                height: 'auto',
                                 objectFit: 'cover',
                             }}
+                            priority
                         />
                     </div>
                     {note.images.length > 1 && (

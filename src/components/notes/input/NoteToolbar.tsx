@@ -1,13 +1,10 @@
 'use client';
 
-import { bgColors, bgImages } from '@/interfaces/tooltip';
 import {
     closeReminderMenu,
     selectNoteInput,
     setBgColor,
     setBgImage,
-    setImagePreviews,
-    setImages,
     setReminder,
     toggleArchive,
     toggleCbox,
@@ -31,20 +28,23 @@ import {
     UserPlus,
     Image as ImageIcon,
 } from 'lucide-react';
-import { ChangeEvent, useEffect, useRef } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
 import { ReminderPicker } from './ReminderPicker';
+import { bgColors, bgImages } from '@/interfaces/tooltip';
 
 interface NoteToolbarProps {
     onSaveClick: () => void;
     isEditing?: boolean;
+    onImageChange?: (files: File[]) => void;
 }
 
 export default function NoteToolbar({
     onSaveClick,
     isEditing = false,
+    onImageChange,
 }: NoteToolbarProps) {
     const dispatch = useDispatch();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,19 +87,9 @@ export default function NoteToolbar({
 
     const changeImageHandler = (e: ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        dispatch(setImages(files));
-        const previews: string[] = [];
-
-        files.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (typeof reader.result === 'string') {
-                    previews.push(reader.result);
-                    dispatch(setImagePreviews([...previews]));
-                }
-            };
-            reader.readAsDataURL(file);
-        });
+        if (onImageChange) {
+            onImageChange(files);
+        }
     };
 
     // Close reminder menu when clicking outside

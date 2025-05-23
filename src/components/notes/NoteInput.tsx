@@ -16,7 +16,6 @@ import {
 import {
     addChecklist,
     removeChecklist,
-    removeImage,
     resetNoteInput,
     selectNoteInput,
     setActiveField,
@@ -58,8 +57,10 @@ export default function NoteInput({
 }: NoteInputProps) {
     const dispatch = useDispatch();
 
-    // State for image preview modal
+    // State for image preview modal and images
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [images, setImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
     // Redux state
     const {
@@ -70,14 +71,19 @@ export default function NoteInput({
         isTrashed,
         isPinned,
         reminder,
-        images,
         isCbox,
         isCboxCompletedListCollapsed,
         isListening,
         transcript,
         activeField,
         inputLength,
-        tooltips: { labelMenuOpen },
+        tooltips: {
+            moreMenuOpen,
+            colorMenuOpen,
+            collaboratorMenuOpen,
+            reminderMenuOpen,
+            labelMenuOpen,
+        },
         searchQuery,
         noteAppearance: { bgColor, bgImage },
         collaborators: { selectedUsers },
@@ -130,8 +136,27 @@ export default function NoteInput({
         setSelectedImage(imageUrl);
     };
 
+    // Handle image changes
+    const handleImageChange = (files: File[]) => {
+        setImages(files);
+        const previews: string[] = [];
+
+        files.forEach((file) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    previews.push(reader.result);
+                    setImagePreviews([...previews]);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Handle image removal
     const handleImageRemove = (index: number) => {
-        dispatch(removeImage(index));
+        setImages(images.filter((_, i) => i !== index));
+        setImagePreviews(imagePreviews.filter((_, i) => i !== index));
     };
 
     const closeImageModal = () => {
@@ -279,9 +304,7 @@ export default function NoteInput({
         // Add images
         if (images.length > 0) {
             images.forEach((img) => {
-                if (typeof img !== 'string') {
-                    formData.append('images', img); // File
-                }
+                formData.append('images', img);
             });
         }
 
@@ -860,7 +883,7 @@ export default function NoteInput({
 
                     {/* Image Preview Section */}
                     <ImagePreview
-                        images={images}
+                        images={imagePreviews}
                         onImageClick={handleImageClick}
                         onImageRemove={handleImageRemove}
                     />
@@ -971,6 +994,7 @@ export default function NoteInput({
                 <NoteToolbar
                     onSaveClick={saveNote}
                     isEditing={isEditing}
+                    onImageChange={handleImageChange}
                 />
             </div>
 

@@ -67,6 +67,7 @@ export const ImagePreviewModal = ({
             </button>
             <Image
                 src={imageUrl}
+                key={imageUrl}
                 alt='Preview'
                 width={1200}
                 height={800}
@@ -79,7 +80,7 @@ export const ImagePreviewModal = ({
                     objectFit: 'contain',
                     borderRadius: '8px',
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-                    width: 'auto',
+                    width: '1200px',
                     height: 'auto',
                 }}
                 unoptimized
