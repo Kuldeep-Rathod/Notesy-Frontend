@@ -211,11 +211,20 @@ export default function NoteInput({
                 '[data-is-tooltip-open="true"]'
             );
 
+            // Check if click is on toolbar or its popovers
+            const isToolbarClick =
+                (event.target as Element).closest('.note-input__editor') !==
+                null;
+            const isPopoverClick =
+                (event.target as Element).closest(
+                    '[data-radix-popper-content-wrapper]'
+                ) !== null;
+
             if (isTooltipOpen !== null) {
-                if (!el?.contains(event.target as Node)) {
-                    // Handle tooltip close
+                if (!el?.contains(event.target as Node) && !isPopoverClick) {
+                    // Handle tooltip close if needed
                 }
-            } else if (!el?.contains(event.target as Node)) {
+            } else if (!el?.contains(event.target as Node) && !isPopoverClick) {
                 closeNote();
             }
         },
@@ -922,13 +931,6 @@ export default function NoteInput({
                     onImageChange={handleImageChange}
                 />
             </div>
-
-            {labelMenuOpen && (
-                <LabelMenu
-                    isEditing={isEditing}
-                    noteToEdit={noteToEdit}
-                />
-            )}
 
             {/* Image Preview Modal */}
             {selectedImage && (

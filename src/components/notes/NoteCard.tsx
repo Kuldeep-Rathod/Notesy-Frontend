@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { AnimatedTooltip } from '../ui/animated-tooltip';
 import { bgColors } from '@/interfaces/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 interface NoteCardProps {
     note: NoteI;
@@ -257,28 +258,31 @@ const NoteCard = ({
                             )}
                         </button>
 
-                        <div className='color-picker-container'>
-                            <button
-                                className='action-button'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setColorMenuOpen(!colorMenuOpen);
-                                    setMoreMenuOpen(false);
-                                }}
-                                aria-label='Change color'
-                            >
-                                <Palette size={18} />
-                            </button>
-                            {colorMenuOpen && (
-                                <div
-                                    className='color-picker'
-                                    onClick={(e) => e.stopPropagation()}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <button
+                                    className='action-button'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMoreMenuOpen(false);
+                                    }}
+                                    aria-label='Change color'
                                 >
+                                    <Palette size={18} />
+                                </button>
+                            </PopoverTrigger>
+
+                            <PopoverContent
+                                className='p-2 w-auto bg-white rounded-md shadow-lg border'
+                                onClick={(e) => e.stopPropagation()}
+                                align='end'
+                            >
+                                <div className='flex flex-wrap gap-2 max-w-[160px]'>
                                     {Object.entries(colorOptions).map(
                                         ([key, value]) => (
                                             <div
                                                 key={key}
-                                                className='color-option'
+                                                className='w-6 h-6 rounded-full cursor-pointer border border-gray-200'
                                                 style={{
                                                     backgroundColor: value,
                                                 }}
@@ -290,8 +294,8 @@ const NoteCard = ({
                                         )
                                     )}
                                 </div>
-                            )}
-                        </div>
+                            </PopoverContent>
+                        </Popover>
 
                         <button
                             className='action-button'
@@ -305,41 +309,46 @@ const NoteCard = ({
                         </button>
 
                         <div className='more-menu-container'>
-                            <button
-                                className='action-button'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMoreMenuOpen(!moreMenuOpen);
-                                    setColorMenuOpen(false);
-                                }}
-                                aria-label='More options'
-                            >
-                                <EllipsisVertical size={18} />
-                            </button>
-                            {moreMenuOpen && (
-                                <div
-                                    className='more-menu'
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMoreMenuOpen(!moreMenuOpen);
+                                            setColorMenuOpen(false);
+                                        }}
+                                        className='action-button'
+                                    >
+                                        <EllipsisVertical size={18} />
+                                    </button>
+                                </PopoverTrigger>
+
+                                <PopoverContent
+                                    align='end'
+                                    className='w-auto p-0 bg-white rounded-md shadow-lg border'
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    <button
-                                        onClick={() => {
-                                            if (onClone && note._id)
-                                                onClone(note._id);
-                                            setMoreMenuOpen(false);
-                                        }}
-                                    >
-                                        Make a copy
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (onEdit) onEdit(note);
-                                            setMoreMenuOpen(false);
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-                                </div>
-                            )}
+                                    <div className='flex flex-col'>
+                                        <button
+                                            onClick={() => {
+                                                if (onClone && note._id)
+                                                    onClone(note._id);
+                                            }}
+                                            className='px-4 py-2 text-left hover:bg-gray-100'
+                                        >
+                                            Make a copy
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (onEdit) onEdit(note);
+                                            }}
+                                            className='px-4 py-2 text-left hover:bg-gray-100'
+                                        >
+                                            Edit
+                                        </button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </>
                 ) : (

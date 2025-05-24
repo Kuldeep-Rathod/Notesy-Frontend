@@ -1,18 +1,18 @@
 'use client';
 
 import {
-    closeReminderMenu,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { bgColors, bgImages } from '@/interfaces/tooltip';
+import {
     selectNoteInput,
     setBgColor,
     setBgImage,
-    setReminder,
     toggleArchive,
     toggleCbox,
     toggleCollaboratorMenu,
-    toggleColorMenu,
-    toggleLabelMenu,
-    toggleMoreMenu,
-    toggleReminderMenu,
     toggleTrash,
 } from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
@@ -21,94 +21,92 @@ import {
     Archive,
     Bell,
     EllipsisVertical,
+    Image as ImageIcon,
     Palette,
     Redo2,
     Trash2,
     Undo2,
     UserPlus,
-    Image as ImageIcon,
 } from 'lucide-react';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, MouseEvent, useRef, useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { CollaboratorMenu } from './CollaboratorMenu';
+import LabelMenu from './LabelMenu';
 import { ReminderPicker } from './ReminderPicker';
-import { bgColors, bgImages } from '@/interfaces/tooltip';
 
 interface NoteToolbarProps {
     onSaveClick: () => void;
     isEditing?: boolean;
     onImageChange?: (files: File[]) => void;
+    noteToEdit?: { _id?: string };
 }
 
 export default function NoteToolbar({
     onSaveClick,
     isEditing = false,
     onImageChange,
+    noteToEdit,
 }: NoteToolbarProps) {
     const dispatch = useDispatch();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+    const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false);
+
     const reminderString = useSelector(
         (state: RootState) => state.noteInput.reminder
     );
     const reminder = reminderString ? new Date(reminderString) : null;
 
     // Redux state
-    const {
-        isCbox,
-        isTrashed,
-        tooltips: {
-            moreMenuOpen,
-            colorMenuOpen,
-            collaboratorMenuOpen,
-            reminderMenuOpen,
-        },
-    } = useSelector(selectNoteInput);
+    const { isCbox, isTrashed } = useSelector(selectNoteInput);
 
-    const handleArchive = () => {
+    const handleArchive = (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         dispatch(toggleArchive());
     };
 
-    const handleCollaboratorClick = () => {
-        dispatch(toggleCollaboratorMenu());
-    };
-
-    const handleReminderClick = () => {
-        dispatch(toggleReminderMenu());
-    };
-
-    const handleImageClick = () => {
+    const handleImageClick = (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         fileInputRef.current?.click();
     };
 
     const changeImageHandler = (e: ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
         const files = Array.from(e.target.files || []);
         if (onImageChange) {
             onImageChange(files);
         }
     };
 
-    // Close reminder menu when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as HTMLElement;
-            if (
-                !target.closest('.reminder-menu') &&
-                !target.closest('.reminder-button')
-            ) {
-                dispatch(closeReminderMenu());
-            }
-        };
+    const handleCollaboratorClose = (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dispatch(toggleCollaboratorMenu());
+    };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [dispatch]);
+    const handleLabelMenuOpen = (e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsMoreMenuOpen(false);
+        setTimeout(() => {
+            setIsLabelMenuOpen(true);
+        }, 50);
+    };
+
+    const handleLabelMenuClose = () => {
+        setIsLabelMenuOpen(false);
+    };
 
     // More menu actions
     const moreMenu = {
-        trash: () => {
+        trash: (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsMoreMenuOpen(false);
             if (isEditing) {
                 console.log('Trashing note');
             } else {
@@ -116,20 +114,30 @@ export default function NoteToolbar({
                 onSaveClick();
             }
         },
-        clone: () => {
+        clone: (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsMoreMenuOpen(false);
             onSaveClick();
         },
-        toggleCbox: () => {
+        toggleCbox: (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsMoreMenuOpen(false);
             dispatch(toggleCbox());
         },
     };
 
     // Color menu actions
     const colorMenu = {
-        bgColor: (color: string) => {
+        bgColor: (color: string, e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
             dispatch(setBgColor(color));
         },
-        bgImage: (image: string) => {
+        bgImage: (image: string, e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
             dispatch(setBgImage(image));
         },
     };
@@ -156,45 +164,122 @@ export default function NoteToolbar({
     }
 
     return (
-        <div className='flex items-center justify-between px-3 py-2 bg-white border-t border-gray-200 rounded-lg shadow-sm relative'>
+        <div
+            className='flex items-center justify-between px-3 py-2 bg-white border-t border-gray-200 rounded-lg shadow-sm relative'
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+        >
             <div className='flex flex-wrap items-center gap-1'>
-                <button
-                    className={`p-2 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group reminder-button ${
-                        reminder ? 'text-blue-500' : 'text-gray-500'
-                    }`}
-                    onClick={handleReminderClick}
-                    aria-label='Set reminder'
-                >
-                    <Bell className='h-5 w-5' />
-                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap'>
-                        {reminder
-                            ? format(new Date(reminder), 'MMM d, h:mm a')
-                            : 'Remind me'}
-                    </span>
-                </button>
+                {/* Reminder Popover */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button
+                            className={`p-2 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group ${
+                                reminder ? 'text-blue-500' : 'text-gray-500'
+                            }`}
+                            aria-label='Set reminder'
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Bell className='h-5 w-5' />
+                            <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap'>
+                                {reminder
+                                    ? format(
+                                          new Date(reminder),
+                                          'MMM d, h:mm a'
+                                      )
+                                    : 'Remind me'}
+                            </span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className='w-auto p-0'
+                        align='start'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <ReminderPicker />
+                    </PopoverContent>
+                </Popover>
 
-                <button
-                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
-                    onClick={handleCollaboratorClick}
-                    aria-label='Add collaborator'
-                >
-                    <UserPlus className='h-5 w-5' />
-                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
-                        Collaborator
-                    </span>
-                </button>
+                {/* Collaborator Popover */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button
+                            className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
+                            aria-label='Add collaborator'
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <UserPlus className='h-5 w-5' />
+                            <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                                Collaborator
+                            </span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className='w-auto p-0'
+                        align='start'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <CollaboratorMenu onClose={handleCollaboratorClose} />
+                    </PopoverContent>
+                </Popover>
 
-                <button
-                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
-                    onClick={() => dispatch(toggleColorMenu())}
-                    aria-label='Background options'
-                >
-                    <Palette className='h-5 w-5' />
-                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
-                        Background Options
-                    </span>
-                </button>
+                {/* Color Popover */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button
+                            className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
+                            aria-label='Background options'
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Palette className='h-5 w-5' />
+                            <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                                Background Options
+                            </span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className='w-auto p-3'
+                        align='start'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className='grid grid-cols-4 gap-2 mb-2'>
+                            {Object.entries(bgColors).map(([key, value]) => (
+                                <div
+                                    key={key}
+                                    data-bg-color={key}
+                                    style={{ backgroundColor: value || '#fff' }}
+                                    onClick={(e) => colorMenu.bgColor(value, e)}
+                                    className={`w-12 h-12 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all duration-200 flex items-center justify-center text-xs font-medium text-center ${
+                                        value === ''
+                                            ? 'border border-gray-300 text-gray-600'
+                                            : 'text-black'
+                                    }`}
+                                    title={key}
+                                >
+                                    {key}
+                                </div>
+                            ))}
+                        </div>
+                        <div className='grid grid-cols-4 gap-2'>
+                            {Object.entries(bgImages).map(([key, value]) => (
+                                <div
+                                    key={key}
+                                    data-bg-image={key}
+                                    style={{ backgroundImage: value || 'none' }}
+                                    onClick={(e) => colorMenu.bgImage(value, e)}
+                                    className={`w-8 h-8 rounded-lg cursor-pointer bg-center bg-cover hover:ring-2 hover:ring-blue-400 transition-all duration-200 ${
+                                        value === ''
+                                            ? 'border border-gray-300'
+                                            : ''
+                                    }`}
+                                    title={key}
+                                ></div>
+                            ))}
+                        </div>
+                    </PopoverContent>
+                </Popover>
 
+                {/* Image Upload Button */}
                 <button
                     className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
                     onClick={handleImageClick}
@@ -214,6 +299,7 @@ export default function NoteToolbar({
                     className='hidden'
                 />
 
+                {/* Archive Button */}
                 <button
                     className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
                     onClick={handleArchive}
@@ -225,16 +311,85 @@ export default function NoteToolbar({
                     </span>
                 </button>
 
-                <button
-                    className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
-                    onClick={() => dispatch(toggleMoreMenu())}
-                    aria-label='More options'
+                {/* More Options Popover */}
+                <Popover
+                    open={isMoreMenuOpen}
+                    onOpenChange={setIsMoreMenuOpen}
                 >
-                    <EllipsisVertical className='h-5 w-5' />
-                    <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
-                        More
-                    </span>
-                </button>
+                    <PopoverTrigger asChild>
+                        <button
+                            className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
+                            aria-label='More options'
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <EllipsisVertical className='h-5 w-5' />
+                            <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
+                                More
+                            </span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className='w-40 p-1'
+                        align='end'
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
+                            onClick={handleLabelMenuOpen}
+                        >
+                            Add label
+                        </button>
+                        <button
+                            className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
+                            onClick={(e) => moreMenu.toggleCbox(e)}
+                        >
+                            {isCbox ? 'Hide checkboxes' : 'Show checkboxes'}
+                        </button>
+                        <button
+                            className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-red-500 text-sm'
+                            onClick={(e) => moreMenu.trash(e)}
+                        >
+                            Move to trash
+                        </button>
+                    </PopoverContent>
+                </Popover>
+
+                {/* Label Menu Popover */}
+                <Popover
+                    open={isLabelMenuOpen}
+                    onOpenChange={setIsLabelMenuOpen}
+                >
+                    <PopoverTrigger asChild>
+                        <button
+                            className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group ${
+                                isLabelMenuOpen
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : 'text-gray-500 hover:bg-gray-100'
+                            }`}
+                            style={{
+                                position: 'absolute',
+                                right: '52px',
+                                opacity: 0,
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            <EllipsisVertical className='h-5 w-5' />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className='w-auto p-0'
+                        align='end'
+                        side='top'
+                        sideOffset={8}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <LabelMenu
+                            isEditing={isEditing}
+                            noteToEdit={noteToEdit}
+                            onClose={handleLabelMenuClose}
+                        />
+                    </PopoverContent>
+                </Popover>
 
                 <div className='h-6 mx-1 border-l border-gray-300'></div>
 
@@ -260,104 +415,16 @@ export default function NoteToolbar({
                     </span>
                 </button>
             </div>
-
             <button
                 className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-sm font-medium'
-                onClick={onSaveClick}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onSaveClick();
+                }}
             >
                 Save
             </button>
-
-            {/* More menu */}
-            {moreMenuOpen && (
-                <div className='absolute left-1/3 bottom-14 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-40 z-10'>
-                    <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
-                        onClick={() => {
-                            dispatch(toggleMoreMenu());
-                            dispatch(toggleLabelMenu());
-                        }}
-                    >
-                        Add label
-                    </button>
-
-                    <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-gray-700 text-sm'
-                        onClick={() => {
-                            moreMenu.toggleCbox();
-                            dispatch(toggleMoreMenu());
-                        }}
-                    >
-                        {isCbox ? 'Hide checkboxes' : 'Show checkboxes'}
-                    </button>
-
-                    <button
-                        className='w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-150 text-red-500 text-sm'
-                        onClick={() => {
-                            moreMenu.trash();
-                            dispatch(toggleMoreMenu());
-                        }}
-                    >
-                        Move to trash
-                    </button>
-                </div>
-            )}
-
-            {/* Color menu */}
-            {colorMenuOpen && (
-                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10'>
-                    <div className='grid grid-cols-4 gap-2 mb-2'>
-                        {Object.entries(bgColors).map(([key, value]) => (
-                            <div
-                                key={key}
-                                data-bg-color={key}
-                                style={{ backgroundColor: value || '#fff' }}
-                                onClick={() => {
-                                    colorMenu.bgColor(value);
-                                    dispatch(toggleColorMenu());
-                                }}
-                                className={`w-12 h-12 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all duration-200 flex items-center justify-center text-xs font-medium text-center ${
-                                    value === ''
-                                        ? 'border border-gray-300 text-gray-600'
-                                        : 'text-black'
-                                }`}
-                                title={key}
-                            >
-                                {key}
-                            </div>
-                        ))}
-                    </div>
-                    <div className='grid grid-cols-4 gap-2'>
-                        {Object.entries(bgImages).map(([key, value]) => (
-                            <div
-                                key={key}
-                                data-bg-image={key}
-                                style={{ backgroundImage: value || 'none' }}
-                                onClick={() => {
-                                    colorMenu.bgImage(value);
-                                    dispatch(toggleColorMenu());
-                                }}
-                                className={`w-8 h-8 rounded-lg cursor-pointer bg-center bg-cover hover:ring-2 hover:ring-blue-400 transition-all duration-200 ${
-                                    value === '' ? 'border border-gray-300' : ''
-                                }`}
-                                title={key}
-                            ></div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {reminderMenuOpen && (
-                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 reminder-menu'>
-                    <ReminderPicker />
-                </div>
-            )}
-
-            {collaboratorMenuOpen && (
-                <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 z-10'>
-                    <CollaboratorMenu onClose={handleCollaboratorClick} />
-                </div>
-            )}
         </div>
     );
 }

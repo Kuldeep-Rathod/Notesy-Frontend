@@ -16,9 +16,14 @@ import { useDispatch, useSelector } from 'react-redux';
 interface LabelMenuProps {
     isEditing: boolean;
     noteToEdit?: { _id?: string };
+    onClose: () => void;
 }
 
-const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
+const LabelMenu: React.FC<LabelMenuProps> = ({
+    isEditing,
+    noteToEdit,
+    onClose,
+}) => {
     const dispatch = useDispatch();
 
     const {
@@ -34,9 +39,7 @@ const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
     const [addLabel] = useAddLabelMutation();
     const [attachLabelsToNote] = useAttachLabelsToNoteMutation();
 
-    const labelSearchRef = useRef<HTMLInputElement>(
-        null
-    ) as React.RefObject<HTMLInputElement>;
+    const labelSearchRef = useRef<HTMLInputElement>(null);
 
     // Add new label
     const addNewLabel = async (): Promise<void> => {
@@ -78,6 +81,8 @@ const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
     ): void => {
         if (e.key === 'Enter') {
             addNewLabel();
+            e.preventDefault();
+            e.stopPropagation();
         }
     };
 
@@ -106,16 +111,17 @@ const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
 
     return (
         <div
-            className='absolute z-10 w-80 bg-white shadow-lg rounded-md p-4'
-            data-tooltip='true'
-            data-is-tooltip-open='true'
+            className='w-80 p-4'
+            onClick={(e) => e.stopPropagation()}
         >
             <div className='flex justify-between items-center border-b pb-2 mb-3'>
                 <p className='text-lg font-medium'>Label note</p>
                 <button
                     className='text-red-500 hover:text-red-700 text-xl'
-                    onClick={() => {
-                        dispatch(toggleLabelMenu());
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onClose();
                     }}
                 >
                     ×
@@ -134,10 +140,15 @@ const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
                     }
                     onKeyDown={handleLabelSearchKeyDown}
                     className='w-full px-3 py-2 outline-none'
+                    onClick={(e) => e.stopPropagation()}
                 />
                 <div
                     className='px-3 py-2 cursor-pointer bg-blue-500 text-white hover:bg-blue-600'
-                    onClick={addNewLabel}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addNewLabel();
+                    }}
                 >
                     +
                 </div>
@@ -156,13 +167,18 @@ const LabelMenu: React.FC<LabelMenuProps> = ({ isEditing, noteToEdit }) => {
                         <div
                             key={label.name}
                             className='flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-100'
-                            onClick={() => handleToggleLabel(label.name)}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleToggleLabel(label.name);
+                            }}
                         >
                             <input
                                 type='checkbox'
                                 checked={label.added}
                                 onChange={() => handleToggleLabel(label.name)}
                                 className='mr-2 cursor-pointer'
+                                onClick={(e) => e.stopPropagation()}
                             />
                             <span className='flex-1'>{label.name}</span>
                         </div>
