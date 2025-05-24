@@ -14,6 +14,7 @@ interface NotesContainerCommandsParams {
         handleArchiveToggle: (noteId: string) => void;
         handleCloneNote: (noteId: string) => void;
         handlePinToggle: (noteId: string) => void;
+        closeModal: () => void;
     };
     notes: NoteI[];
     openNote: (note: NoteI) => void;
@@ -26,6 +27,13 @@ export const getNotesContainerCommands = ({
     notes,
     openNote,
 }: NotesContainerCommandsParams) => [
+    {
+        command: ['close note', 'discard changes'],
+        callback: () => {
+            handlers.closeModal();
+        },
+        isFuzzyMatch: true,
+    },
     {
         command: ['search *', 'find *', 'look for *'],
         callback: (query: string) => {

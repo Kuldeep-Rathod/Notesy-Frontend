@@ -428,7 +428,8 @@ const NotesContainer = ({
             handleMoveToTrash,
             handleArchiveToggle,
             handleCloneNote,
-            handlePinToggle
+            handlePinToggle,
+            closeModal,
         },
         notes: filteredNotes,
         openNote,

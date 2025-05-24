@@ -703,6 +703,7 @@ export default function NoteInput({
             onAddLabel: addNewLabel,
             handleToggleLabel,
             saveNote,
+            closeNote,
         },
     });
 

@@ -33,6 +33,7 @@ interface NoteCommandsParams {
         onAddLabel: () => void;
         handleToggleLabel: (labelName: string) => void;
         saveNote: () => void;
+        closeNote: () => void;
     };
 }
 
@@ -203,6 +204,15 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 handlers.saveNote();
+            },
+            isFuzzyMatch: true,
+        },
+
+        {
+            command: ['close note', 'discard changes'],
+            callback: () => {
+                closeAllMenus();
+                handlers.closeNote();
             },
             isFuzzyMatch: true,
         },
