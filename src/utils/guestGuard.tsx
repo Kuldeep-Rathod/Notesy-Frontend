@@ -1,8 +1,8 @@
-// components/GuestGuard.tsx
 'use client';
 
 import { app } from '@/lib/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -18,17 +18,16 @@ export default function GuestGuard({
         const auth = getAuth(app);
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                // Redirect authenticated user to home or dashboard
                 router.replace('/dashboard');
             } else {
-                setLoading(false); // Show children (login/signup) if not logged in
+                setLoading(false);
             }
         });
 
         return () => unsubscribe();
     }, [router]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <CircularProgress />;
 
     return <>{children}</>;
 }

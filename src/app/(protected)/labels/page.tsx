@@ -11,6 +11,7 @@ import styles from '@/styles/app/EditLabelsPage.module.scss';
 import { useLabelPageCommands } from '@/voice-assistant/commands/label/labelPageCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -47,7 +48,7 @@ const EditLabelsPage = () => {
         if (labelsData && Array.isArray(labelsData)) {
             setLabels(
                 labelsData.map((name, index) => ({
-                    id: index.toString(), // Use index as ID since API returns string array
+                    id: index.toString(),
                     name,
                 }))
             );
@@ -169,14 +170,22 @@ const EditLabelsPage = () => {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
                 <div className='text-xl font-medium text-primary animate-pulse'>
-                    Loading user...
+                    <div className='flex justify-center items-center h-screen'>
+                        <CircularProgress />
+                    </div>
                 </div>
             </div>
         );
     }
 
     if (isLoading)
-        return <div className={styles.editLabelsPage}>Loading...</div>;
+        return (
+            <div className={styles.editLabelsPage}>
+                <div className='flex justify-center items-center h-screen'>
+                    <CircularProgress />
+                </div>
+            </div>
+        );
     if (isError)
         return (
             <div className={styles.editLabelsPage}>Error loading labels</div>

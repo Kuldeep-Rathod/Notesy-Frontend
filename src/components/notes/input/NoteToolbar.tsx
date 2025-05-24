@@ -13,6 +13,9 @@ import {
     toggleArchive,
     toggleCbox,
     toggleCollaboratorMenu,
+    toggleColorMenu,
+    toggleLabelMenu,
+    toggleReminderMenu,
     toggleTrash,
 } from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
@@ -51,15 +54,23 @@ export default function NoteToolbar({
     const dispatch = useDispatch();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-    const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false);
 
     const reminderString = useSelector(
         (state: RootState) => state.noteInput.reminder
     );
     const reminder = reminderString ? new Date(reminderString) : null;
 
-    // Redux state
-    const { isCbox, isTrashed } = useSelector(selectNoteInput);
+    // Redux state - now using Redux for popover states
+    const { 
+        isCbox, 
+        isTrashed,
+        tooltips: {
+            reminderMenuOpen,
+            collaboratorMenuOpen,
+            colorMenuOpen,
+            labelMenuOpen,
+        }
+    } = useSelector(selectNoteInput);
 
     const handleArchive = (e: MouseEvent) => {
         e.preventDefault();
@@ -93,12 +104,37 @@ export default function NoteToolbar({
         e.stopPropagation();
         setIsMoreMenuOpen(false);
         setTimeout(() => {
-            setIsLabelMenuOpen(true);
+            dispatch(toggleLabelMenu());
         }, 50);
     };
 
     const handleLabelMenuClose = () => {
-        setIsLabelMenuOpen(false);
+        dispatch(toggleLabelMenu());
+    };
+
+    // Popover toggle handlers
+    const handleReminderToggle = (open: boolean) => {
+        if (open !== reminderMenuOpen) {
+            dispatch(toggleReminderMenu());
+        }
+    };
+
+    const handleCollaboratorToggle = (open: boolean) => {
+        if (open !== collaboratorMenuOpen) {
+            dispatch(toggleCollaboratorMenu());
+        }
+    };
+
+    const handleColorToggle = (open: boolean) => {
+        if (open !== colorMenuOpen) {
+            dispatch(toggleColorMenu());
+        }
+    };
+
+    const handleLabelToggle = (open: boolean) => {
+        if (open !== labelMenuOpen) {
+            dispatch(toggleLabelMenu());
+        }
     };
 
     // More menu actions
@@ -171,7 +207,10 @@ export default function NoteToolbar({
         >
             <div className='flex flex-wrap items-center gap-1'>
                 {/* Reminder Popover */}
-                <Popover>
+                <Popover 
+                    open={reminderMenuOpen} 
+                    onOpenChange={handleReminderToggle}
+                >
                     <PopoverTrigger asChild>
                         <button
                             className={`p-2 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group ${
@@ -201,7 +240,10 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Collaborator Popover */}
-                <Popover>
+                <Popover 
+                    open={collaboratorMenuOpen} 
+                    onOpenChange={handleCollaboratorToggle}
+                >
                     <PopoverTrigger asChild>
                         <button
                             className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
@@ -224,7 +266,10 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Color Popover */}
-                <Popover>
+                <Popover 
+                    open={colorMenuOpen} 
+                    onOpenChange={handleColorToggle}
+                >
                     <PopoverTrigger asChild>
                         <button
                             className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
@@ -355,14 +400,14 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Label Menu Popover */}
-                <Popover
-                    open={isLabelMenuOpen}
-                    onOpenChange={setIsLabelMenuOpen}
+                <Popover 
+                    open={labelMenuOpen} 
+                    onOpenChange={handleLabelToggle}
                 >
                     <PopoverTrigger asChild>
                         <button
                             className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group ${
-                                isLabelMenuOpen
+                                labelMenuOpen
                                     ? 'bg-gray-100 text-gray-700'
                                     : 'text-gray-500 hover:bg-gray-100'
                             }`}
@@ -408,7 +453,7 @@ export default function NoteToolbar({
                     className='p-2 rounded-full text-gray-300 cursor-not-allowed transition-all duration-200 relative group'
                     aria-label='Redo'
                     disabled
-                >
+                    >
                     <Redo2 className='h-5 w-5' />
                     <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
                         Redo

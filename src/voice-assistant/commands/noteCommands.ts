@@ -51,6 +51,7 @@ export const useNoteCommands = ({
             colorMenuOpen,
             collaboratorMenuOpen,
             reminderMenuOpen,
+            labelMenuOpen,
         },
         collaborators: { selectedUsers: selectedCollaborators },
     } = useSelector(selectNoteInput);
@@ -89,6 +90,14 @@ export const useNoteCommands = ({
         );
     };
 
+    // Helper function to ensure only one menu is open at a time
+    const closeAllMenus = () => {
+        if (reminderMenuOpen) dispatch(closeReminderMenu());
+        if (colorMenuOpen) dispatch(toggleColorMenu());
+        if (labelMenuOpen) dispatch(toggleLabelMenu());
+        if (collaboratorMenuOpen) dispatch(toggleCollaboratorMenu());
+    };
+
     return [
         // Title and Body Commands
         {
@@ -99,6 +108,7 @@ export const useNoteCommands = ({
                 'go to title',
             ],
             callback: () => {
+                closeAllMenus();
                 const inputEl = refs.noteTitleRef.current;
 
                 if (inputEl) {
@@ -139,6 +149,7 @@ export const useNoteCommands = ({
                 'go to description',
             ],
             callback: () => {
+                closeAllMenus();
                 const bodyEl = refs.noteBodyRef.current;
 
                 if (bodyEl) {
@@ -180,26 +191,38 @@ export const useNoteCommands = ({
                 'unpin note',
                 'remove pin',
             ],
-            callback: () => dispatch(togglePinned()),
+            callback: () => {
+                closeAllMenus();
+                dispatch(togglePinned());
+            },
             isFuzzyMatch: true,
         },
 
         {
             command: ['save note', 'save changes', 'store note', 'keep note'],
-            callback: handlers.saveNote,
+            callback: () => {
+                closeAllMenus();
+                handlers.saveNote();
+            },
             isFuzzyMatch: true,
         },
 
         //Commands for set reminders
         {
             command: ['set reminder', 'add reminder', 'schedule reminder'],
-            callback: () => dispatch(toggleReminderMenu()),
+            callback: () => {
+                closeAllMenus();
+                dispatch(toggleReminderMenu());
+            },
             isFuzzyMatch: true,
         },
         {
             command: ['remind me today', 'later today', 'today reminder'],
             callback: () => {
-                if (!reminderMenuOpen) return;
+                if (!reminderMenuOpen) {
+                    dispatch(toggleReminderMenu());
+                    return;
+                }
                 const reminder = quickOptions.find(
                     (opt) => opt.label === 'Later today'
                 );
@@ -218,7 +241,10 @@ export const useNoteCommands = ({
                 'next day reminder',
             ],
             callback: () => {
-                if (!reminderMenuOpen) return;
+                if (!reminderMenuOpen) {
+                    dispatch(toggleReminderMenu());
+                    return;
+                }
 
                 const reminder = quickOptions.find(
                     (opt) => opt.label === 'Tomorrow'
@@ -238,7 +264,10 @@ export const useNoteCommands = ({
                 'week reminder',
             ],
             callback: () => {
-                if (!reminderMenuOpen) return;
+                if (!reminderMenuOpen) {
+                    dispatch(toggleReminderMenu());
+                    return;
+                }
 
                 const reminder = quickOptions.find(
                     (opt) => opt.label === 'Next week'
@@ -254,7 +283,10 @@ export const useNoteCommands = ({
         {
             command: ['remove reminder', 'clear reminder', 'delete reminder'],
             callback: () => {
-                if (!reminderMenuOpen) return;
+                if (!reminderMenuOpen) {
+                    dispatch(toggleReminderMenu());
+                    return;
+                }
 
                 dispatch(setReminder(null));
                 dispatch(closeReminderMenu());
@@ -269,13 +301,17 @@ export const useNoteCommands = ({
                 'invite people',
                 'manage sharing',
             ],
-            callback: () => dispatch(toggleCollaboratorMenu()),
+            callback: () => {
+                closeAllMenus();
+                dispatch(toggleCollaboratorMenu());
+            },
             isFuzzyMatch: true,
         },
         {
             command: collabCommandPrefixes.userSearch,
             callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
+                    closeAllMenus();
                     dispatch(toggleCollaboratorMenu());
                 }
 
@@ -293,13 +329,20 @@ export const useNoteCommands = ({
                 'reset user search',
                 'cancel user search',
             ],
-            callback: () => dispatch(setCollaboratorSearchTerm('')),
+            callback: () => {
+                if (!collaboratorMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleCollaboratorMenu());
+                }
+                dispatch(setCollaboratorSearchTerm(''));
+            },
             isFuzzyMatch: true,
         },
         {
             command: collabCommandPrefixes.selectUser,
             callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
+                    closeAllMenus();
                     dispatch(toggleCollaboratorMenu());
                 }
 
@@ -307,8 +350,6 @@ export const useNoteCommands = ({
                     fullPhrase,
                     collabCommandPrefixes.selectUser
                 );
-
-                console.log('cleanUserName', cleanUserName);
 
                 const user = findUser(cleanUserName);
 
@@ -327,14 +368,13 @@ export const useNoteCommands = ({
             command: collabCommandPrefixes.removeUser,
             callback: (fullPhrase: string) => {
                 if (!collaboratorMenuOpen) {
+                    closeAllMenus();
                     dispatch(toggleCollaboratorMenu());
                 }
                 const cleanUserName = extractCleanUserName(
                     fullPhrase,
                     collabCommandPrefixes.removeUser
                 );
-
-                console.log('helllo', cleanUserName);
 
                 const user = findUser(cleanUserName);
 
@@ -354,6 +394,7 @@ export const useNoteCommands = ({
                 'edit tags',
             ],
             callback: () => {
+                closeAllMenus();
                 dispatch(toggleLabelMenu());
             },
             isFuzzyMatch: true,
@@ -361,11 +402,13 @@ export const useNoteCommands = ({
         {
             command: ['take search *', 'label find *', 'look for label *'],
             callback: (labelName: string) => {
-                console.log('finddd', labelName);
+                if (!labelMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleLabelMenu());
+                }
                 if (refs.labelSearchRef.current) {
                     refs.labelSearchRef.current.value = labelName;
                     dispatch(setSearchQuery(labelName));
-                    console.log('pochyu');
                 }
             },
         },
@@ -376,12 +419,24 @@ export const useNoteCommands = ({
                 'clear tag search',
                 'reset tag search',
             ],
-            callback: () => dispatch(setSearchQuery('')),
+            callback: () => {
+                if (!labelMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleLabelMenu());
+                }
+                dispatch(setSearchQuery(''));
+            },
             isFuzzyMatch: true,
         },
         {
             command: ['new label', 'make label', 'add new tag'],
-            callback: () => handlers.onAddLabel,
+            callback: () => {
+                if (!labelMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleLabelMenu());
+                }
+                handlers.onAddLabel();
+            },
             isFuzzyMatch: true,
         },
         {
@@ -392,6 +447,10 @@ export const useNoteCommands = ({
                 'label as *',
             ],
             callback: (fullPhrase: string) => {
+                if (!labelMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleLabelMenu());
+                }
                 const cleanLabelName = extractCleanUserName(fullPhrase, [
                     'take with',
                     'label with',
@@ -409,6 +468,7 @@ export const useNoteCommands = ({
         {
             command: ['show checkboxes', 'show checklist', 'show tasks'],
             callback: () => {
+                closeAllMenus();
                 dispatch(toggleCbox());
             },
             isFuzzyMatch: true,
@@ -416,6 +476,7 @@ export const useNoteCommands = ({
         {
             command: ['add item *', 'new task *', 'create checklist *'],
             callback: (fullPhrase: string) => {
+                closeAllMenus();
                 const cleanText = extractCleanUserName(fullPhrase, [
                     'add item',
                     'new task',
@@ -442,6 +503,7 @@ export const useNoteCommands = ({
                 'toggle *',
             ],
             callback: (fullPhrase: string) => {
+                closeAllMenus();
                 const cleanTaskText = extractCleanUserName(fullPhrase, [
                     'complete',
                     'check',
@@ -479,6 +541,7 @@ export const useNoteCommands = ({
                 'close colour options',
             ],
             callback: () => {
+                closeAllMenus();
                 dispatch(toggleColorMenu());
             },
             isFuzzyMatch: true,
@@ -486,6 +549,10 @@ export const useNoteCommands = ({
         {
             command: ['set colour *', 'make *', 'colour *', 'background *'],
             callback: (fullPhrase: string) => {
+                if (!colorMenuOpen) {
+                    closeAllMenus();
+                    dispatch(toggleColorMenu());
+                }
                 const spokenColor = fullPhrase.split(' ').pop()?.toLowerCase();
 
                 // Check if the spoken color exists in bgColors
@@ -493,6 +560,7 @@ export const useNoteCommands = ({
                     const hexColor =
                         bgColors[spokenColor as keyof typeof bgColors];
                     dispatch(setBgColor(hexColor));
+                    dispatch(toggleColorMenu());
                 } else {
                     console.warn(`Unknown color: ${spokenColor}`);
                 }

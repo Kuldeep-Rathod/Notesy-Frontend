@@ -2,6 +2,7 @@
 
 import VoiceDebugger from '@/voice-assistant/components/VoiceDebugger';
 import { useEffect, useState } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function VoiceTestPage() {
     const [mounted, setMounted] = useState(false);
@@ -12,7 +13,11 @@ export default function VoiceTestPage() {
 
     // Don't render until we're on the client
     if (!mounted) {
-        return <div>Loading...</div>;
+        return (
+            <div className='flex justify-center items-center h-screen'>
+                <CircularProgress />
+            </div>
+        );
     }
 
     return (

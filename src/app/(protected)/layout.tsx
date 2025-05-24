@@ -2,6 +2,7 @@
 
 import SidebarLink from '@/components/SidebarLink';
 import { Button } from '@/components/ui/button';
+import CircularProgress from '@mui/material/CircularProgress';
 import UserMenu from '@/components/UserMenu';
 import { cn } from '@/lib/utils';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
@@ -45,7 +46,11 @@ export default function DashboardLayout({
     };
 
     if (dbUserLoading) {
-        return <div>loading</div>;
+        return (
+            <div className='flex justify-center items-center h-screen'>
+                <CircularProgress />
+            </div>
+        );
     }
 
     const handleManagePlan = async () => {

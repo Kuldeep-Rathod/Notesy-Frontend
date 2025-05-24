@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import CountUp from 'react-countup';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import { CircularProgress } from '@mui/material';
 
 const StatisticsPage = () => {
     const { data: statsData, isError, error, isLoading } = useNoteStatsQuery();
@@ -24,7 +25,9 @@ const StatisticsPage = () => {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
                 <div className='text-xl font-medium text-primary animate-pulse'>
-                    Loading user...
+                    <div className='flex justify-center items-center h-screen'>
+                        <CircularProgress />
+                    </div>
                 </div>
             </div>
         );
@@ -44,7 +47,10 @@ const StatisticsPage = () => {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
                 <div className='text-xl font-medium text-primary animate-pulse'>
-                    Loading stats...
+                    <div className='flex flex-col justify-center items-center h-screen'>
+                        <CircularProgress />
+                        Loading stats...
+                    </div>
                 </div>
             </div>
         );

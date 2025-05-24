@@ -246,6 +246,7 @@ export default function NoteInput({
         // Clear the contentEditable divs
         if (noteTitleRef.current) noteTitleRef.current.innerHTML = '';
         if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
+        if (imagePreviews) setImagePreviews([]);
     }, [mouseDownEvent, toggleNoteVisibility, dispatch]);
 
     // Save note
@@ -361,6 +362,7 @@ export default function NoteInput({
                 // Clear the contentEditable divs explicitly
                 if (noteTitleRef.current) noteTitleRef.current.innerHTML = '';
                 if (noteBodyRef.current) noteBodyRef.current.innerHTML = '';
+                if (imagePreviews) setImagePreviews([]);
 
                 if (!isEditing) {
                     closeNote();

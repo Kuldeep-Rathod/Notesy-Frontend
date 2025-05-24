@@ -10,6 +10,7 @@ import {
 import { useLogoutMutation } from '@/redux/api/authAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { LogOut, User2 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -24,7 +25,16 @@ export default function UserMenu() {
     if (!user) {
         return (
             <div className='flex items-center justify-center h-screen'>
-                <span className='text-gray-500'>Loading...</span>
+                <Image
+                    src={
+                        'https://res.cloudinary.com/djsewrcyo/image/upload/v1748088246/blank-profile-picture-973460_1280_eppw01.png'
+                    }
+                    alt='Notesy'
+                    width={40}
+                    height={40}
+                    className='w-10 h-10 rounded-full object-cover'
+                    priority
+                />
             </div>
         );
     }
