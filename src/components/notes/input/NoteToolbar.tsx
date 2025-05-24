@@ -77,10 +77,6 @@ export default function NoteToolbar({
         dispatch(toggleReminderMenu());
     };
 
-    const handleReminderSet = (date: Date | null) => {
-        setReminder(date ? date.toISOString() : null);
-    };
-
     const handleImageClick = () => {
         fileInputRef.current?.click();
     };
@@ -353,7 +349,7 @@ export default function NoteToolbar({
 
             {reminderMenuOpen && (
                 <div className='absolute left-0 top-[3.5rem] bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 reminder-menu'>
-                    <ReminderPicker onReminderSet={handleReminderSet} />
+                    <ReminderPicker />
                 </div>
             )}
 

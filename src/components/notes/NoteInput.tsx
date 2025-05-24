@@ -413,71 +413,6 @@ export default function NoteInput({
         [dispatch]
     );
 
-    // Handle checkbox changes
-    const handleCheckboxChange = (id: number | string) => {
-        dispatch(
-            updateChecklist({
-                id,
-                updates: {
-                    checked: !checklists.find(
-                        (cb) => cb.id === id || cb._id === id
-                    )?.checked,
-                },
-            })
-        );
-    };
-
-    // Handle checkbox removal
-    const handleCheckboxRemove = (id: number | string) => {
-        dispatch(removeChecklist(id));
-    };
-
-    // Handle checkbox text update
-    const handleCheckboxUpdate = (id: number | string, value: string) => {
-        if (value.trim()) {
-            dispatch(updateChecklist({ id, updates: { text: value } }));
-        }
-    };
-
-    // Handle keyboard events for checkboxes
-    const handleCheckboxKeyDown = (
-        e: React.KeyboardEvent,
-        id: number | string
-    ) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            const currentText = e.currentTarget.innerHTML;
-            if (currentText.trim()) {
-                const newId = Date.now();
-                dispatch(addChecklist({ id: newId, text: '', checked: false }));
-                setTimeout(() => {
-                    const newCheckbox = document.querySelector(
-                        `[data-checkbox-id="${newId}"]`
-                    );
-                    if (newCheckbox instanceof HTMLElement) {
-                        newCheckbox.focus();
-                    }
-                }, 0);
-            }
-        } else if (e.key === 'Backspace' && e.currentTarget.innerHTML === '') {
-            e.preventDefault();
-            handleCheckboxRemove(id);
-            if (typeof id === 'number') {
-                const prevCheckbox = document.querySelector(
-                    `[data-checkbox-id="${id - 1}"]`
-                );
-                if (prevCheckbox instanceof HTMLElement) {
-                    prevCheckbox.focus();
-                }
-            }
-        }
-    };
-
-    // Toggle completed checkboxes list
-    const handleToggleCompletedList = () => {
-        dispatch(toggleCboxCompletedList());
-    };
-
     // Update labels state when server labels change
     useEffect(() => {
         if (serverLabels) {
@@ -892,17 +827,7 @@ export default function NoteInput({
                     {isCbox ? (
                         <>
                             {/* checklists */}
-                            <CheckboxList
-                                checklists={checklists}
-                                isCompletedCollapsed={
-                                    isCboxCompletedListCollapsed
-                                }
-                                onToggleCollapse={handleToggleCompletedList}
-                                onCheckboxChange={handleCheckboxChange}
-                                onCheckboxRemove={handleCheckboxRemove}
-                                onCheckboxUpdate={handleCheckboxUpdate}
-                                onKeyDown={handleCheckboxKeyDown}
-                            />
+                            <CheckboxList />
 
                             {/* Checkbox placeholder */}
                             <div className='note-input__checkbox-placeholder'>

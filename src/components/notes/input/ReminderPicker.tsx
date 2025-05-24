@@ -10,10 +10,6 @@ import { Bell, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-interface ReminderPickerProps {
-    onReminderSet: (date: Date | null) => void;
-}
-
 export const quickOptions = [
     {
         label: 'Later today',
@@ -43,7 +39,7 @@ export const quickOptions = [
     },
 ];
 
-export function ReminderPicker({ onReminderSet }: ReminderPickerProps) {
+export function ReminderPicker() {
     const dispatch = useDispatch();
     const reminderString = useSelector(
         (state: RootState) => state.noteInput.reminder
@@ -58,10 +54,14 @@ export function ReminderPicker({ onReminderSet }: ReminderPickerProps) {
             : format(new Date(), 'yyyy-MM-dd')
     );
 
+    const handleReminderSet = (date: Date | null) => {
+        setReminder(date ? date.toISOString() : null);
+    };
+
     const handleDateSelect = (selectedDate: Date) => {
         // Remove the time manipulation - the quick options already set their own times
         dispatch(setReminder(selectedDate.toISOString()));
-        onReminderSet(selectedDate);
+        handleReminderSet(selectedDate);
 
         // Update the local state to reflect the new date/time
         setTime(format(selectedDate, 'HH:mm'));
@@ -83,13 +83,13 @@ export function ReminderPicker({ onReminderSet }: ReminderPickerProps) {
             const newDate = new Date(reminder);
             newDate.setHours(hours, minutes);
             dispatch(setReminder(newDate.toISOString()));
-            onReminderSet(newDate);
+            handleReminderSet(newDate);
         }
     };
 
     const handleRemoveReminder = () => {
         dispatch(setReminder(null));
-        onReminderSet(null);
+        handleReminderSet(null);
         dispatch(closeReminderMenu());
     };
 
