@@ -15,7 +15,6 @@ import {
 } from '@/redux/api/notesAPI';
 import {
     addChecklist,
-    removeChecklist,
     resetNoteInput,
     selectNoteInput,
     setActiveField,
@@ -26,18 +25,23 @@ import {
     setSearchQuery,
     toggleArchive,
     toggleCbox,
-    toggleCboxCompletedList,
     toggleLabel,
     togglePinned,
     toggleTrash,
-    updateChecklist,
     updateInputLength,
 } from '@/redux/reducer/noteInputReducer';
 import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { BookImage, Brush, SquareCheck } from 'lucide-react';
+import {
+    BookImage,
+    Brush,
+    Mic,
+    MicOff,
+    SquareCheck,
+    Trash2,
+} from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
@@ -47,7 +51,6 @@ import SpeechRecognition, {
 } from 'react-speech-recognition';
 import { CheckboxList } from './input/CheckboxList';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
-import LabelMenu from './input/LabelMenu';
 import NoteToolbar from './input/NoteToolbar';
 
 export default function NoteInput({
@@ -614,8 +617,7 @@ export default function NoteInput({
         }
         dispatch(setListening(true));
 
-        // Reset transcript first to start fresh
-        resetTranscript();
+        // resetTranscript();
 
         SpeechRecognition.startListening({
             continuous: true,
@@ -862,19 +864,40 @@ export default function NoteInput({
                         <></>
                     )}
 
-                    <div
-                        className='note-input__speech-controls'
-                        style={{
-                            marginTop: '10px',
-                            display: 'flex',
-                            gap: '10px',
-                        }}
-                    >
-                        <button onClick={startListening}>
-                            🎙️ Start Speaking
-                        </button>
-                        <button onClick={stopListening}>🛑 Stop</button>
+                    <div className='note-input__speech-controls'>
+                        {/* Microphone Button */}
                         <button
+                            className='note-input__mic-button'
+                            onClick={
+                                isListening ? stopListening : startListening
+                            }
+                            title={
+                                isListening
+                                    ? 'Stop dictation'
+                                    : 'Start dictation'
+                            }
+                            style={{
+                                backgroundColor: isListening
+                                    ? '#ff4c4c'
+                                    : '#ffffff',
+                            }}
+                        >
+                            {isListening ? (
+                                <MicOff
+                                    size={18}
+                                    color='#fff'
+                                />
+                            ) : (
+                                <Mic
+                                    size={18}
+                                    color='#444'
+                                />
+                            )}
+                        </button>
+
+                        {/* Clear Button */}
+                        <button
+                            className='note-input__mic-button'
                             onClick={() => {
                                 resetTranscript();
                                 if (
@@ -885,10 +908,50 @@ export default function NoteInput({
                                     handleFieldFocus(activeField, true);
                                 }
                             }}
+                            title='Clear transcription'
+                            style={{
+                                transition: 'background 0.2s ease',
+                            }}
                         >
-                            🔁 Clear
+                            <Trash2
+                                size={18}
+                                color='#444'
+                            />
                         </button>
-                        {isListening && <span>Listening...</span>}
+
+                        {/* Listening Indicator */}
+                        {isListening && (
+                            <div
+                                style={{
+                                    width: '10px',
+                                    height: '10px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#ff4c4c',
+                                    animation: 'pulse 1.5s infinite',
+                                    marginLeft: '6px',
+                                }}
+                            />
+                        )}
+
+                        {/* Pulse animation */}
+                        <style>
+                            {`
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        `}
+                        </style>
                     </div>
 
                     {/* Labels */}
@@ -950,17 +1013,46 @@ export default function NoteInput({
                         position: 'fixed',
                         bottom: 80,
                         right: 20,
-                        backgroundColor: '#4CAF50',
+                        backgroundColor: isListening ? '#4CAF50' : '#2196F3',
                         color: 'white',
                         padding: '8px 12px',
                         borderRadius: '20px',
                         fontSize: '0.8rem',
                         zIndex: 100,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
                     }}
                 >
                     🎙️ Note Voice Commands Active
                 </div>
             )}
+
+            {/* Voice Commands Help */}
+            <div
+                style={{
+                    position: 'fixed',
+                    bottom: 140,
+                    right: 20,
+                    backgroundColor: '#333',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    zIndex: 100,
+                    display: isNoteVoiceActive ? 'block' : 'none',
+                    maxWidth: '300px',
+                }}
+            >
+                <h4 style={{ margin: '0 0 8px 0' }}>Voice Commands:</h4>
+                <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                    <li>&quot;set title [your title]&quot;</li>
+                    <li>&quot;set content [your content]&quot;</li>
+                    <li>&quot;append content [more content]&quot;</li>
+                    <li>&quot;save note&quot;</li>
+                    <li>&quot;close note&quot;</li>
+                </ul>
+            </div>
         </div>
     );
 }

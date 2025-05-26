@@ -150,44 +150,59 @@ export const useNoteCommands = ({
         },
         {
             command: [
-                'focus body',
-                'edit content',
-                'write note',
-                'go to description',
+                'set title *',
+                'title is *',
+                'make title *',
+                'write title *'
             ],
-            callback: () => {
+            callback: (title: string) => {
                 closeAllMenus();
-                const bodyEl = refs.noteBodyRef.current;
-
-                if (bodyEl) {
-                    bodyEl.focus();
-
-                    // For contentEditable elements, move cursor to the end
-                    if (
-                        'contentEditable' in bodyEl &&
-                        bodyEl.isContentEditable
-                    ) {
-                        const range = document.createRange();
-                        const sel = window.getSelection();
-
-                        range.selectNodeContents(bodyEl);
-                        range.collapse(false); // Move to end
-                        sel?.removeAllRanges();
-                        sel?.addRange(range);
-                    }
-
-                    // If it's an input or textarea
-                    if (
-                        bodyEl instanceof HTMLInputElement ||
-                        bodyEl instanceof HTMLTextAreaElement
-                    ) {
-                        const len = bodyEl.value.length;
-                        bodyEl.setSelectionRange(len, len);
-                    }
+                const inputEl = refs.noteTitleRef.current;
+                if (inputEl && title) {
+                    inputEl.innerHTML = title;
+                    const event = new Event('input', { bubbles: true });
+                    inputEl.dispatchEvent(event);
                 }
             },
-            isFuzzyMatch: true,
-            fuzzyMatchingThreshold: 0.7,
+            isFuzzyMatch: false,
+        },
+        {
+            command: [
+                'set content *',
+                'set body *',
+                'write content *',
+                'write body *',
+                'content is *',
+                'body is *'
+            ],
+            callback: (content: string) => {
+                closeAllMenus();
+                const bodyEl = refs.noteBodyRef.current;
+                if (bodyEl && content) {
+                    bodyEl.innerHTML = content;
+                    const event = new Event('input', { bubbles: true });
+                    bodyEl.dispatchEvent(event);
+                }
+            },
+            isFuzzyMatch: false,
+        },
+        {
+            command: [
+                'append content *',
+                'add content *',
+                'continue writing *',
+                'add to body *'
+            ],
+            callback: (content: string) => {
+                closeAllMenus();
+                const bodyEl = refs.noteBodyRef.current;
+                if (bodyEl && content) {
+                    bodyEl.innerHTML = bodyEl.innerHTML + ' ' + content;
+                    const event = new Event('input', { bubbles: true });
+                    bodyEl.dispatchEvent(event);
+                }
+            },
+            isFuzzyMatch: false,
         },
 
         {
