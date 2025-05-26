@@ -61,15 +61,15 @@ export default function NoteToolbar({
     const reminder = reminderString ? new Date(reminderString) : null;
 
     // Redux state - now using Redux for popover states
-    const { 
-        isCbox, 
+    const {
+        isCbox,
         isTrashed,
         tooltips: {
             reminderMenuOpen,
             collaboratorMenuOpen,
             colorMenuOpen,
             labelMenuOpen,
-        }
+        },
     } = useSelector(selectNoteInput);
 
     const handleArchive = (e: MouseEvent) => {
@@ -78,7 +78,7 @@ export default function NoteToolbar({
         dispatch(toggleArchive());
     };
 
-    const handleImageClick = (e: MouseEvent) => {
+    const handleAddImage = (e: MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         fileInputRef.current?.click();
@@ -207,8 +207,8 @@ export default function NoteToolbar({
         >
             <div className='flex flex-wrap items-center gap-1'>
                 {/* Reminder Popover */}
-                <Popover 
-                    open={reminderMenuOpen} 
+                <Popover
+                    open={reminderMenuOpen}
                     onOpenChange={handleReminderToggle}
                 >
                     <PopoverTrigger asChild>
@@ -240,8 +240,8 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Collaborator Popover */}
-                <Popover 
-                    open={collaboratorMenuOpen} 
+                <Popover
+                    open={collaboratorMenuOpen}
                     onOpenChange={handleCollaboratorToggle}
                 >
                     <PopoverTrigger asChild>
@@ -266,8 +266,8 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Color Popover */}
-                <Popover 
-                    open={colorMenuOpen} 
+                <Popover
+                    open={colorMenuOpen}
                     onOpenChange={handleColorToggle}
                 >
                     <PopoverTrigger asChild>
@@ -327,7 +327,7 @@ export default function NoteToolbar({
                 {/* Image Upload Button */}
                 <button
                     className='p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-blue-300 relative group'
-                    onClick={handleImageClick}
+                    onClick={handleAddImage}
                     aria-label='Add image'
                 >
                     <ImageIcon className='h-5 w-5' />
@@ -400,8 +400,8 @@ export default function NoteToolbar({
                 </Popover>
 
                 {/* Label Menu Popover */}
-                <Popover 
-                    open={labelMenuOpen} 
+                <Popover
+                    open={labelMenuOpen}
                     onOpenChange={handleLabelToggle}
                 >
                     <PopoverTrigger asChild>
@@ -453,7 +453,7 @@ export default function NoteToolbar({
                     className='p-2 rounded-full text-gray-300 cursor-not-allowed transition-all duration-200 relative group'
                     aria-label='Redo'
                     disabled
-                    >
+                >
                     <Redo2 className='h-5 w-5' />
                     <span className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity'>
                         Redo

@@ -145,7 +145,13 @@ export const getNotesContainerCommands = ({
     },
 
     {
-        command: ['archive note *', 'archive not *', 'archive the note *'],
+        command: [
+            'archive note *',
+            'archive *',
+            'archive the note *',
+            'toggle archive *',
+            'toggle archive note',
+        ],
         callback: (title: string) => {
             if (!title?.trim() || !notes?.length) return;
 

@@ -44,6 +44,7 @@ export const useLabelPageCommands = ({
             callback: () => {
                 handlers.createLabel();
             },
+            isFuzzyMatch: true,
         },
 
         {

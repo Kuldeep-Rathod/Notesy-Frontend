@@ -79,4 +79,4 @@ export const getArchiveCommands = ({
         isFuzzyMatch: true,
         fuzzyMatchingThreshold: 0.7,
     },
-]; 
+];

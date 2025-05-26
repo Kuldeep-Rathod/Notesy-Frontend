@@ -10,7 +10,14 @@ import {
     useRestoreNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
+import {
+    resetNoteInput,
+    selectNoteInput,
+} from '@/redux/reducer/noteInputReducer';
 import { RootState } from '@/redux/store';
+import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
+import { useTrashedNotesCommands } from '@/voice-assistant/commands/trashPageCommands';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { Masonry } from '@mui/lab';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -24,18 +31,12 @@ import {
     X,
 } from 'lucide-react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
-import { usePathname } from 'next/navigation';
-import {
-    resetNoteInput,
-    selectNoteInput,
-} from '@/redux/reducer/noteInputReducer';
-import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
-import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -435,12 +436,20 @@ const NotesContainer = ({
         openNote,
     });
 
+    const trashPageCommands = useTrashedNotesCommands({
+        handlers: {
+            handleRestoreFromTrash,
+            handleDeletePermanently,
+        },
+        notes: filteredNotes,
+    });
+
     const {} = usePageVoiceCommands(
         {
             '/dashboard': notesContainerCommands,
             '/archive': notesContainerCommands,
             '/reminders': notesContainerCommands,
-            '/trash': notesContainerCommands,
+            '/trash': trashPageCommands,
             ...(isLabelRoute ? { [pathname]: notesContainerCommands } : {}),
         },
         { debug: true, requireWakeWord: true }

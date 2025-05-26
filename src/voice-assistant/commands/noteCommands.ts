@@ -12,6 +12,7 @@ import {
     setCollaboratorSearchTerm,
     setReminder,
     setSearchQuery,
+    toggleArchive,
     toggleCbox,
     toggleCollaboratorMenu,
     toggleColorMenu,
@@ -60,7 +61,12 @@ export const useNoteCommands = ({
     const { data: users = [] } = useGetAllUsersQuery();
 
     const collabCommandPrefixes = {
-        userSearch: ['user find *', 'user search for *', 'look up user *'],
+        userSearch: [
+            'user find *',
+            'user search *',
+            'user search for *',
+            'look up user *',
+        ],
         selectUser: [
             'add user *',
             'share with *',
@@ -227,7 +233,12 @@ export const useNoteCommands = ({
             isFuzzyMatch: true,
         },
         {
-            command: ['remind me today', 'later today', 'today reminder'],
+            command: [
+                'remind me today',
+                'later today',
+                'remind me later today',
+                'today reminder',
+            ],
             callback: () => {
                 if (!reminderMenuOpen) {
                     dispatch(toggleReminderMenu());
@@ -575,6 +586,19 @@ export const useNoteCommands = ({
                     console.warn(`Unknown color: ${spokenColor}`);
                 }
             },
+        },
+        {
+            command: [
+                'archive current note',
+                'archive note',
+                'archive this note',
+                'archive this not',
+            ],
+            callback: () => {
+                closeAllMenus();
+                dispatch(toggleArchive());
+            },
+            isFuzzyMatch: true,
         },
     ];
 };
