@@ -7,8 +7,7 @@ import {
     selectNoteInput,
     setLabels,
     setSearchQuery,
-    toggleLabel,
-    toggleLabelMenu,
+    toggleLabel
 } from '@/redux/reducer/noteInputReducer';
 import React, { useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';

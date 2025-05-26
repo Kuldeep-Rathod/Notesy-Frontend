@@ -1,9 +1,9 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { authAPI } from './api/authAPI';
-import { notesAPI } from './api/notesAPI';
-import authReducer from './reducer/authReducer';
-import { userAPI } from './api/userAPI';
 import { labelsAPI } from './api/labelsAPI';
+import { notesAPI } from './api/notesAPI';
+import { userAPI } from './api/userAPI';
+import authReducer from './reducer/authReducer';
 import { noteInputReducer } from './reducer/noteInputReducer';
 
 export const rootReducer = combineReducers({

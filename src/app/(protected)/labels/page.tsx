@@ -10,8 +10,8 @@ import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import styles from '@/styles/app/EditLabelsPage.module.scss';
 import { useLabelPageCommands } from '@/voice-assistant/commands/label/labelPageCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
+import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -80,7 +80,9 @@ const EditLabelsPage = () => {
                     message:
                         'Label limit reached for free users. Delete an existing label or upgrade to premium to create more.',
                 });
-                toast.error('Label limit reached. Upgrade to premium to create more labels.');
+                toast.error(
+                    'Label limit reached. Upgrade to premium to create more labels.'
+                );
                 return;
             }
         }
@@ -145,7 +147,9 @@ const EditLabelsPage = () => {
             }).unwrap();
             setError({ type: null, message: '' });
             refetch(); // Refresh labels list
-            toast.success(`Label renamed from "${oldName}" to "${trimmedName}"`);
+            toast.success(
+                `Label renamed from "${oldName}" to "${trimmedName}"`
+            );
         } catch (err) {
             setError({
                 type: 'exists',

@@ -2,14 +2,14 @@ import { auth, googleProvider } from '@/lib/firebase';
 import { axiosInstance } from '@/utils/axiosInstance';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {
+    deleteUser,
+    EmailAuthProvider,
     signOut as firebaseSignOut,
+    reauthenticateWithCredential,
     signInWithEmailAndPassword,
     signInWithPopup,
-    User,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
     updatePassword,
-    deleteUser,
+    User,
 } from 'firebase/auth';
 
 export const authAPI = createApi({

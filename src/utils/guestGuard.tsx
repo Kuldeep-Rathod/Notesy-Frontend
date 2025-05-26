@@ -1,8 +1,8 @@
 'use client';
 
 import { app } from '@/lib/firebase';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import CircularProgress from '@mui/material/CircularProgress';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 

@@ -26,11 +26,9 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { default as icon, default as logo } from '../../../public/logo.svg';
 
 export default function DashboardLayout({
     children,

@@ -1,6 +1,7 @@
 'use client';
 
 import { NoteI } from '@/interfaces/notes';
+import { bgColors } from '@/interfaces/tooltip';
 import { useGetCollaboratorsQuery } from '@/redux/api/notesAPI';
 import '@/styles/components/notes/_noteCard.scss';
 import { format } from 'date-fns';
@@ -18,7 +19,6 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { AnimatedTooltip } from '../ui/animated-tooltip';
-import { bgColors } from '@/interfaces/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 interface NoteCardProps {

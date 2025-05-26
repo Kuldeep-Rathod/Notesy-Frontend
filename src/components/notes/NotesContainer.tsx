@@ -34,10 +34,10 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
-import { toast } from 'sonner';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';

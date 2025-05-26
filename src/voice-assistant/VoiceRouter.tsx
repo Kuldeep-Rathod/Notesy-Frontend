@@ -63,7 +63,21 @@ const VoiceRouter = () => {
             return;
         }
 
+        const synth = window.speechSynthesis;
+        const voices = synth.getVoices();
+
+        // Try to find Google UK English Female
+        const selectedVoice = voices.find(
+            (voice) => voice.name === 'Google UK English Female'
+        );
+
         const utterance = new SpeechSynthesisUtterance(text);
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        } else {
+            console.warn('Preferred voice not found, using default voice.');
+        }
 
         utterance.onerror = (event) => {
             console.error('Speech synthesis error:', event);
@@ -74,12 +88,25 @@ const VoiceRouter = () => {
         };
 
         try {
-            window.speechSynthesis.speak(utterance);
+            synth.speak(utterance);
             if (isDev) console.log('Speaking:', text);
         } catch (error) {
             console.error('Failed to speak:', error);
         }
     };
+
+    useEffect(() => {
+        if ('speechSynthesis' in window) {
+            const loadVoices = () => {
+                window.speechSynthesis.getVoices();
+            };
+
+            if (typeof window !== 'undefined') {
+                loadVoices();
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        }
+    }, []);
 
     const handleManagePlan = async () => {
         try {

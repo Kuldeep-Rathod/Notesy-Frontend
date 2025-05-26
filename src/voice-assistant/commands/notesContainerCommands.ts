@@ -1,5 +1,5 @@
-import { RefObject } from 'react';
 import { NoteI } from '@/interfaces/notes';
+import { RefObject } from 'react';
 
 interface NotesContainerCommandsParams {
     refs: {

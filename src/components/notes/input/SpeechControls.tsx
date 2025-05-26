@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import { Mic, MicOff, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
 
 interface SpeechControlsProps {
     isListening: boolean;

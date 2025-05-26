@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
 import styles from '@/styles/components/profile/ProfileHeader.module.scss';
-import { UserProfile } from '../../types/profile';
 import Image from 'next/image';
+import React from 'react';
+import { UserProfile } from '../../types/profile';
 
 interface ProfileHeaderProps {
     user: UserProfile;

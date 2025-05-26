@@ -1,6 +1,6 @@
+import { DbUser } from '@/types/reducer-types';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import customBaseQuery from './customBaseQuery';
-import { DbUser } from '@/types/reducer-types';
 
 export const userAPI = createApi({
     reducerPath: 'userApi',

@@ -3,16 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import '@/styles/app/_login.scss';
 import {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
 } from '@/redux/api/authAPI';
+import '@/styles/app/_login.scss';
 import GuestGuard from '@/utils/guestGuard';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 type LoginFormData = {
     email: string;

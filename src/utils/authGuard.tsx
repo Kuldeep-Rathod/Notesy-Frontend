@@ -2,7 +2,7 @@
 
 import { app } from '@/lib/firebase';
 import { setUser } from '@/redux/reducer/authReducer';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';

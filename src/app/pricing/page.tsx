@@ -5,10 +5,10 @@ import FeaturesHighlights from '@/components/upgrade/FeaturesHighlights';
 import Feedback from '@/components/upgrade/Feedback';
 import PricingPlans from '@/components/upgrade/PricingPlans';
 import { axiosInstance } from '@/utils/axiosInstance';
+import { plans } from '@/utils/PlansData';
 import { loadStripe } from '@stripe/stripe-js';
 import { getAuth } from 'firebase/auth';
 import React, { useState } from 'react';
-import { plans } from '@/utils/PlansData';
 
 const SubscriptionPage: React.FC = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>('biannual');

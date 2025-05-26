@@ -1,8 +1,8 @@
 'use client';
 
 import VoiceDebugger from '@/voice-assistant/components/VoiceDebugger';
-import { useEffect, useState } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect, useState } from 'react';
 
 export default function VoiceTestPage() {
     const [mounted, setMounted] = useState(false);

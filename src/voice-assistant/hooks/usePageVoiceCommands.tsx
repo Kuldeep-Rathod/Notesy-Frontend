@@ -1,11 +1,11 @@
 'use client';
 
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { selectNoteInput } from '@/redux/reducer/noteInputReducer';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useSpeechRecognition } from 'react-speech-recognition';
-import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 
 type VoiceCommand = {
     command: string | string[];

@@ -6,11 +6,11 @@ import {
     PieChart,
 } from '@/components/statistics/Charts';
 import { useNoteStatsQuery } from '@/redux/api/notesAPI';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import CountUp from 'react-countup';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { CircularProgress } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import CountUp from 'react-countup';
+import { toast } from 'sonner';
 
 const StatisticsPage = () => {
     const { data: statsData, isError, error, isLoading } = useNoteStatsQuery();

@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
 import styles from '@/styles/components/profile/ProfileSection.module.scss';
+import React, { ReactNode } from 'react';
 
 interface ProfileSectionProps {
     title: string;

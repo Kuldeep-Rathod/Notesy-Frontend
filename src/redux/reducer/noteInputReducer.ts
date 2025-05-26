@@ -323,7 +323,9 @@ export const noteInputReducer = createSlice({
             state.imagePreviews = action.payload;
         },
         removeImage: (state, action: PayloadAction<number>) => {
-            state.images = state.images.filter((_, index) => index !== action.payload);
+            state.images = state.images.filter(
+                (_, index) => index !== action.payload
+            );
         },
     },
 });

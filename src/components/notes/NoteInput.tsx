@@ -13,6 +13,7 @@ import {
     useShareNoteMutation,
     useUpdateNoteMutation,
 } from '@/redux/api/notesAPI';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import {
     addChecklist,
     resetNoteInput,
@@ -37,10 +38,7 @@ import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import {
     BookImage,
     Brush,
-    Mic,
-    MicOff,
-    SquareCheck,
-    Trash2,
+    SquareCheck
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -49,13 +47,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
+import { toast } from 'sonner';
 import { CheckboxList } from './input/CheckboxList';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteToolbar from './input/NoteToolbar';
-import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
-import Link from 'next/link';
 import SpeechControls from './input/SpeechControls';
-import { toast } from 'sonner';
 
 export default function NoteInput({
     isEditing = false,
@@ -162,7 +158,9 @@ export default function NoteInput({
                 };
                 reader.readAsDataURL(file);
             });
-            toast.success(`${files.length} image${files.length > 1 ? 's' : ''} added`);
+            toast.success(
+                `${files.length} image${files.length > 1 ? 's' : ''} added`
+            );
         }
     };
 
@@ -365,7 +363,11 @@ export default function NoteInput({
                         emails: selectedUsers.map((user) => user.email),
                     }).unwrap();
                     console.log('Note shared successfully');
-                    toast.success(`Note shared with ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`);
+                    toast.success(
+                        `Note shared with ${selectedUsers.length} user${
+                            selectedUsers.length > 1 ? 's' : ''
+                        }`
+                    );
                 }
 
                 if (savedNoteId && reminder) {
@@ -513,7 +515,11 @@ export default function NoteInput({
                 }
             }
             dispatch(toggleLabel(labelName));
-            toast.success(label.added ? `Label "${labelName}" removed` : `Label "${labelName}" added`);
+            toast.success(
+                label.added
+                    ? `Label "${labelName}" removed`
+                    : `Label "${labelName}" added`
+            );
         } catch (error) {
             console.error('Error toggling label:', error);
             toast.error('Failed to update label');

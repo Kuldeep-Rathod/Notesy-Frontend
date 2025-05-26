@@ -44,7 +44,9 @@ export function CollaboratorMenu({ onClose }: CollaboratorMenuProps) {
     const handleUserSelect = (user: DbUser) => {
         if (selectedUsers.some((u) => u.uid === user._id)) {
             dispatch(removeCollaborator(user._id));
-            toast.success(`Removed ${user.name || user.email} from collaborators`);
+            toast.success(
+                `Removed ${user.name || user.email} from collaborators`
+            );
         } else {
             dispatch(
                 addCollaborator({

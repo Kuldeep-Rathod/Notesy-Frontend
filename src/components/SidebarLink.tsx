@@ -1,9 +1,9 @@
 // components/SidebarLink.tsx
 import { cn } from '@/lib/utils';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface SidebarLinkProps {
     href: string;

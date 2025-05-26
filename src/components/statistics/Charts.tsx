@@ -1,17 +1,17 @@
 import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
+    ArcElement,
     BarElement,
+    CategoryScale,
+    ChartData,
+    Chart as ChartJS,
+    ChartOptions,
+    Filler,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
     Title,
     Tooltip,
-    Legend,
-    ChartData,
-    ChartOptions,
-    ArcElement,
-    PointElement,
-    LineElement,
-    Filler,
 } from 'chart.js';
 import { Bar, Doughnut, Line, Pie } from 'react-chartjs-2';
 
@@ -101,7 +101,10 @@ export const BarChart = ({
 
     return (
         <div style={{ width: horizontal ? '100%' : '100%', height: '465px' }}>
-            <Bar options={options} data={data} />
+            <Bar
+                options={options}
+                data={data}
+            />
         </div>
     );
 };
@@ -149,7 +152,12 @@ export const DoughnutChart = ({
         cutout,
     };
 
-    return <Doughnut data={doughnutData} options={doughnutOptions} />;
+    return (
+        <Doughnut
+            data={doughnutData}
+            options={doughnutOptions}
+        />
+    );
 };
 
 interface PieChartProps {
@@ -186,7 +194,12 @@ export const PieChart = ({
         },
     };
 
-    return <Pie data={pieChartData} options={pieChartOptions} />;
+    return (
+        <Pie
+            data={pieChartData}
+            options={pieChartOptions}
+        />
+    );
 };
 
 //--------------------------Line Chart----------------------------
@@ -252,7 +265,10 @@ export const LineChart = ({
 
     return (
         <div style={{ width: '100%', height: '465px' }}>
-            <Line options={options} data={lineChartData} />
+            <Line
+                options={options}
+                data={lineChartData}
+            />
         </div>
     );
 };
