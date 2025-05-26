@@ -1,7 +1,10 @@
 'use client';
 
+import { useLogoutMutation } from '@/redux/api/authAPI';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 import { RootState } from '@/redux/store';
+import { axiosInstance } from '@/utils/axiosInstance';
+import { getAuth } from 'firebase/auth';
 import { debounce } from 'lodash-es';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -9,10 +12,13 @@ import { useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
+import { toast } from 'sonner';
 
 const VoiceRouter = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const { data: labelsData = [] } = useGetLabelsQuery();
+
+    const [logout] = useLogoutMutation();
 
     const router = useRouter();
     const isDev = process.env.NODE_ENV === 'development';
@@ -38,7 +44,7 @@ const VoiceRouter = () => {
     const [hasUserGesture, setHasUserGesture] = useState(false);
     const [showGesturePrompt, setShowGesturePrompt] = useState(true);
 
-    // ✅ NEW: Track last interaction time
+    // NEW: Track last interaction time
     const [lastInteractionTime, setLastInteractionTime] = useState<number>(
         Date.now()
     );
@@ -72,6 +78,46 @@ const VoiceRouter = () => {
         }
     };
 
+    const handleManagePlan = async () => {
+        try {
+            const auth = getAuth();
+            const user = auth.currentUser;
+
+            if (!user) {
+                toast.error('User not authenticated');
+                return;
+            }
+
+            const idToken = await user.getIdToken();
+
+            const res = await axiosInstance.post(
+                '/pay/create-portal-session',
+                {}, // no body needed
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            window.location.href = res.data.url;
+        } catch (err) {
+            console.error('Error redirecting to Stripe portal:', err);
+            toast.error('Error redirecting to Stripe portal');
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout().unwrap();
+            toast.success('User Logged out');
+            await router.push('/login');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
+    };
+
     const commands = useMemo(
         () => [
             {
@@ -82,7 +128,7 @@ const VoiceRouter = () => {
                         return;
                     }
                     setIsActive(true);
-                    setLastInteractionTime(Date.now()); // ✅ Update time
+                    setLastInteractionTime(Date.now());
                     console.log(
                         'Wake word detected, user:',
                         user?.fullName || 'Unknown'
@@ -107,7 +153,7 @@ const VoiceRouter = () => {
                         return;
                     }
 
-                    setLastInteractionTime(Date.now()); // ✅ Update time
+                    setLastInteractionTime(Date.now()); // Update time
                     const route = page.toLowerCase().replace(/\s+/g, '');
                     console.log('Navigation command received for:', route);
                     if (validRoutes.includes(route)) {
@@ -118,6 +164,31 @@ const VoiceRouter = () => {
                         speak(`I couldn't find the ${page} page`);
                     }
                 },
+            },
+            {
+                command: ['logout user', 'signout user', 'sign out', 'log out'],
+                callback: () => {
+                    if (!isActive) return;
+                    setLastInteractionTime(Date.now());
+                    speak('Logging you out');
+                    handleLogout();
+                },
+                isFuzzyMatch: true,
+            },
+            {
+                command: [
+                    'manage plans',
+                    'manage subscription',
+                    'subscription',
+                    'manage billing',
+                ],
+                callback: () => {
+                    if (!isActive) return;
+                    setLastInteractionTime(Date.now());
+                    speak('Showing your plans');
+                    handleManagePlan();
+                },
+                isFuzzyMatch: true,
             },
             {
                 command: 'never mind',
@@ -176,17 +247,17 @@ const VoiceRouter = () => {
         };
     }, [browserSupportsSpeechRecognition, isDev, debouncedRouterPush]);
 
-    // ✅ Update interaction time on transcript change
+    // Update interaction time on transcript change
     useEffect(() => {
         if (transcript && transcript.trim()) {
             setLastInteractionTime(Date.now());
         }
     }, [transcript]);
 
-    // ✅ Auto-deactivate voice assistant after 30s of inactivity
+    // Auto-deactivate voice assistant after 60s of inactivity
     useEffect(() => {
         const interval = setInterval(() => {
-            if (isActive && Date.now() - lastInteractionTime > 30000) {
+            if (isActive && Date.now() - lastInteractionTime > 60000 * 2) {
                 setIsActive(false);
                 speak('Voice control deactivated due to inactivity');
                 if (isDev) console.log('Auto-deactivated due to inactivity');
@@ -227,10 +298,10 @@ const VoiceRouter = () => {
     // Emit voice assistant state changes
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // ✅ Set global voice state
+            // Set global voice state
             (window as any).voiceAssistantActive = isActive;
 
-            // ✅ Dispatch event
+            // Dispatch event
             const event = new CustomEvent('voiceAssistantStateChange', {
                 detail: { isActive },
             });
@@ -322,34 +393,6 @@ const VoiceRouter = () => {
                     ? '🎙️ Voice Assistant Active'
                     : '🔇 Say "Hey Notsy" to activate'}
             </div>
-
-            {/* {(isDev || true) && hasUserGesture && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 10,
-                        left: 10,
-                        background: '#eee',
-                        padding: 8,
-                        borderRadius: '5px',
-                        fontSize: '12px',
-                        zIndex: 999,
-                    }}
-                >
-                    <p>Voice control: {isActive ? 'Active' : 'Inactive'}</p>
-                    <p>User gesture: {hasUserGesture ? 'Yes' : 'No'}</p>
-                    <button
-                        onClick={() => {
-                            SpeechRecognition.startListening({
-                                continuous: true,
-                                language: 'en-US',
-                            }).catch((e) => console.error('Error:', e));
-                        }}
-                    >
-                        Restart Voice Recognition
-                    </button>
-                </div>
-            )} */}
         </div>
     );
 };
