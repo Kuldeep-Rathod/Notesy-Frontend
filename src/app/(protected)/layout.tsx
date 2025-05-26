@@ -2,13 +2,14 @@
 
 import SidebarLink from '@/components/SidebarLink';
 import { Button } from '@/components/ui/button';
-import CircularProgress from '@mui/material/CircularProgress';
 import UserMenu from '@/components/UserMenu';
 import { cn } from '@/lib/utils';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import AuthGuard from '@/utils/authGuard';
 import { axiosInstance } from '@/utils/axiosInstance';
+import UserManual from '@/voice-assistant/components/UserManual';
+import CircularProgress from '@mui/material/CircularProgress';
 import { getAuth } from 'firebase/auth';
 import {
     Archive,
@@ -218,6 +219,7 @@ export default function DashboardLayout({
                         </div>
 
                         <div className='flex items-center space-x-4'>
+                            <UserManual />
                             {DbUser?.isPremium ? (
                                 <Button
                                     onClick={handleManagePlan}
