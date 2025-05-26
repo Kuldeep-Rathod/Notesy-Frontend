@@ -8,6 +8,8 @@ import { axiosInstance } from '@/utils/axiosInstance';
 import { plans } from '@/utils/PlansData';
 import { loadStripe } from '@stripe/stripe-js';
 import { getAuth } from 'firebase/auth';
+import { Mic } from 'lucide-react';
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 const SubscriptionPage: React.FC = () => {
@@ -92,6 +94,46 @@ const SubscriptionPage: React.FC = () => {
 
     return (
         <div className='min-h-screen relative bg-gradient-to-b from-white to-gray-50'>
+            <nav className='flex items-center justify-between p-6 max-w-7xl mx-auto'>
+                <Link
+                    href='/'
+                    className='flex items-center space-x-2'
+                >
+                    <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
+                        <Mic className='w-6 h-6 text-white' />
+                    </div>
+                    <span className='text-2xl font-bold text-slate-800'>
+                        Notesy
+                    </span>
+                </Link>
+
+                <div className='hidden md:flex items-center space-x-8'>
+                    <a
+                        href='#features'
+                        className='text-slate-600 hover:text-indigo-600 transition-colors'
+                    >
+                        Features
+                    </a>
+                    <a
+                        href='#testimonials'
+                        className='text-slate-600 hover:text-indigo-600 transition-colors'
+                    >
+                        Reviews
+                    </a>
+                    <Link
+                        href='/pricing'
+                        className='text-slate-600 hover:text-indigo-600 transition-colors'
+                    >
+                        Pricing
+                    </Link>
+                    <Link
+                        href='/login'
+                        className='bg-indigo-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors'
+                    >
+                        Sign In
+                    </Link>
+                </div>
+            </nav>
             {/* Header Section */}
             <div className='max-w-7xl mx-auto pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center'>
                 <h1 className='text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>

@@ -110,14 +110,17 @@ const HeroLandingPage = () => {
         <div className='min-h-screen bg-slate-50 text-slate-900 overflow-hidden'>
             {/* Navigation */}
             <nav className='flex items-center justify-between p-6 max-w-7xl mx-auto'>
-                <div className='flex items-center space-x-2'>
+                <Link
+                    href='/'
+                    className='flex items-center space-x-2'
+                >
                     <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
                         <Mic className='w-6 h-6 text-white' />
                     </div>
                     <span className='text-2xl font-bold text-slate-800'>
                         Notesy
                     </span>
-                </div>
+                </Link>
 
                 <div className='hidden md:flex items-center space-x-8'>
                     <a
@@ -138,9 +141,12 @@ const HeroLandingPage = () => {
                     >
                         Pricing
                     </Link>
-                    <button className='bg-indigo-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors'>
-                        <Link href='/login'>Sign In</Link>
-                    </button>
+                    <Link
+                        href='/login'
+                        className='bg-indigo-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-indigo-700 transition-colors'
+                    >
+                        Sign In
+                    </Link>
                 </div>
             </nav>
 
@@ -172,12 +178,13 @@ const HeroLandingPage = () => {
                         </div>
 
                         <div className='flex flex-col sm:flex-row gap-4'>
-                            <button className='group bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-full font-semibold text-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2 text-white'>
-                                <Link href='/signup'>
-                                    <span>Start Free Trial</span>
-                                </Link>
+                            <Link
+                                href='/signup'
+                                className='group bg-indigo-600 hover:bg-indigo-700 px-8 py-4 rounded-full font-semibold text-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2 text-white'
+                            >
+                                <span>Start Free Trial</span>
                                 <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
-                            </button>
+                            </Link>
 
                             <button
                                 onClick={handleVoiceDemo}
@@ -195,7 +202,7 @@ const HeroLandingPage = () => {
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <CheckCircle className='w-4 h-4 text-green-500' />
-                                <span>14-day free trial</span>
+                                <span>7-day free trial</span>
                             </div>
                         </div>
                     </div>
@@ -365,12 +372,19 @@ const HeroLandingPage = () => {
                     </p>
 
                     <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                        <button className='bg-white text-indigo-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-slate-100 transition-colors'>
-                            <Link href='/signup'>Start Free Trial</Link>
-                        </button>
-                        <button className='border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-indigo-700 transition-colors'>
-                            <Link href='/pricing'> View Pricing</Link>
-                        </button>
+                        <Link
+                            href='/signup'
+                            className='bg-white text-indigo-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-slate-100 transition-colors'
+                        >
+                            Start Free Trial
+                        </Link>
+                        <Link
+                            href='/pricing'
+                            className='border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-indigo-700 transition-colors'
+                        >
+                            {' '}
+                            View Pricing
+                        </Link>
                     </div>
                 </div>
             </div>

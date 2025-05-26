@@ -890,7 +890,7 @@ const UserManual: React.FC = () => {
         <>
             <button
                 onClick={() => setIsManualOpen(true)}
-                className='bg-[#0052CC] hover:bg-[#0052CC]/80 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2  hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md'
+                className='bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md'
             >
                 <Mic className='w-5 h-5' />
                 Open Voice Commands Manual
