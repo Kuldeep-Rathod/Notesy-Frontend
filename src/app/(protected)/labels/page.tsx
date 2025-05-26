@@ -14,6 +14,7 @@ import { ArrowLeftCircle, CirclePlus, Trash2 } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Label {
     id: string;
@@ -68,6 +69,7 @@ const EditLabelsPage = () => {
             )
         ) {
             setError({ type: 'exists', message: 'Label already exists' });
+            toast.error('Label already exists');
             return;
         }
 
@@ -78,6 +80,7 @@ const EditLabelsPage = () => {
                     message:
                         'Label limit reached for free users. Delete an existing label or upgrade to premium to create more.',
                 });
+                toast.error('Label limit reached. Upgrade to premium to create more labels.');
                 return;
             }
         }
@@ -88,11 +91,13 @@ const EditLabelsPage = () => {
             setNewLabelName('');
             setError({ type: null, message: '' });
             refetch(); // Refresh labels list
+            toast.success(`Label "${trimmedName}" created`);
         } catch (err) {
             setError({
                 type: 'exists',
                 message: 'Failed to add label. It may already exist.',
             });
+            toast.error('Failed to create label');
         }
     };
 
@@ -101,11 +106,13 @@ const EditLabelsPage = () => {
             try {
                 await deleteLabel(labelName).unwrap();
                 refetch(); // Refresh labels list
+                toast.success(`Label "${labelName}" deleted`);
             } catch (err) {
                 setError({
                     type: null,
                     message: 'Failed to delete label. Please try again.',
                 });
+                toast.error('Failed to delete label');
             }
         }
     };
@@ -114,7 +121,7 @@ const EditLabelsPage = () => {
         const trimmedName = newName.trim();
 
         if (!trimmedName) {
-            alert('Label name cannot be empty');
+            toast.error('Label name cannot be empty');
             return;
         }
 
@@ -127,6 +134,7 @@ const EditLabelsPage = () => {
             )
         ) {
             setError({ type: 'exists', message: 'Label already exists' });
+            toast.error('Label already exists');
             return;
         }
 
@@ -137,11 +145,13 @@ const EditLabelsPage = () => {
             }).unwrap();
             setError({ type: null, message: '' });
             refetch(); // Refresh labels list
+            toast.success(`Label renamed from "${oldName}" to "${trimmedName}"`);
         } catch (err) {
             setError({
                 type: 'exists',
                 message: 'Failed to rename label. It may already exist.',
             });
+            toast.error('Failed to rename label');
         }
     };
 

@@ -55,6 +55,7 @@ import NoteToolbar from './input/NoteToolbar';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import Link from 'next/link';
 import SpeechControls from './input/SpeechControls';
+import { toast } from 'sonner';
 
 export default function NoteInput({
     isEditing = false,
@@ -147,25 +148,29 @@ export default function NoteInput({
 
     // Handle image changes
     const handleImageChange = (files: File[]) => {
-        setImages(files);
-        const previews: string[] = [];
+        if (files.length > 0) {
+            setImages(files);
+            const previews: string[] = [];
 
-        files.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (typeof reader.result === 'string') {
-                    previews.push(reader.result);
-                    setImagePreviews([...previews]);
-                }
-            };
-            reader.readAsDataURL(file);
-        });
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (typeof reader.result === 'string') {
+                        previews.push(reader.result);
+                        setImagePreviews([...previews]);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            toast.success(`${files.length} image${files.length > 1 ? 's' : ''} added`);
+        }
     };
 
     // Handle image removal
     const handleImageRemove = (index: number) => {
         setImages(images.filter((_, i) => i !== index));
         setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+        toast.success('Image removed');
     };
 
     const closeImageModal = () => {
@@ -345,10 +350,12 @@ export default function NoteInput({
                     }).unwrap();
                     savedNoteId = updatedNote._id;
                     console.log('Note updated successfully');
+                    toast.success('Note updated successfully');
                 } else {
                     const newNote = await createNote(formData).unwrap();
                     savedNoteId = newNote._id;
                     console.log('Note created successfully');
+                    toast.success('Note created successfully');
                 }
 
                 // Share note if collaborators are selected
@@ -358,11 +365,13 @@ export default function NoteInput({
                         emails: selectedUsers.map((user) => user.email),
                     }).unwrap();
                     console.log('Note shared successfully');
+                    toast.success(`Note shared with ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`);
                 }
 
                 if (savedNoteId && reminder) {
                     await scheduleReminder().unwrap();
                     console.log('Reminder Scheduled');
+                    toast.success('Reminder scheduled');
                 }
 
                 onSuccess?.();
@@ -378,6 +387,7 @@ export default function NoteInput({
                 }
             } catch (error) {
                 console.error('Error saving note:', error);
+                toast.error('Failed to save note');
             }
         }
     }, [
@@ -503,8 +513,10 @@ export default function NoteInput({
                 }
             }
             dispatch(toggleLabel(labelName));
+            toast.success(label.added ? `Label "${labelName}" removed` : `Label "${labelName}" added`);
         } catch (error) {
             console.error('Error toggling label:', error);
+            toast.error('Failed to update label');
         }
     };
 
@@ -536,8 +548,10 @@ export default function NoteInput({
                         labels: searchQuery.trim(),
                     }).unwrap();
                 }
+                toast.success(`Label "${searchQuery.trim()}" created`);
             } catch (error) {
                 console.error('Error adding new label:', error);
+                toast.error('Failed to create label');
             }
         }
     };

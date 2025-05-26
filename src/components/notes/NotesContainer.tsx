@@ -37,6 +37,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteCard from './NoteCard';
 import NoteInput from './NoteInput';
+import { toast } from 'sonner';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -189,8 +190,10 @@ const NotesContainer = ({
                 updates: { pinned: !note.pinned },
             }).unwrap();
             refetch();
+            toast.success(note.pinned ? 'Note unpinned' : 'Note pinned');
         } catch (error) {
             console.error('Failed to update note:', error);
+            toast.error('Failed to update note');
         }
     };
 
@@ -207,8 +210,10 @@ const NotesContainer = ({
                 },
             }).unwrap();
             refetch();
+            toast.success(note.archived ? 'Note unarchived' : 'Note archived');
         } catch (error) {
             console.error('Failed to archive note:', error);
+            toast.error('Failed to archive note');
         }
     };
 
@@ -216,8 +221,10 @@ const NotesContainer = ({
         try {
             await moveToBin(noteId).unwrap();
             refetch();
+            toast.success('Note moved to trash');
         } catch (error) {
             console.error('Failed to move note to trash:', error);
+            toast.error('Failed to move note to trash');
         }
     };
 
@@ -226,8 +233,10 @@ const NotesContainer = ({
             console.log('Restoring note:', noteId);
             await restoreNote(noteId).unwrap();
             refetch();
+            toast.success('Note restored from trash');
         } catch (error) {
             console.error('Failed to restore note:', error);
+            toast.error('Failed to restore note');
         }
     };
 
@@ -235,8 +244,10 @@ const NotesContainer = ({
         try {
             await deleteNote(noteId).unwrap();
             refetch();
+            toast.success('Note permanently deleted');
         } catch (error) {
             console.error('Failed to delete note permanently:', error);
+            toast.error('Failed to delete note');
         }
     };
 
@@ -247,8 +258,10 @@ const NotesContainer = ({
                 updates: { bgColor: color },
             }).unwrap();
             refetch();
+            toast.success('Note color updated');
         } catch (error) {
             console.error('Failed to change note color:', error);
+            toast.error('Failed to change note color');
         }
     };
 
@@ -265,8 +278,10 @@ const NotesContainer = ({
                 noteTitle: `${note.noteTitle} (Copy)`,
             }).unwrap();
             refetch();
+            toast.success('Note cloned successfully');
         } catch (error) {
             console.error('Failed to clone note:', error);
+            toast.error('Failed to clone note');
         }
     };
 

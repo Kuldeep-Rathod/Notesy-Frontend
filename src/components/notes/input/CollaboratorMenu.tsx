@@ -8,6 +8,7 @@ import {
 import { DbUser } from '@/types/reducer-types';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
 interface CollaboratorMenuProps {
     onClose: (e: React.MouseEvent) => void;
@@ -43,6 +44,7 @@ export function CollaboratorMenu({ onClose }: CollaboratorMenuProps) {
     const handleUserSelect = (user: DbUser) => {
         if (selectedUsers.some((u) => u.uid === user._id)) {
             dispatch(removeCollaborator(user._id));
+            toast.success(`Removed ${user.name || user.email} from collaborators`);
         } else {
             dispatch(
                 addCollaborator({
@@ -51,6 +53,7 @@ export function CollaboratorMenu({ onClose }: CollaboratorMenuProps) {
                     name: user.name || user.email,
                 })
             );
+            toast.success(`Added ${user.name || user.email} as collaborator`);
         }
         setError(null);
     };
