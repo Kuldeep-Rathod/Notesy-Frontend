@@ -20,6 +20,7 @@ import {
     CircleUserRound,
     LayoutDashboard,
     Menu,
+    Mic,
     Pencil,
     Tag,
     Trash2,
@@ -105,23 +106,13 @@ export default function DashboardLayout({
                 >
                     <div className='flex items-center justify-between p-4 border-b h-16 flex-shrink-0'>
                         {isSidebarOpen ? (
-                            <div className='text-lg font-semibold text-gray-900 whitespace-nowrap'>
-                                <Image
-                                    alt='Company Logo'
-                                    src={logo}
-                                    width={32}
-                                    height={32}
-                                    className='h-8 w-auto'
-                                />
+                            <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
+                                <Mic className='w-6 h-6 text-white' />
                             </div>
                         ) : (
-                            <Image
-                                src={icon}
-                                height={20}
-                                width={20}
-                                alt='icon'
-                                className=''
-                            />
+                            <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
+                                <Mic className='w-5 h-5 text-white' />
+                            </div>
                         )}
                         <button
                             onClick={toggleSidebar}

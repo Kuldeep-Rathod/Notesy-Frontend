@@ -43,7 +43,7 @@ export default function UserMenu() {
         try {
             await logout().unwrap();
             toast.success('User Logged out');
-            await router.push('/login');
+            await router.push('/');
         } catch (err) {
             console.error('Logout failed:', err);
         }
