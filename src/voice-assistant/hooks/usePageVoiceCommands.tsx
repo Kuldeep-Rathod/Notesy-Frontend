@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useSpeechRecognition } from 'react-speech-recognition';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 
 type VoiceCommand = {
     command: string | string[];
@@ -29,6 +30,8 @@ const usePageVoiceCommands = (
     const pathname = usePathname();
     const [isActive, setIsActive] = useState(false);
     const [lastTranscript, setLastTranscript] = useState('');
+    const { data: userData } = useGetCurrentUserQuery();
+    const isPremium = userData?.isPremium;
 
     const { labels } = useSelector(selectNoteInput); // ✅ Access Redux labels
     const labelNames = labels.map((label) => label.name);
@@ -41,6 +44,12 @@ const usePageVoiceCommands = (
         ? currentPageCommands.map((cmd) => ({
               ...cmd,
               callback: (...args: any[]) => {
+                  if (!isPremium) {
+                      if (debug) {
+                          console.log('Command ignored: Premium feature only');
+                      }
+                      return;
+                  }
                   if (isActive) {
                       cmd.callback(...args);
                   } else if (debug) {
@@ -72,6 +81,7 @@ const usePageVoiceCommands = (
 
             const shouldActivate =
                 globalActive &&
+                isPremium &&
                 (isDashboard ||
                     isArchive ||
                     isReminder ||
@@ -83,7 +93,7 @@ const usePageVoiceCommands = (
 
             if (debug) {
                 console.log(
-                    `[VoiceAssistant Hook] Event triggered — Path: ${pathname}, Global: ${globalActive}, Hook active: ${shouldActivate}`
+                    `[VoiceAssistant Hook] Event triggered — Path: ${pathname}, Global: ${globalActive}, Hook active: ${shouldActivate}, Premium: ${isPremium}`
                 );
             }
         };
@@ -125,7 +135,7 @@ const usePageVoiceCommands = (
                 handleVoiceActivation as EventListener
             );
         };
-    }, [pathname, debug, labelNames]);
+    }, [pathname, debug, labelNames, isPremium]);
 
     useEffect(() => {
         if (debug && transcript && transcript !== lastTranscript) {

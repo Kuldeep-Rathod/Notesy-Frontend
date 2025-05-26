@@ -52,6 +52,9 @@ import SpeechRecognition, {
 import { CheckboxList } from './input/CheckboxList';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteToolbar from './input/NoteToolbar';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import Link from 'next/link';
+import SpeechControls from './input/SpeechControls';
 
 export default function NoteInput({
     isEditing = false,
@@ -59,6 +62,9 @@ export default function NoteInput({
     onSuccess,
 }: NoteInputProps) {
     const dispatch = useDispatch();
+
+    const { data: userData } = useGetCurrentUserQuery();
+    const isPremiumUser = userData?.isPremium;
 
     // State for image preview modal and images
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -864,95 +870,15 @@ export default function NoteInput({
                         <></>
                     )}
 
-                    <div className='note-input__speech-controls'>
-                        {/* Microphone Button */}
-                        <button
-                            className='note-input__mic-button'
-                            onClick={
-                                isListening ? stopListening : startListening
-                            }
-                            title={
-                                isListening
-                                    ? 'Stop dictation'
-                                    : 'Start dictation'
-                            }
-                            style={{
-                                backgroundColor: isListening
-                                    ? '#ff4c4c'
-                                    : '#ffffff',
-                            }}
-                        >
-                            {isListening ? (
-                                <MicOff
-                                    size={18}
-                                    color='#fff'
-                                />
-                            ) : (
-                                <Mic
-                                    size={18}
-                                    color='#444'
-                                />
-                            )}
-                        </button>
-
-                        {/* Clear Button */}
-                        <button
-                            className='note-input__mic-button'
-                            onClick={() => {
-                                resetTranscript();
-                                if (
-                                    activeField &&
-                                    (activeField === 'title' ||
-                                        activeField === 'body')
-                                ) {
-                                    handleFieldFocus(activeField, true);
-                                }
-                            }}
-                            title='Clear transcription'
-                            style={{
-                                transition: 'background 0.2s ease',
-                            }}
-                        >
-                            <Trash2
-                                size={18}
-                                color='#444'
-                            />
-                        </button>
-
-                        {/* Listening Indicator */}
-                        {isListening && (
-                            <div
-                                style={{
-                                    width: '10px',
-                                    height: '10px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#ff4c4c',
-                                    animation: 'pulse 1.5s infinite',
-                                    marginLeft: '6px',
-                                }}
-                            />
-                        )}
-
-                        {/* Pulse animation */}
-                        <style>
-                            {`
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.5);
-                opacity: 0.6;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        `}
-                        </style>
-                    </div>
+                    <SpeechControls
+                        isListening={isListening}
+                        isPremiumUser={isPremiumUser}
+                        activeField={activeField}
+                        startListening={startListening}
+                        stopListening={stopListening}
+                        resetTranscript={resetTranscript}
+                        handleFieldFocus={handleFieldFocus}
+                    />
 
                     {/* Labels */}
                     <div className='note-input__labels'>

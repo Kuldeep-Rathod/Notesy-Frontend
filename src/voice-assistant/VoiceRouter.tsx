@@ -2,6 +2,7 @@
 
 import { useLogoutMutation } from '@/redux/api/authAPI';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { RootState } from '@/redux/store';
 import { axiosInstance } from '@/utils/axiosInstance';
 import { getAuth } from 'firebase/auth';
@@ -17,6 +18,8 @@ import { toast } from 'sonner';
 const VoiceRouter = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const { data: labelsData = [] } = useGetLabelsQuery();
+    const { data: userData } = useGetCurrentUserQuery();
+    const isPremium = userData?.isPremium;
 
     const [logout] = useLogoutMutation();
 
@@ -127,6 +130,13 @@ const VoiceRouter = () => {
                         if (isDev) console.warn('Waiting for user interaction');
                         return;
                     }
+                    if (!isPremium) {
+                        speak(
+                            'This is a premium feature. Please upgrade to use voice commands.'
+                        );
+                        router.push('/upgrade');
+                        return;
+                    }
                     setIsActive(true);
                     setLastInteractionTime(Date.now());
                     console.log(
@@ -206,6 +216,8 @@ const VoiceRouter = () => {
             hasUserGesture,
             validRoutes,
             user,
+            isPremium,
+            router,
         ]
     );
 
@@ -354,24 +366,51 @@ const VoiceRouter = () => {
                         gap: '1rem',
                     }}
                 >
-                    <p>Click or press any key to activate voice assistant.</p>
-                    <button
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#4a90e2',
-                            border: 'none',
-                            borderRadius: '5px',
-                            color: 'white',
-                            cursor: 'pointer',
-                            fontSize: '1rem',
-                        }}
-                        onClick={() => {
-                            setHasUserGesture(true);
-                            setShowGesturePrompt(false);
-                        }}
-                    >
-                        Activate Voice Assistant
-                    </button>
+                    {isPremium ? (
+                        <>
+                            <p>
+                                Click or press any key to activate voice
+                                assistant.
+                            </p>
+                            <button
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#4a90e2',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                }}
+                                onClick={() => {
+                                    setHasUserGesture(true);
+                                    setShowGesturePrompt(false);
+                                }}
+                            >
+                                Activate Voice Assistant
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <p>Voice assistant is a premium feature.</p>
+                            <button
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#4a90e2',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                }}
+                                onClick={() => {
+                                    router.push('/upgrade');
+                                }}
+                            >
+                                Upgrade to Premium
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -386,7 +425,7 @@ const VoiceRouter = () => {
                     borderRadius: '50px',
                     boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
                     zIndex: 100,
-                    display: hasUserGesture ? 'block' : 'none',
+                    display: hasUserGesture && isPremium ? 'block' : 'none',
                 }}
             >
                 {isActive

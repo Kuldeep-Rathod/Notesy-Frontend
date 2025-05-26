@@ -113,6 +113,7 @@ export const useNoteCommands = ({
                 'edit title',
                 'change title',
                 'go to title',
+                'set title',
             ],
             callback: () => {
                 closeAllMenus();
@@ -150,10 +151,52 @@ export const useNoteCommands = ({
         },
         {
             command: [
+                'focus body',
+                'edit content',
+                'write note',
+                'go to description',
+                'set description',
+            ],
+            callback: () => {
+                closeAllMenus();
+                const bodyEl = refs.noteBodyRef.current;
+
+                if (bodyEl) {
+                    bodyEl.focus();
+
+                    // For contentEditable elements, move cursor to the end
+                    if (
+                        'contentEditable' in bodyEl &&
+                        bodyEl.isContentEditable
+                    ) {
+                        const range = document.createRange();
+                        const sel = window.getSelection();
+
+                        range.selectNodeContents(bodyEl);
+                        range.collapse(false); // Move to end
+                        sel?.removeAllRanges();
+                        sel?.addRange(range);
+                    }
+
+                    // If it's an input or textarea
+                    if (
+                        bodyEl instanceof HTMLInputElement ||
+                        bodyEl instanceof HTMLTextAreaElement
+                    ) {
+                        const len = bodyEl.value.length;
+                        bodyEl.setSelectionRange(len, len);
+                    }
+                }
+            },
+            isFuzzyMatch: true,
+            fuzzyMatchingThreshold: 0.7,
+        },
+        {
+            command: [
                 'set title *',
                 'title is *',
                 'make title *',
-                'write title *'
+                'write title *',
             ],
             callback: (title: string) => {
                 closeAllMenus();
@@ -173,7 +216,7 @@ export const useNoteCommands = ({
                 'write content *',
                 'write body *',
                 'content is *',
-                'body is *'
+                'body is *',
             ],
             callback: (content: string) => {
                 closeAllMenus();
@@ -191,7 +234,7 @@ export const useNoteCommands = ({
                 'append content *',
                 'add content *',
                 'continue writing *',
-                'add to body *'
+                'add to body *',
             ],
             callback: (content: string) => {
                 closeAllMenus();
