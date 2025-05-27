@@ -5,6 +5,7 @@ import { notesAPI } from './api/notesAPI';
 import { userAPI } from './api/userAPI';
 import authReducer from './reducer/authReducer';
 import { noteInputReducer } from './reducer/noteInputReducer';
+import { boardsAPI } from './api/boardsAPI';
 
 export const rootReducer = combineReducers({
     auth: authReducer,
@@ -13,6 +14,7 @@ export const rootReducer = combineReducers({
     [notesAPI.reducerPath]: notesAPI.reducer,
     [userAPI.reducerPath]: userAPI.reducer,
     [labelsAPI.reducerPath]: labelsAPI.reducer,
+    [boardsAPI.reducerPath]: boardsAPI.reducer,
 });
 
 export const store = configureStore({
@@ -22,7 +24,8 @@ export const store = configureStore({
             authAPI.middleware,
             notesAPI.middleware,
             userAPI.middleware,
-            labelsAPI.middleware
+            labelsAPI.middleware,
+            boardsAPI.middleware
         ),
     devTools: process.env.NODE_ENV !== 'production',
 });
