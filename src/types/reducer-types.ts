@@ -22,6 +22,8 @@ export interface DbUser {
     isPremium?: boolean;
     planType?: 'monthly' | 'quarterly' | 'biannual' | 'annual';
     premiumExpiresAt?: Date | null;
+    isInFreeTrial: boolean;
+    freeTrialEndDate?: string;
     createdAt: string;
     updatedAt: string;
 }

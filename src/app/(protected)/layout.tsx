@@ -29,6 +29,8 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import TrialStatus from '@/components/TrialStatus';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({
     children,
@@ -37,6 +39,7 @@ export default function DashboardLayout({
 }) {
     const { data: labelsData = [], isLoading } = useGetLabelsQuery();
     const { data: DbUser, isLoading: dbUserLoading } = useGetCurrentUserQuery();
+    const router = useRouter();
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -63,6 +66,12 @@ export default function DashboardLayout({
                 return;
             }
 
+            // If user is in free trial, redirect to upgrade page
+            if (DbUser?.isInFreeTrial) {
+                router.push('/upgrade');
+                return;
+            }
+
             const idToken = await user.getIdToken();
 
             const res = await axiosInstance.post(
@@ -79,7 +88,7 @@ export default function DashboardLayout({
             window.location.href = res.data.url;
         } catch (err) {
             console.error('Error redirecting to Stripe portal:', err);
-            toast.error('Error redirecting to Stripe portal');
+            toast.error('Error accessing subscription management');
         }
     };
 
@@ -226,7 +235,9 @@ export default function DashboardLayout({
 
                         <div className='flex items-center space-x-4'>
                             <UserManual />
-                            {DbUser?.isPremium ? (
+                            {DbUser?.isInFreeTrial ? (
+                                <TrialStatus user={DbUser} />
+                            ) : DbUser?.isPremium ? (
                                 <Button
                                     onClick={handleManagePlan}
                                     className='bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm transition-all duration-200 shadow-sm hover:shadow-md'

@@ -59,7 +59,7 @@ export default function UserMenu() {
             <PopoverTrigger asChild>
                 <Button
                     variant='ghost'
-                    className='p-0 rounded-full hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#0004E8]'
+                    className='p-0 rounded-full hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#0004E8] cursor-pointer'
                 >
                     <Avatar className='h-9 w-9 border border-gray-200 overflow-hidden'>
                         <AvatarImage

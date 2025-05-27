@@ -9,11 +9,14 @@ import { plans } from '@/utils/PlansData';
 import { loadStripe } from '@stripe/stripe-js';
 import { getAuth } from 'firebase/auth';
 import React, { useState } from 'react';
+import { differenceInDays } from 'date-fns';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 
 const SubscriptionPage: React.FC = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>('biannual');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { data: DbUser } = useGetCurrentUserQuery();
 
     const handlePlanSelection = (planId: string) => {
         setSelectedPlan(planId);
@@ -25,7 +28,6 @@ const SubscriptionPage: React.FC = () => {
         setError(null);
 
         try {
-            // Find the selected plan
             const selectedPlanData = plans.find(
                 (plan) => plan.id === selectedPlan
             );
@@ -60,7 +62,6 @@ const SubscriptionPage: React.FC = () => {
                 throw new Error('Invalid response from server');
             }
 
-            // Redirect to Stripe checkout
             const stripe = await loadStripe(
                 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
             );
@@ -90,6 +91,16 @@ const SubscriptionPage: React.FC = () => {
         }
     };
 
+    const getTrialMessage = () => {
+        if (!DbUser?.isInFreeTrial) return null;
+
+        if (!DbUser.freeTrialEndDate) return null;
+        const trialEndDate = new Date(DbUser.freeTrialEndDate);
+        const daysRemaining = differenceInDays(trialEndDate, new Date());
+
+        return `You are currently in your free trial period. ${daysRemaining} days remaining.`;
+    };
+
     return (
         <div className='min-h-screen relative bg-gradient-to-b from-white to-gray-50'>
             {/* Header Section */}
@@ -101,6 +112,11 @@ const SubscriptionPage: React.FC = () => {
                     Unlock the full power of voice-controlled note taking and
                     boost your productivity
                 </p>
+                {getTrialMessage() && (
+                    <div className='mt-4 p-4 bg-indigo-50 text-indigo-700 rounded-lg inline-block'>
+                        {getTrialMessage()}
+                    </div>
+                )}
             </div>
 
             <FeaturesHighlights />
