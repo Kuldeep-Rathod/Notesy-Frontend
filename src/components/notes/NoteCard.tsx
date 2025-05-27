@@ -20,6 +20,8 @@ import { useState } from 'react';
 import { MdRestoreFromTrash } from 'react-icons/md';
 import { AnimatedTooltip } from '../ui/animated-tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 interface NoteCardProps {
     note: NoteI;
@@ -61,6 +63,8 @@ const NoteCard = ({
 }: NoteCardProps) => {
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [colorMenuOpen, setColorMenuOpen] = useState(false);
+    const currentUser = useSelector((state: RootState) => state.auth.user);
+
     const { data: collaboratorsData } = useGetCollaboratorsQuery(
         note._id || '',
         {
@@ -70,6 +74,11 @@ const NoteCard = ({
             refetchOnReconnect: true,
         }
     ) as { data: CollaboratorsData | undefined };
+
+    // Check ownership: if note has collaborators, check collaboratorsData.ownerId, otherwise check note.firebaseUid
+    const isOwner = note.sharedWith?.length
+        ? currentUser?.uid === collaboratorsData?.ownerId
+        : currentUser?.uid === note.firebaseUid;
 
     const handleEditClick = () => {
         if (onEdit) onEdit(note);
@@ -241,72 +250,82 @@ const NoteCard = ({
             <div className='note-actions'>
                 {!note.trashed ? (
                     <>
-                        <button
-                            className='action-button'
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onArchiveToggle && note._id) {
-                                    onArchiveToggle(note._id);
-                                }
-                            }}
-                            aria-label={note.archived ? 'Unarchive' : 'Archive'}
-                        >
-                            {note.archived ? (
-                                <ArchiveRestore size={18} />
-                            ) : (
-                                <Archive size={18} />
-                            )}
-                        </button>
-
-                        <Popover>
-                            <PopoverTrigger asChild>
+                        {isOwner && (
+                            <>
                                 <button
                                     className='action-button'
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setMoreMenuOpen(false);
+                                        if (onArchiveToggle && note._id) {
+                                            onArchiveToggle(note._id);
+                                        }
                                     }}
-                                    aria-label='Change color'
+                                    aria-label={
+                                        note.archived ? 'Unarchive' : 'Archive'
+                                    }
                                 >
-                                    <Palette size={18} />
-                                </button>
-                            </PopoverTrigger>
-
-                            <PopoverContent
-                                className='p-2 w-auto bg-white rounded-md shadow-lg border'
-                                onClick={(e) => e.stopPropagation()}
-                                align='end'
-                            >
-                                <div className='flex flex-wrap gap-2 max-w-[160px]'>
-                                    {Object.entries(colorOptions).map(
-                                        ([key, value]) => (
-                                            <div
-                                                key={key}
-                                                className='w-6 h-6 rounded-full cursor-pointer border border-gray-200'
-                                                style={{
-                                                    backgroundColor: value,
-                                                }}
-                                                onClick={() =>
-                                                    handleColorChange(value)
-                                                }
-                                                aria-label={`Color ${key}`}
-                                            />
-                                        )
+                                    {note.archived ? (
+                                        <ArchiveRestore size={18} />
+                                    ) : (
+                                        <Archive size={18} />
                                     )}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                                </button>
 
-                        <button
-                            className='action-button'
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onTrash && note._id) onTrash(note._id);
-                            }}
-                            aria-label='Move to trash'
-                        >
-                            <Trash2 size={18} />
-                        </button>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className='action-button'
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setMoreMenuOpen(false);
+                                            }}
+                                            aria-label='Change color'
+                                        >
+                                            <Palette size={18} />
+                                        </button>
+                                    </PopoverTrigger>
+
+                                    <PopoverContent
+                                        className='p-2 w-auto bg-white rounded-md shadow-lg border'
+                                        onClick={(e) => e.stopPropagation()}
+                                        align='end'
+                                    >
+                                        <div className='flex flex-wrap gap-2 max-w-[160px]'>
+                                            {Object.entries(colorOptions).map(
+                                                ([key, value]) => (
+                                                    <div
+                                                        key={key}
+                                                        className='w-6 h-6 rounded-full cursor-pointer border border-gray-200'
+                                                        style={{
+                                                            backgroundColor:
+                                                                value,
+                                                        }}
+                                                        onClick={() =>
+                                                            handleColorChange(
+                                                                value
+                                                            )
+                                                        }
+                                                        aria-label={`Color ${key}`}
+                                                    />
+                                                )
+                                            )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+
+                                <button
+                                    className='action-button'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onTrash && note._id)
+                                            onTrash(note._id);
+                                    }}
+                                    aria-label='Move to trash'
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </>
+                        )}
 
                         <div className='more-menu-container'>
                             <Popover>
@@ -353,26 +372,32 @@ const NoteCard = ({
                     </>
                 ) : (
                     <>
-                        <button
-                            className='action-button restore'
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onRestore && note._id) onRestore(note._id);
-                            }}
-                            aria-label='Restore note'
-                        >
-                            <MdRestoreFromTrash size={18} />
-                        </button>
-                        <button
-                            className='action-button delete'
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onDelete && note._id) onDelete(note._id);
-                            }}
-                            aria-label='Delete permanently'
-                        >
-                            <Trash2 size={18} />
-                        </button>
+                        {isOwner && (
+                            <>
+                                <button
+                                    className='action-button restore'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onRestore && note._id)
+                                            onRestore(note._id);
+                                    }}
+                                    aria-label='Restore note'
+                                >
+                                    <MdRestoreFromTrash size={18} />
+                                </button>
+                                <button
+                                    className='action-button delete'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onDelete && note._id)
+                                            onDelete(note._id);
+                                    }}
+                                    aria-label='Delete permanently'
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </>
+                        )}
                     </>
                 )}
             </div>
