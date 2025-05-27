@@ -31,6 +31,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import TrialStatus from '@/components/TrialStatus';
 import { useRouter } from 'next/navigation';
+import { MdOutlineDraw } from 'react-icons/md';
 
 export default function DashboardLayout({
     children,
@@ -207,6 +208,15 @@ export default function DashboardLayout({
                                     title='Statistics'
                                     isSidebarOpen={isSidebarOpen}
                                     icon={<ChartPie className='w-5 h-5' />}
+                                />
+                            )}
+
+                            {DbUser?.isPremium && (
+                                <SidebarLink
+                                    href='/boards'
+                                    title='Boards'
+                                    isSidebarOpen={isSidebarOpen}
+                                    icon={<MdOutlineDraw className='w-5 h-5' />}
                                 />
                             )}
 
