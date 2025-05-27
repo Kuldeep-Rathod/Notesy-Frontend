@@ -19,11 +19,21 @@ export const boardsAPI = createApi({
     reducerPath: 'boardsApi',
     baseQuery: customBaseQuery,
     tagTypes: ['Board'],
+    keepUnusedDataFor: 60, // Keep data in cache for 60 seconds
+    refetchOnMountOrArgChange: true, // Refetch when component mounts or arguments change
+    refetchOnFocus: true, // Refetch when window regains focus
+    refetchOnReconnect: true, // Refetch when reconnecting after being offline
     endpoints: (builder) => ({
         // Fetch all boards
         getBoards: builder.query<Board[], void>({
             query: () => 'boards',
-            providesTags: ['Board'],
+            providesTags: (result) => 
+                result 
+                    ? [
+                        ...result.map(({ _id }) => ({ type: 'Board' as const, id: _id })),
+                        { type: 'Board', id: 'LIST' }
+                      ]
+                    : [{ type: 'Board', id: 'LIST' }],
         }),
 
         // Fetch a single board
@@ -42,7 +52,7 @@ export const boardsAPI = createApi({
                 method: 'POST',
                 body: boardData,
             }),
-            invalidatesTags: ['Board'],
+            invalidatesTags: [{ type: 'Board', id: 'LIST' }],
         }),
 
         // Update a board
@@ -55,7 +65,10 @@ export const boardsAPI = createApi({
                 method: 'PUT',
                 body: rest,
             }),
-            invalidatesTags: (result, error, { id }) => [{ type: 'Board', id }],
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Board', id },
+                { type: 'Board', id: 'LIST' }
+            ],
         }),
 
         // Delete a board
@@ -64,7 +77,10 @@ export const boardsAPI = createApi({
                 url: `boards/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Board'],
+            invalidatesTags: (result, error, id) => [
+                { type: 'Board', id },
+                { type: 'Board', id: 'LIST' }
+            ],
         }),
     }),
 });
@@ -76,3 +92,5 @@ export const {
     useUpdateBoardMutation,
     useDeleteBoardMutation,
 } = boardsAPI;
+
+
