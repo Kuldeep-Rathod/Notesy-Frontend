@@ -165,7 +165,7 @@ const BoardsListPage = () => {
                                 />
 
                                 {/* Hover overlay for quick view */}
-                                <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center'>
+                                {/* <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center'>
                                     <Button
                                         variant='secondary'
                                         size='sm'
@@ -177,7 +177,7 @@ const BoardsListPage = () => {
                                         <Eye className='h-4 w-4 mr-1' />
                                         Quick View
                                     </Button>
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* Content Section */}

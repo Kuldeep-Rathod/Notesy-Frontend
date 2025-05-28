@@ -49,6 +49,12 @@ import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteToolbar from './input/NoteToolbar';
 import SpeechControls from './input/SpeechControls';
 import Link from 'next/link';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '../ui/tooltip';
 
 export default function NoteInput({
     isEditing = false,
@@ -766,28 +772,63 @@ export default function NoteInput({
                     className='note-input__placeholder-input'
                     placeholder='Take a note…'
                     type='text'
-                />
-                <div
-                    className={`note-input__action-icon note-input__action-icon--check H pop note-input--tooltip`}
-                    data-tooltip='New list'
-                    onClick={() => dispatch(toggleCbox())}
-                >
-                    <SquareCheck />
-                </div>
-                <div
-                    className={`note-input__action-icon note-input__action-icon--paint H disabled pop note-input--tooltip`}
-                    data-tooltip='New note with drawing'
-                >
-                    <Link href='/boards'>
-                        <Brush />
-                    </Link>
-                </div>
-                <div
-                    className={`note-input__action-icon note-input__action-icon--picture H disabled pop note-input--tooltip`}
-                    data-tooltip='New note with image'
-                >
-                    <BookImage />
-                </div>
+                />{' '}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className={`note-input__action-icon note-input__action-icon--check H pop`}
+                                onClick={() => dispatch(toggleCbox())}
+                                aria-label='New list'
+                            >
+                                <SquareCheck />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                            side='top'
+                            align='center'
+                            className='note-input--tooltip'
+                        >
+                            New list
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className={`note-input__action-icon note-input__action-icon--paint H disabled pop`}
+                                aria-label='New note with drawing'
+                            >
+                                <Link href='/boards'>
+                                    <Brush />
+                                </Link>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                            side='top'
+                            align='center'
+                            className='note-input--tooltip'
+                        >
+                            New note with drawing
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                className={`note-input__action-icon note-input__action-icon--picture H disabled pop`}
+                                aria-label='New note with image'
+                            >
+                                <BookImage />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                            side='top'
+                            align='center'
+                            className='note-input--tooltip'
+                        >
+                            New note with image
+                        </TooltipContent>
+                    </Tooltip>{' '}
+                </TooltipProvider>
             </div>
 
             {/* New note */}
@@ -923,18 +964,27 @@ export default function NoteInput({
                             ))}
                     </div>
                 </div>
-
-                {/* Pin icon */}
-                <div
-                    ref={notePinRef}
-                    data-pinned={isPinned.toString()}
-                    className={`note-input__pin H pop note-input--tooltip`}
-                    onClick={handlePinClick}
-                    data-tooltip={isPinned ? 'Unpin note' : 'Pin note'}
-                >
-                    {isPinned ? <BsPinFill /> : <BsPin />}
-                </div>
-
+                {/* Pin icon */}{' '}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div
+                                ref={notePinRef}
+                                data-pinned={isPinned.toString()}
+                                className={`note-input__pin`}
+                                onClick={handlePinClick}
+                            >
+                                {isPinned ? <BsPinFill /> : <BsPin />}
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent
+                            side='top'
+                            align='center'
+                        >
+                            Pin Note
+                        </TooltipContent>
+                    </Tooltip>{' '}
+                </TooltipProvider>
                 {/* Icons */}
                 <NoteToolbar
                     onSaveClick={saveNote}
