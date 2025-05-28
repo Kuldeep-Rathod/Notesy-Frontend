@@ -66,7 +66,7 @@ export const BarChart = ({
             y: {
                 beginAtZero: true,
                 grid: {
-                    display: false,
+                    display: true,
                 },
             },
             x: {
@@ -206,68 +206,72 @@ export const PieChart = ({
 
 interface LineChartProps {
     data: number[];
+    labels?: string[];
     label: string;
     backgroundColor: string;
     borderColor: string;
-    labels?: string[];
+    options?: ChartOptions<'line'>;
+    height?: number | string;
+    showTitle?: boolean;
 }
 
 export const LineChart = ({
     data,
+    labels = [],
     label,
     backgroundColor,
     borderColor,
-    labels = months,
+    options,
+    height = 465,
+    showTitle = false,
 }: LineChartProps) => {
-    const options: ChartOptions<'line'> = {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-            duration: 1000, // Specify the duration of the animation in milliseconds
-            easing: 'easeOutBack', // You can choose different easing options
-        },
-        plugins: {
-            legend: {
-                display: false,
-            },
-            title: {
-                display: true,
-            },
-        },
-
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    display: false,
-                },
-            },
-            x: {
-                grid: {
-                    display: false,
-                },
-            },
-        },
-    };
-
-    const lineChartData: ChartData<'line', number[], string> = {
+    const chartData: ChartData<'line', number[], string> = {
         labels,
         datasets: [
             {
-                fill: true,
-                data,
                 label,
+                data,
+                fill: true,
                 backgroundColor,
                 borderColor,
+                tension: 0.4,
+                pointBackgroundColor: borderColor,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                borderWidth: 2,
             },
         ],
     };
 
+    const defaultOptions: ChartOptions<'line'> = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+            },
+            title: {
+                display: showTitle,
+                text: label,
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { display: true },
+            },
+            x: {
+                grid: { display: false },
+            },
+        },
+    };
+
     return (
-        <div style={{ width: '100%', height: '465px' }}>
+        <div style={{ width: '100%', height }}>
             <Line
-                options={options}
-                data={lineChartData}
+                data={chartData}
+                options={options ?? defaultOptions}
             />
         </div>
     );

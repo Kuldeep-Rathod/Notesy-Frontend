@@ -32,6 +32,10 @@ export type NotesStatsResponse = {
         bgColorStats: {
             [color: string]: number;
         };
+        monthlyNoteStats: {
+            labels: string[];
+            data: number[];
+        };
     };
 };
 

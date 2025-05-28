@@ -169,6 +169,8 @@ export const noteInputReducer = createSlice({
         },
         toggleTrash: (state) => {
             state.isTrashed = !state.isTrashed;
+            state.isPinned = false;
+            state.isArchived = false;
         },
 
         // Tooltips

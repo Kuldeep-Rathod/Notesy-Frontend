@@ -194,133 +194,127 @@ const EditLabelsPage = () => {
     }
 
     return (
-        <div className='min-h-screen p-6'>
-            <div className='max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden'>
-                {/* Header */}
-                <div className='p-6 border-b border-slate-200 flex items-center justify-between'>
-                    <div className='flex items-center space-x-4'>
-                        <button
-                            onClick={() => router.back()}
-                            className='text-slate-600 hover:text-indigo-600 transition-colors'
-                        >
-                            <ArrowLeft className='w-6 h-6' />
-                        </button>
-                        <h1 className='text-2xl font-bold text-slate-800'>
-                            Edit Labels
-                        </h1>
+        <div className='max-w-3xl mx-auto m-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden'>
+            {/* Header */}
+            <div className='p-6 border-b border-slate-200 flex items-center justify-between'>
+                <div className='flex items-center space-x-4'>
+                    <button
+                        onClick={() => router.back()}
+                        className='text-slate-600 hover:text-indigo-600 transition-colors'
+                    >
+                        <ArrowLeft className='w-6 h-6' />
+                    </button>
+                    <h1 className='text-2xl font-bold text-slate-800'>
+                        Edit Labels
+                    </h1>
+                </div>
+                {isActive && (
+                    <div className='flex items-center space-x-2 bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full'>
+                        <Mic className='w-4 h-4' />
+                        <span className='text-sm font-medium'>
+                            Voice Active
+                        </span>
                     </div>
-                    {isActive && (
-                        <div className='flex items-center space-x-2 bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full'>
-                            <Mic className='w-4 h-4' />
-                            <span className='text-sm font-medium'>
-                                Voice Active
-                            </span>
-                        </div>
-                    )}
+                )}
+            </div>
+
+            {/* Content */}
+            <div className='p-6'>
+                {/* Add Label Section */}
+                <div className='flex items-center space-x-3 mb-6 p-3'>
+                    <input
+                        type='text'
+                        placeholder='Create new label'
+                        className='flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all'
+                        value={newLabelName}
+                        onChange={(e) =>
+                            setNewLabelName(e.target.value.toLowerCase())
+                        }
+                        onKeyDown={(e) => e.key === 'Enter' && createLabel()}
+                    />
+
+                    <button
+                        onClick={createLabel}
+                        disabled={!newLabelName.trim()}
+                        className='bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors'
+                    >
+                        <CirclePlus className='w-5 h-5' />
+                    </button>
                 </div>
 
-                {/* Content */}
-                <div className='p-6'>
-                    {/* Add Label Section */}
-                    <div className='flex items-center space-x-3 mb-6 p-3'>
-                        <input
-                            type='text'
-                            placeholder='Create new label'
-                            className='flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all'
-                            value={newLabelName}
-                            onChange={(e) =>
-                                setNewLabelName(e.target.value.toLowerCase())
-                            }
-                            onKeyDown={(e) =>
-                                e.key === 'Enter' && createLabel()
-                            }
-                        />
-
-                        <button
-                            onClick={createLabel}
-                            disabled={!newLabelName.trim()}
-                            className='bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors'
-                        >
-                            <CirclePlus className='w-5 h-5' />
-                        </button>
+                {error.type && (
+                    <div
+                        className={`mb-4 p-3 m-3 rounded-lg text-sm ${
+                            error.type === 'limit'
+                                ? 'bg-amber-50 text-amber-800'
+                                : 'bg-red-50 text-red-600'
+                        }`}
+                    >
+                        {error.message}
                     </div>
+                )}
 
-                    {error.type && (
+                {/* Labels List */}
+                <div className='space-y-3'>
+                    {labels.map((label) => (
                         <div
-                            className={`mb-4 p-3 m-3 rounded-lg text-sm ${
-                                error.type === 'limit'
-                                    ? 'bg-amber-50 text-amber-800'
-                                    : 'bg-red-50 text-red-600'
-                            }`}
+                            key={label.id}
+                            className='flex items-center space-x-3 p-3 hover:bg-slate-50 rounded-lg transition-colors'
                         >
-                            {error.message}
-                        </div>
-                    )}
-
-                    {/* Labels List */}
-                    <div className='space-y-3'>
-                        {labels.map((label) => (
-                            <div
-                                key={label.id}
-                                className='flex items-center space-x-3 p-3 hover:bg-slate-50 rounded-lg transition-colors'
-                            >
-                                <input
-                                    type='text'
-                                    className='flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all'
-                                    value={label.name}
-                                    onChange={(e) => {
-                                        const lowerCaseValue =
-                                            e.target.value.toLowerCase();
-                                        const updatedLabels = labels.map((l) =>
-                                            l.id === label.id
-                                                ? { ...l, name: lowerCaseValue }
-                                                : l
-                                        );
-                                        setLabels(updatedLabels);
-                                    }}
-                                    onBlur={(e) =>
+                            <input
+                                type='text'
+                                className='flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all'
+                                value={label.name}
+                                onChange={(e) => {
+                                    const lowerCaseValue =
+                                        e.target.value.toLowerCase();
+                                    const updatedLabels = labels.map((l) =>
+                                        l.id === label.id
+                                            ? { ...l, name: lowerCaseValue }
+                                            : l
+                                    );
+                                    setLabels(updatedLabels);
+                                }}
+                                onBlur={(e) =>
+                                    handleRenameLabel(
+                                        label.name,
+                                        e.target.value
+                                    )
+                                }
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
                                         handleRenameLabel(
                                             label.name,
-                                            e.target.value
-                                        )
+                                            e.currentTarget.value
+                                        );
+                                        e.currentTarget.blur();
                                     }
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleRenameLabel(
-                                                label.name,
-                                                e.currentTarget.value
-                                            );
-                                            e.currentTarget.blur();
-                                        }
-                                    }}
-                                />
-                                <button
-                                    onClick={() =>
-                                        handleDeleteLabel(label.name)
-                                    }
-                                    className='text-slate-500 hover:text-red-500 p-2 rounded-lg transition-colors'
-                                >
-                                    <Trash2 className='w-5 h-5' />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    {!isPremium && labels.length >= 3 && (
-                        <div className='mt-6 p-4 bg-indigo-50 rounded-lg text-center'>
-                            <p className='text-indigo-800'>
-                                You&apos;ve reached the limit for free users.
-                                <Link
-                                    href='/upgrade'
-                                    className='ml-1 font-semibold text-indigo-600 hover:underline'
-                                >
-                                    Upgrade to premium
-                                </Link>{' '}
-                                for unlimited labels.
-                            </p>
+                                }}
+                            />
+                            <button
+                                onClick={() => handleDeleteLabel(label.name)}
+                                className='text-slate-500 hover:text-red-500 p-2 rounded-lg transition-colors'
+                            >
+                                <Trash2 className='w-5 h-5' />
+                            </button>
                         </div>
-                    )}
+                    ))}
                 </div>
+
+                {!isPremium && labels.length >= 3 && (
+                    <div className='mt-6 p-4 bg-indigo-50 rounded-lg text-center'>
+                        <p className='text-indigo-800'>
+                            You&apos;ve reached the limit for free users.
+                            <Link
+                                href='/upgrade'
+                                className='ml-1 font-semibold text-indigo-600 hover:underline'
+                            >
+                                Upgrade to premium
+                            </Link>{' '}
+                            for unlimited labels.
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

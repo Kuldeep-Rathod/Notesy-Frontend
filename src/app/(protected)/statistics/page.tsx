@@ -3,11 +3,13 @@
 import {
     BarChart,
     DoughnutChart,
+    LineChart,
     PieChart,
 } from '@/components/statistics/Charts';
 import { useNoteStatsQuery } from '@/redux/api/notesAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { CircularProgress } from '@mui/material';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountUp from 'react-countup';
 import { toast } from 'sonner';
@@ -20,6 +22,8 @@ const StatisticsPage = () => {
     const router = useRouter();
 
     const stats = statsData?.data;
+
+    console.log('Stats:', stats);
 
     if (userLoading) {
         return (
@@ -78,30 +82,38 @@ const StatisticsPage = () => {
 
                 {/* Stats Overview Cards */}
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                    <StatCard
-                        title='Total Notes'
-                        value={stats.totalNotes}
-                        icon='📝'
-                        borderColor='#3b82f6'
-                    />
-                    <StatCard
-                        title='Pinned'
-                        value={stats.pinned}
-                        icon='📌'
-                        borderColor='#6366f1'
-                    />
-                    <StatCard
-                        title='Archived'
-                        value={stats.archived}
-                        icon='🗄️'
-                        borderColor='#8b5cf6'
-                    />
-                    <StatCard
-                        title='Trashed'
-                        value={stats.trashed}
-                        icon='🗑️'
-                        borderColor='#ec4899'
-                    />
+                    <Link href='/dashboard'>
+                        <StatCard
+                            title='Total Notes'
+                            value={stats.totalNotes}
+                            icon='📝'
+                            borderColor='#3b82f6'
+                        />
+                    </Link>{' '}
+                    <Link href='/dashboard'>
+                        <StatCard
+                            title='Pinned'
+                            value={stats.pinned}
+                            icon='📌'
+                            borderColor='#6366f1'
+                        />
+                    </Link>{' '}
+                    <Link href='/archive'>
+                        <StatCard
+                            title='Archived'
+                            value={stats.archived}
+                            icon='🗄️'
+                            borderColor='#8b5cf6'
+                        />
+                    </Link>{' '}
+                    <Link href='/trash'>
+                        <StatCard
+                            title='Trashed'
+                            value={stats.trashed}
+                            icon='🗑️'
+                            borderColor='#ec4899'
+                        />
+                    </Link>
                 </div>
 
                 {/* Charts */}
@@ -183,22 +195,35 @@ const StatisticsPage = () => {
                 </section>
 
                 {/* Bar Charts */}
-                <section className='space-y-8'>
+                <section className='space-y-8 flex flex-wrap justify-between'>
                     <div
-                        className={`rounded-xl shadow-sm border border-gray-100/50 p-6 transition-all hover:shadow-md bg-white/80 backdrop-blur-sm ${'w-full'}`}
+                        className={`rounded-xl shadow-sm border border-gray-100/50 p-6 transition-all hover:shadow-md bg-white/80 backdrop-blur-sm ${'w-[49%]'}`}
                     >
                         <h2 className='text-lg font-semibold text-gray-800 mb-4'>
                             Labels Usage
                         </h2>
-                        <div>
-                            {' '}
-                            <BarChart
-                                data_1={labelsData}
-                                title_1='Labels'
-                                bgColor_1={['rgba(59, 130, 246, 0.8)']}
-                                labels={labels}
-                            />
-                        </div>
+                        <BarChart
+                            data_1={labelsData}
+                            title_1='Labels'
+                            bgColor_1={['rgba(59, 130, 246, 0.8)']}
+                            labels={labels}
+                        />
+                    </div>
+
+                    <div
+                        className={`rounded-xl shadow-sm border border-gray-100/50 p-6 transition-all hover:shadow-md bg-white/80 backdrop-blur-sm ${'w-[49%]'}`}
+                    >
+                        <h2 className='text-lg font-semibold text-gray-800 mb-4'>
+                            Monthly Note Stats
+                        </h2>
+                        <LineChart
+                            data={stats.monthlyNoteStats.data}
+                            labels={stats.monthlyNoteStats.labels}
+                            label='Note Stats'
+                            backgroundColor={'rgba(59, 130, 246, 0.3)'}
+                            borderColor={'rgba(59, 130, 246, 0.8)'}
+                            showTitle={true}
+                        />
                     </div>
 
                     <ChartCard
