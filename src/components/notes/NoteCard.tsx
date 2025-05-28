@@ -158,7 +158,7 @@ const NoteCard = ({
                             height={150}
                             className='object-cover rounded-t-lg'
                             style={{
-                                width: '100%',
+                                // width: '100%',
                                 height: 'auto',
                                 objectFit: 'cover',
                             }}

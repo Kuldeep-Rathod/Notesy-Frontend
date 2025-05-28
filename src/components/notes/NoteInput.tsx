@@ -972,32 +972,6 @@ export default function NoteInput({
                     🎙️ Note Voice Commands Active
                 </div>
             )}
-
-            {/* Voice Commands Help */}
-            <div
-                style={{
-                    position: 'fixed',
-                    bottom: 140,
-                    right: 20,
-                    backgroundColor: '#333',
-                    color: 'white',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    zIndex: 100,
-                    display: isNoteVoiceActive ? 'block' : 'none',
-                    maxWidth: '300px',
-                }}
-            >
-                <h4 style={{ margin: '0 0 8px 0' }}>Voice Commands:</h4>
-                <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                    <li>&quot;set title [your title]&quot;</li>
-                    <li>&quot;set content [your content]&quot;</li>
-                    <li>&quot;append content [more content]&quot;</li>
-                    <li>&quot;save note&quot;</li>
-                    <li>&quot;close note&quot;</li>
-                </ul>
-            </div>
         </div>
     );
 }

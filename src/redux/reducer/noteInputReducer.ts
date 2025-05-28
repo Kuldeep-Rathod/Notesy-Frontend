@@ -165,6 +165,7 @@ export const noteInputReducer = createSlice({
         },
         toggleArchive: (state) => {
             state.isArchived = !state.isArchived;
+            state.isPinned = false;
         },
         toggleTrash: (state) => {
             state.isTrashed = !state.isTrashed;
