@@ -11,7 +11,9 @@ import '@excalidraw/excalidraw/index.css';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 const ExcalidrawWrapper: React.FC = () => {
     const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
@@ -44,7 +46,7 @@ const ExcalidrawWrapper: React.FC = () => {
     });
 
     // Auto-save configuration
-    const AUTO_SAVE_DELAY = 2000; // 2 seconds
+    const AUTO_SAVE_DELAY = 2000;
 
     useEffect(() => {
         if (currentBoardId.current !== boardId) {
@@ -306,6 +308,17 @@ const ExcalidrawWrapper: React.FC = () => {
     return (
         <div className='flex flex-col h-full w-full'>
             <div className='p-2 flex justify-between items-center border-b border-gray-200 bg-gray-50'>
+                <div className='mb-2 ml-2'>
+                    <Link href='/boards'>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                        >
+                            <ArrowLeft className='h-4 w-4 mr-1' /> Back to
+                            Boards
+                        </Button>
+                    </Link>
+                </div>
                 <input
                     type='text'
                     value={boardTitle}

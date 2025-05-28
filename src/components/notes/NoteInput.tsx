@@ -35,11 +35,7 @@ import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import {
-    BookImage,
-    Brush,
-    SquareCheck
-} from 'lucide-react';
+import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
@@ -52,6 +48,7 @@ import { CheckboxList } from './input/CheckboxList';
 import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
 import NoteToolbar from './input/NoteToolbar';
 import SpeechControls from './input/SpeechControls';
+import Link from 'next/link';
 
 export default function NoteInput({
     isEditing = false,
@@ -653,7 +650,7 @@ export default function NoteInput({
 
     const stopListening = useCallback(() => {
         dispatch(setListening(false));
-        SpeechRecognition.stopListening();
+        // SpeechRecognition.stopListening();
     }, [dispatch]);
 
     const handleFieldFocus = useCallback(
@@ -707,7 +704,7 @@ export default function NoteInput({
     useEffect(() => {
         return () => {
             if (isListening) {
-                SpeechRecognition.stopListening();
+                // SpeechRecognition.stopListening();
             }
         };
     }, [isListening]);
@@ -781,7 +778,9 @@ export default function NoteInput({
                     className={`note-input__action-icon note-input__action-icon--paint H disabled pop note-input--tooltip`}
                     data-tooltip='New note with drawing'
                 >
-                    <Brush />
+                    <Link href='/boards'>
+                        <Brush />
+                    </Link>
                 </div>
                 <div
                     className={`note-input__action-icon note-input__action-icon--picture H disabled pop note-input--tooltip`}

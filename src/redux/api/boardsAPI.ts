@@ -19,30 +19,30 @@ export const boardsAPI = createApi({
     reducerPath: 'boardsApi',
     baseQuery: customBaseQuery,
     tagTypes: ['Board'],
-    keepUnusedDataFor: 60, // Keep data in cache for 60 seconds
-    refetchOnMountOrArgChange: true, // Refetch when component mounts or arguments change
-    refetchOnFocus: true, // Refetch when window regains focus
-    refetchOnReconnect: true, // Refetch when reconnecting after being offline
+    keepUnusedDataFor: 60,
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
     endpoints: (builder) => ({
-        // Fetch all boards
         getBoards: builder.query<Board[], void>({
             query: () => 'boards',
-            providesTags: (result) => 
-                result 
+            providesTags: (result) =>
+                result
                     ? [
-                        ...result.map(({ _id }) => ({ type: 'Board' as const, id: _id })),
-                        { type: 'Board', id: 'LIST' }
+                          ...result.map(({ _id }) => ({
+                              type: 'Board' as const,
+                              id: _id,
+                          })),
+                          { type: 'Board', id: 'LIST' },
                       ]
                     : [{ type: 'Board', id: 'LIST' }],
         }),
 
-        // Fetch a single board
         getBoard: builder.query<Board, string>({
             query: (id) => `boards/${id}`,
             providesTags: (result, error, id) => [{ type: 'Board', id }],
         }),
 
-        // Create a new board
         createBoard: builder.mutation<
             Board,
             { title: string; data: ExcalidrawData }
@@ -55,7 +55,6 @@ export const boardsAPI = createApi({
             invalidatesTags: [{ type: 'Board', id: 'LIST' }],
         }),
 
-        // Update a board
         updateBoard: builder.mutation<
             Board,
             { id: string; title: string; data: ExcalidrawData }
@@ -67,11 +66,10 @@ export const boardsAPI = createApi({
             }),
             invalidatesTags: (result, error, { id }) => [
                 { type: 'Board', id },
-                { type: 'Board', id: 'LIST' }
+                { type: 'Board', id: 'LIST' },
             ],
         }),
 
-        // Delete a board
         deleteBoard: builder.mutation<void, string>({
             query: (id) => ({
                 url: `boards/${id}`,
@@ -79,7 +77,7 @@ export const boardsAPI = createApi({
             }),
             invalidatesTags: (result, error, id) => [
                 { type: 'Board', id },
-                { type: 'Board', id: 'LIST' }
+                { type: 'Board', id: 'LIST' },
             ],
         }),
     }),
@@ -92,5 +90,3 @@ export const {
     useUpdateBoardMutation,
     useDeleteBoardMutation,
 } = boardsAPI;
-
-
