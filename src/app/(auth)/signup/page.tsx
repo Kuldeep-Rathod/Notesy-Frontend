@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { auth, googleProvider } from '@/lib/firebase';
-import '@/styles/app/_signup.scss';
-import { axiosInstance } from '@/utils/axiosInstance';
 import GuestGuard from '@/utils/guestGuard';
+import { axiosInstance } from '@/utils/axiosInstance';
 import axios from 'axios';
 import {
     createUserWithEmailAndPassword,
     signInWithPopup,
     updateProfile,
 } from 'firebase/auth';
+import { ArrowRight, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -36,17 +36,6 @@ export default function Signup() {
         photo?: string | null
     ) => {
         try {
-            // Debug logs
-            console.log('Creating MongoDB User with:', {
-                email: firebaseUser.email,
-                name:
-                    name ||
-                    firebaseUser.displayName ||
-                    firebaseUser.email.split('@')[0],
-                photo: photo || firebaseUser.photoURL || null,
-                firebaseUid: firebaseUser.uid,
-            });
-
             const userData = {
                 email: firebaseUser.email,
                 name:
@@ -57,20 +46,13 @@ export default function Signup() {
                 firebaseUid: firebaseUser.uid,
             };
 
-            console.log('Sending user data to server:', userData);
-
             const response = await axiosInstance.post(
                 '/auth/register',
                 userData
             );
-            console.log('Server response:', response.data);
-
             return response.data;
         } catch (error) {
             console.error('Error creating MongoDB user:', error);
-            if (axios.isAxiosError(error)) {
-                console.error('Server error response:', error.response?.data);
-            }
             throw error;
         }
     };
@@ -80,22 +62,18 @@ export default function Signup() {
         setFirebaseError('');
 
         try {
-            // 1. Create Firebase auth user
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 data.email,
                 data.password
             );
 
-            // 2. Update Firebase profile with name
             await updateProfile(userCredential.user, {
                 displayName: data.name,
                 photoURL: null,
             });
 
-            // 3. Create corresponding MongoDB user
             await createMongoUser(userCredential.user, data.name);
-
             router.push('/dashboard');
         } catch (error: any) {
             setFirebaseError(getFirebaseErrorMessage(error.code));
@@ -118,13 +96,11 @@ export default function Signup() {
                 await axiosInstance.get(`/auth/check?email=${email}`);
             } catch (err) {
                 if (axios.isAxiosError(err) && err.response?.status === 404) {
-                    // For Google sign-in, explicitly pass the photo URL
-                    const mongoUser = await createMongoUser(
+                    await createMongoUser(
                         userCredential.user,
                         userCredential.user.displayName || undefined,
                         userCredential.user.photoURL || undefined
                     );
-                    console.log('Created MongoDB User:', mongoUser);
                 } else {
                     throw err;
                 }
@@ -132,7 +108,6 @@ export default function Signup() {
 
             await router.push('/dashboard');
         } catch (error: any) {
-            console.error('Google Sign-in Error:', error);
             setFirebaseError(getFirebaseErrorMessage(error.code));
         } finally {
             setIsLoading(false);
@@ -156,134 +131,209 @@ export default function Signup() {
 
     return (
         <GuestGuard>
-            <div className='signup-container'>
-                <div className='signup-card'>
-                    <div className='signup-header'>
-                        <h1>Create your account</h1>
-                        <p>Get started with Notesy today</p>
-                    </div>
-
-                    {firebaseError && (
-                        <div className='firebase-error'>
-                            <p>{firebaseError}</p>
-                        </div>
-                    )}
-
-                    <form
-                        onSubmit={handleSubmit(onSubmit)}
-                        className='signup-form'
-                    >
-                        <div className='form-group'>
-                            <Label htmlFor='email'>Email</Label>
-                            <Input
-                                id='email'
-                                type='email'
-                                placeholder='your@email.com'
-                                {...register('email', {
-                                    required: 'Email is required',
-                                    pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                        message: 'Invalid email address',
-                                    },
-                                })}
-                                className={errors.email ? 'input-error' : ''}
-                            />
-                            {errors.email && (
-                                <span className='error-message'>
-                                    {errors.email.message as string}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className='form-group'>
-                            <Label htmlFor='password'>Password</Label>
-                            <Input
-                                id='password'
-                                type='password'
-                                placeholder='••••••••'
-                                {...register('password', {
-                                    required: 'Password is required',
-                                    minLength: {
-                                        value: 6,
-                                        message:
-                                            'Password must be at least 6 characters',
-                                    },
-                                })}
-                                className={errors.password ? 'input-error' : ''}
-                            />
-                            {errors.password && (
-                                <span className='error-message'>
-                                    {errors.password.message as string}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className='form-group'>
-                            <Label htmlFor='confirmPassword'>
-                                Confirm Password
-                            </Label>
-                            <Input
-                                id='confirmPassword'
-                                type='password'
-                                placeholder='••••••••'
-                                {...register('confirmPassword', {
-                                    required: 'Please confirm your password',
-                                    validate: (value) =>
-                                        value === watch('password') ||
-                                        'Passwords do not match',
-                                })}
-                                className={
-                                    errors.confirmPassword ? 'input-error' : ''
-                                }
-                            />
-                            {errors.confirmPassword && (
-                                <span className='error-message'>
-                                    {errors.confirmPassword.message as string}
-                                </span>
-                            )}
-                        </div>
-
-                        <Button
-                            type='submit'
-                            className='signup-button'
-                            disabled={isLoading}
+            <div className='min-h-screen bg-slate-50 flex items-center justify-center p-6'>
+                <div className='w-full max-w-md'>
+                    <div className='flex justify-center mb-8'>
+                        <Link
+                            href='/'
+                            className='flex items-center space-x-2'
                         >
-                            {isLoading
-                                ? 'Creating account...'
-                                : 'Create account'}
-                        </Button>
-                    </form>
-
-                    <div className='signup-divider'>
-                        <span>or</span>
+                            <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
+                                <Mic className='w-6 h-6 text-white' />
+                            </div>
+                            <span className='text-2xl font-bold text-slate-800'>
+                                Notesy
+                            </span>
+                        </Link>
                     </div>
 
-                    <Button
-                        variant='outline'
-                        className='google-signup-button'
-                        onClick={signInWithGoogle}
-                        disabled={isLoading}
-                    >
-                        <GoogleIcon />
-                        Sign up with Google
-                    </Button>
+                    <div className='bg-white rounded-2xl shadow-sm border border-slate-200 p-8'>
+                        <div className='text-center mb-8'>
+                            <h1 className='text-3xl font-bold text-slate-800 mb-2'>
+                                Create your account
+                            </h1>
+                            <p className='text-slate-600'>
+                                Get started with Notesy today
+                            </p>
+                        </div>
 
-                    <div className='login-footer'>
-                        <p>
+                        {firebaseError && (
+                            <div className='bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm'>
+                                {firebaseError}
+                            </div>
+                        )}
+
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className='space-y-4'
+                        >
+                            <div>
+                                <Label
+                                    htmlFor='name'
+                                    className='block text-sm font-medium text-slate-700 mb-1'
+                                >
+                                    Name
+                                </Label>
+                                <Input
+                                    id='name'
+                                    type='text'
+                                    placeholder='Your name'
+                                    {...register('name', {
+                                        required: 'Name is required',
+                                    })}
+                                    className={`w-full ${
+                                        errors.name ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.name && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {errors.name.message as string}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label
+                                    htmlFor='email'
+                                    className='block text-sm font-medium text-slate-700 mb-1'
+                                >
+                                    Email
+                                </Label>
+                                <Input
+                                    id='email'
+                                    type='email'
+                                    placeholder='your@email.com'
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: 'Invalid email address',
+                                        },
+                                    })}
+                                    className={`w-full ${
+                                        errors.email ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.email && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {errors.email.message as string}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label
+                                    htmlFor='password'
+                                    className='block text-sm font-medium text-slate-700 mb-1'
+                                >
+                                    Password
+                                </Label>
+                                <Input
+                                    id='password'
+                                    type='password'
+                                    placeholder='••••••••'
+                                    {...register('password', {
+                                        required: 'Password is required',
+                                        minLength: {
+                                            value: 6,
+                                            message:
+                                                'Password must be at least 6 characters',
+                                        },
+                                    })}
+                                    className={`w-full ${
+                                        errors.password ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.password && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {errors.password.message as string}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label
+                                    htmlFor='confirmPassword'
+                                    className='block text-sm font-medium text-slate-700 mb-1'
+                                >
+                                    Confirm Password
+                                </Label>
+                                <Input
+                                    id='confirmPassword'
+                                    type='password'
+                                    placeholder='••••••••'
+                                    {...register('confirmPassword', {
+                                        required:
+                                            'Please confirm your password',
+                                        validate: (value) =>
+                                            value === watch('password') ||
+                                            'Passwords do not match',
+                                    })}
+                                    className={`w-full ${
+                                        errors.confirmPassword
+                                            ? 'border-red-500'
+                                            : ''
+                                    }`}
+                                />
+                                {errors.confirmPassword && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {
+                                            errors.confirmPassword
+                                                .message as string
+                                        }
+                                    </p>
+                                )}
+                            </div>
+
+                            <Button
+                                type='submit'
+                                className='w-full bg-indigo-600 hover:bg-indigo-700 py-3 px-4 border border-transparent rounded-full font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                disabled={isLoading}
+                            >
+                                {isLoading
+                                    ? 'Creating account...'
+                                    : 'Create account'}
+                                <ArrowRight className='w-4 h-4 ml-2' />
+                            </Button>
+                        </form>
+
+                        <div className='mt-6'>
+                            <div className='relative'>
+                                <div className='absolute inset-0 flex items-center'>
+                                    <div className='w-full border-t border-slate-300'></div>
+                                </div>
+                                <div className='relative flex justify-center text-sm'>
+                                    <span className='px-2 bg-white text-slate-500'>
+                                        Or continue with
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className='mt-6 grid grid-cols-1 gap-3'>
+                                <Button
+                                    variant='outline'
+                                    onClick={signInWithGoogle}
+                                    disabled={isLoading}
+                                    className='w-full py-3 px-4 border border-slate-300 rounded-full font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                >
+                                    <GoogleIcon />
+                                    <span className='ml-2'>
+                                        Sign up with Google
+                                    </span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className='mt-6 text-center text-sm text-slate-600'>
                             Already have an account?{' '}
                             <Link
                                 href='/login'
-                                className='login-link'
+                                className='font-medium text-indigo-600 hover:text-indigo-500'
                             >
                                 Log in
                             </Link>
-                        </p>
+                        </div>
                     </div>
-                </div>
-
-                <div className='signup-graphics'>
-                    <div className='graphic-circle'></div>
-                    <div className='graphic-blur'></div>
                 </div>
             </div>
         </GuestGuard>
@@ -292,7 +342,7 @@ export default function Signup() {
 
 const GoogleIcon = () => (
     <svg
-        className='social-icon'
+        className='w-5 h-5'
         viewBox='0 0 24 24'
         width='20'
         height='20'

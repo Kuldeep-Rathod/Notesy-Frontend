@@ -7,8 +7,8 @@ import {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
 } from '@/redux/api/authAPI';
-import '@/styles/app/_login.scss';
 import GuestGuard from '@/utils/guestGuard';
+import { ArrowRight, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -21,7 +21,7 @@ type LoginFormData = {
 
 export default function Login() {
     const router = useRouter();
-    const [firebaseError, setFirebaseError] = useState<string>(''); // To store Firebase errors
+    const [firebaseError, setFirebaseError] = useState<string>('');
     const [loginWithEmail, { isLoading }] = useLoginWithEmailMutation();
     const [loginWithGoogle] = useLoginWithGoogleMutation();
 
@@ -35,12 +35,10 @@ export default function Login() {
         try {
             const { email, password } = data;
             await loginWithEmail({ email, password }).unwrap();
-            // Success - user will be in cache
             router.push('/dashboard');
         } catch (err: any) {
-            // Handle error and set Firebase error message
             if (err?.code) {
-                setFirebaseError(getFirebaseErrorMessage(err.code)); // Set error based on Firebase error code
+                setFirebaseError(getFirebaseErrorMessage(err.code));
             } else {
                 setFirebaseError(
                     'An unknown error occurred. Please try again.'
@@ -51,12 +49,9 @@ export default function Login() {
 
     const signInWithGoogle = async () => {
         try {
-            const result = await loginWithGoogle().unwrap();
-            console.log('Logged in user:', result);
-            // Navigate to dashboard or store user in state
+            await loginWithGoogle().unwrap();
             router.push('/dashboard');
         } catch (err: any) {
-            // Handle error and set Firebase error message
             if (err?.code) {
                 setFirebaseError(getFirebaseErrorMessage(err.code));
             } else {
@@ -67,7 +62,6 @@ export default function Login() {
         }
     };
 
-    // Firebase error messages
     const getFirebaseErrorMessage = (code: string) => {
         switch (code) {
             case 'auth/email-already-in-use':
@@ -89,111 +83,149 @@ export default function Login() {
 
     return (
         <GuestGuard>
-            <div className='login-container'>
-                <div className='login-card'>
-                    <div className='login-header'>
-                        <h1>Welcome back</h1>
-                        <p>Log in to your Notesy account</p>
+            <div className='min-h-screen bg-slate-50 flex items-center justify-center p-6'>
+                <div className='w-full max-w-md'>
+                    <div className='flex justify-center mb-8'>
+                        <Link
+                            href='/'
+                            className='flex items-center space-x-2'
+                        >
+                            <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
+                                <Mic className='w-6 h-6 text-white' />
+                            </div>
+                            <span className='text-2xl font-bold text-slate-800'>
+                                Notesy
+                            </span>
+                        </Link>
                     </div>
 
-                    {firebaseError && (
-                        <div className='firebase-error'>
-                            <p>{firebaseError}</p>
-                        </div>
-                    )}
-
-                    <form
-                        onSubmit={handleSubmit(onSubmit)}
-                        className='login-form'
-                    >
-                        <div className='form-group'>
-                            <Label htmlFor='email'>Email</Label>
-                            <Input
-                                id='email'
-                                type='email'
-                                placeholder='your@email.com'
-                                {...register('email', {
-                                    required: 'Email is required',
-                                    pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                        message: 'Invalid email address',
-                                    },
-                                })}
-                                className={errors.email ? 'input-error' : ''}
-                            />
-                            {errors.email && (
-                                <span className='error-message'>
-                                    {errors.email.message as string}
-                                </span>
-                            )}
+                    <div className='bg-white rounded-2xl shadow-sm border border-slate-200 p-8'>
+                        <div className='text-center mb-8'>
+                            <h1 className='text-3xl font-bold text-slate-800 mb-2'>
+                                Welcome back
+                            </h1>
+                            <p className='text-slate-600'>
+                                Log in to your Notesy account
+                            </p>
                         </div>
 
-                        <div className='form-group'>
-                            <div className='password-label-container'>
-                                <Label htmlFor='password'>Password</Label>
-                                <Link
-                                    href='/forgot-password'
-                                    className='forgot-password'
-                                >
-                                    Forgot password?
-                                </Link>
+                        {firebaseError && (
+                            <div className='bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm'>
+                                {firebaseError}
                             </div>
-                            <Input
-                                id='password'
-                                type='password'
-                                placeholder='••••••••'
-                                {...register('password', {
-                                    required: 'Password is required',
-                                })}
-                                className={errors.password ? 'input-error' : ''}
-                            />
-                            {errors.password && (
-                                <span className='error-message'>
-                                    {errors.password.message as string}
-                                </span>
-                            )}
+                        )}
+
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className='space-y-6'
+                        >
+                            <div>
+                                <Label
+                                    htmlFor='email'
+                                    className='block text-sm font-medium text-slate-700 mb-1'
+                                >
+                                    Email
+                                </Label>
+                                <Input
+                                    id='email'
+                                    type='email'
+                                    placeholder='your@email.com'
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: 'Invalid email address',
+                                        },
+                                    })}
+                                    className={`w-full ${
+                                        errors.email ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.email && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {errors.email.message as string}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <div className='flex justify-between items-center mb-1'>
+                                    <Label
+                                        htmlFor='password'
+                                        className='block text-sm font-medium text-slate-700'
+                                    >
+                                        Password
+                                    </Label>
+                                    <Link
+                                        href='/forgot-password'
+                                        className='text-sm text-indigo-600 hover:text-indigo-500'
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                </div>
+                                <Input
+                                    id='password'
+                                    type='password'
+                                    placeholder='••••••••'
+                                    {...register('password', {
+                                        required: 'Password is required',
+                                    })}
+                                    className={`w-full ${
+                                        errors.password ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.password && (
+                                    <p className='mt-1 text-sm text-red-600'>
+                                        {errors.password.message as string}
+                                    </p>
+                                )}
+                            </div>
+
+                            <Button
+                                type='submit'
+                                className='w-full bg-indigo-600 hover:bg-indigo-700 py-3 px-4 border border-transparent rounded-full font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Logging in...' : 'Log in'}
+                                <ArrowRight className='w-4 h-4 ml-2' />
+                            </Button>
+                        </form>
+
+                        <div className='mt-6'>
+                            <div className='relative'>
+                                <div className='absolute inset-0 flex items-center'>
+                                    <div className='w-full border-t border-slate-300'></div>
+                                </div>
+                                <div className='relative flex justify-center text-sm'>
+                                    <span className='px-2 bg-white text-slate-500'>
+                                        Or continue with
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className='mt-6 grid grid-cols-1 gap-3'>
+                                <Button
+                                    variant='outline'
+                                    onClick={signInWithGoogle}
+                                    disabled={isLoading}
+                                    className='w-full py-3 px-4 border border-slate-300 rounded-full font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                                >
+                                    <GoogleIcon />
+                                    <span className='ml-2'>Google</span>
+                                </Button>
+                            </div>
                         </div>
 
-                        <Button
-                            type='submit'
-                            className='login-button'
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Logging in...' : 'Log in'}
-                        </Button>
-                    </form>
-
-                    <div className='login-footer'>
-                        <p>
+                        <div className='mt-6 text-center text-sm text-slate-600'>
                             Don&apos;t have an account?{' '}
                             <Link
                                 href='/signup'
-                                className='signup-link'
+                                className='font-medium text-indigo-600 hover:text-indigo-500'
                             >
                                 Sign up
                             </Link>
-                        </p>
-                    </div>
-
-                    <div className='social-login'>
-                        <p className='divider'>or continue with</p>
-                        <div className='social-buttons'>
-                            <Button
-                                variant='outline'
-                                className='social-button'
-                                onClick={signInWithGoogle}
-                                disabled={isLoading}
-                            >
-                                <GoogleIcon /> Google
-                            </Button>
-                            {/* You can add GitHub auth similarly if needed */}
                         </div>
                     </div>
-                </div>
-
-                <div className='login-graphics'>
-                    <div className='graphic-circle'></div>
-                    <div className='graphic-blur'></div>
                 </div>
             </div>
         </GuestGuard>
@@ -202,7 +234,7 @@ export default function Login() {
 
 const GoogleIcon = () => (
     <svg
-        className='social-icon'
+        className='w-5 h-5'
         viewBox='0 0 24 24'
         width='20'
         height='20'
