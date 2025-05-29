@@ -4,13 +4,13 @@ import FAQ from '@/components/upgrade/FAQ';
 import FeaturesHighlights from '@/components/upgrade/FeaturesHighlights';
 import Feedback from '@/components/upgrade/Feedback';
 import PricingPlans from '@/components/upgrade/PricingPlans';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { axiosInstance } from '@/utils/axiosInstance';
 import { plans } from '@/utils/PlansData';
 import { loadStripe } from '@stripe/stripe-js';
+import { differenceInDays } from 'date-fns';
 import { getAuth } from 'firebase/auth';
 import React, { useState } from 'react';
-import { differenceInDays } from 'date-fns';
-import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 
 const SubscriptionPage: React.FC = () => {
     const [selectedPlan, setSelectedPlan] = useState<string>('biannual');
@@ -106,7 +106,7 @@ const SubscriptionPage: React.FC = () => {
             {/* Header Section */}
             <div className='max-w-7xl mx-auto pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center'>
                 <h1 className='text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl'>
-                    Upgrade to VoiceNotes Premium
+                    Upgrade to Notesy Premium
                 </h1>
                 <p className='mt-5 max-w-xl mx-auto text-xl text-gray-500'>
                     Unlock the full power of voice-controlled note taking and
@@ -138,7 +138,7 @@ const SubscriptionPage: React.FC = () => {
                 <div className='max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 md:flex md:items-center md:justify-between'>
                     <div className='mt-8 md:mt-0 md:order-1'>
                         <p className='text-center text-base text-gray-400'>
-                            &copy; 2025 VoiceNotes, Inc. All rights reserved.
+                            &copy; 2025 Notesy, Inc. All rights reserved.
                         </p>
                     </div>
                 </div>

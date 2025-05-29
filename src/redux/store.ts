@@ -1,14 +1,16 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { authAPI } from './api/authAPI';
+import { boardsAPI } from './api/boardsAPI';
 import { labelsAPI } from './api/labelsAPI';
 import { notesAPI } from './api/notesAPI';
 import { userAPI } from './api/userAPI';
 import authReducer from './reducer/authReducer';
+import gestureReducer from './reducer/gestureReducer';
 import { noteInputReducer } from './reducer/noteInputReducer';
-import { boardsAPI } from './api/boardsAPI';
 
 export const rootReducer = combineReducers({
     auth: authReducer,
+    gesture: gestureReducer,
     [noteInputReducer.name]: noteInputReducer.reducer,
     [authAPI.reducerPath]: authAPI.reducer,
     [notesAPI.reducerPath]: notesAPI.reducer,

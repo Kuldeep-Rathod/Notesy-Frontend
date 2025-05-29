@@ -3,6 +3,8 @@
 import {
     ArrowRight,
     CheckCircle,
+    Cloud,
+    Cloudy,
     Mic,
     Play,
     Shield,
@@ -36,9 +38,9 @@ const HeroLandingPage = () => {
                 'Create, edit, and manage notes entirely with your voice',
         },
         {
-            icon: <Zap className='w-6 h-6' />,
-            title: 'Lightning Fast',
-            description: 'Instant note creation and search with voice commands',
+            icon: <Cloudy className='w-6 h-6' />,
+            title: 'Cloud Sync',
+            description: 'Access your notes from any device, anywhere',
         },
         {
             icon: <Users className='w-6 h-6' />,

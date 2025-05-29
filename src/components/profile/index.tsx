@@ -353,13 +353,6 @@ const Profile: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <div className={styles.accountAction}>
-                    <button
-                        className={`${styles.button} ${styles.outlineButton}`}
-                    >
-                        Export My Data
-                    </button>
-                </div>
 
                 <div className={styles.accountAction}>
                     <button

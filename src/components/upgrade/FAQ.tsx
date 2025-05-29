@@ -41,7 +41,7 @@ const FAQ = () => {
 
                 <div className='bg-white rounded-lg shadow-sm p-6'>
                     <h3 className='text-lg font-medium text-gray-900'>
-                        Is my data secure with VoiceNotes Premium?
+                        Is my data secure with Notesy Premium?
                     </h3>
                     <p className='mt-2 text-gray-600'>
                         Absolutely. We use bank-level encryption for all your

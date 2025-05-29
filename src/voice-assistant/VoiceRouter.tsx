@@ -3,13 +3,14 @@
 import { useLogoutMutation } from '@/redux/api/authAPI';
 import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import { activateGesture } from '@/redux/reducer/gestureReducer';
 import { RootState } from '@/redux/store';
 import { axiosInstance } from '@/utils/axiosInstance';
 import { getAuth } from 'firebase/auth';
 import { debounce } from 'lodash-es';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
@@ -54,7 +55,10 @@ export const speak = (text: string) => {
 };
 
 const VoiceRouter = () => {
+    const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.auth.user);
+    const { hasUserGesture } = useSelector((state: RootState) => state.gesture);
+
     const { data: labelsData = [] } = useGetLabelsQuery();
     const { data: userData } = useGetCurrentUserQuery();
     const isPremium = userData?.isPremium;
@@ -82,8 +86,6 @@ const VoiceRouter = () => {
     }, [labelsData]);
 
     const [isActive, setIsActive] = useState(false);
-    const [hasUserGesture, setHasUserGesture] = useState(false);
-    const [showGesturePrompt, setShowGesturePrompt] = useState(true);
 
     // NEW: Track last interaction time
     const [lastInteractionTime, setLastInteractionTime] = useState<number>(
@@ -318,8 +320,7 @@ const VoiceRouter = () => {
         const handleUserInteraction = () => {
             if (!hasUserGesture) {
                 console.log('User gesture detected!');
-                setHasUserGesture(true);
-                setShowGesturePrompt(false);
+                dispatch(activateGesture());
 
                 // Force restart speech recognition after user interaction
                 if (browserSupportsSpeechRecognition) {
@@ -340,7 +341,7 @@ const VoiceRouter = () => {
             window.removeEventListener('click', handleUserInteraction);
             window.removeEventListener('keydown', handleUserInteraction);
         };
-    }, [hasUserGesture, browserSupportsSpeechRecognition]);
+    }, [hasUserGesture, browserSupportsSpeechRecognition, dispatch]);
 
     // Emit voice assistant state changes
     useEffect(() => {
@@ -382,73 +383,6 @@ const VoiceRouter = () => {
 
     return (
         <div style={{ position: 'relative' }}>
-            {showGesturePrompt && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000,
-                        fontSize: '1.5rem',
-                        flexDirection: 'column',
-                        gap: '1rem',
-                    }}
-                >
-                    {isPremium ? (
-                        <>
-                            <p>
-                                Click or press any key to activate voice
-                                assistant.
-                            </p>
-                            <button
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#4a90e2',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                }}
-                                onClick={() => {
-                                    setHasUserGesture(true);
-                                    setShowGesturePrompt(false);
-                                }}
-                            >
-                                Activate Voice Assistant
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <p>Voice assistant is a premium feature.</p>
-                            <button
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#4a90e2',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                }}
-                                onClick={() => {
-                                    router.push('/upgrade');
-                                }}
-                            >
-                                Upgrade to Premium
-                            </button>
-                        </>
-                    )}
-                </div>
-            )}
-
             <div
                 style={{
                     position: 'fixed',

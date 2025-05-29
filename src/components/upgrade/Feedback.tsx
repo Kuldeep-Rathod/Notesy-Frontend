@@ -23,7 +23,7 @@ const Feedback = () => {
                             </div>
                         </div>
                         <p className='text-gray-600'>
-                            &quot;VoiceNotes has completely transformed how I
+                            &quot;Notesy has completely transformed how I
                             capture ideas on the go. The voice control is
                             incredibly accurate and the organization features
                             save me hours each week.&quot;
@@ -48,7 +48,7 @@ const Feedback = () => {
                         </div>
                         <p className='text-gray-600'>
                             &quot;As a writer, I need to capture ideas quickly.
-                            VoiceNotes Premium lets me speak my thoughts and
+                            Notesy Premium lets me speak my thoughts and
                             organizes them perfectly. The cloud sync between my
                             devices is seamless.&quot;
                         </p>

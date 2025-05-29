@@ -1,9 +1,11 @@
 'use client';
 
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import { activateGesture } from '@/redux/reducer/gestureReducer';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mic, Search, Volume2, X } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { CommandSectionProps, commandSections } from './commands';
 
 interface VoiceCommandsManualProps {
@@ -15,6 +17,7 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
     isOpen,
     onClose,
 }) => {
+    const dispatch = useDispatch();
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [activeSection, setActiveSection] =
         useState<string>('getting-started');
@@ -52,6 +55,21 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
         return filtered;
     }, [searchTerm, commandSections]);
 
+    const handleModalOpen = () => {
+        dispatch(activateGesture());
+    };
+
+    const handleModalClose = () => {
+        dispatch(activateGesture());
+        onClose();
+    };
+
+    React.useEffect(() => {
+        if (isOpen) {
+            handleModalOpen();
+        }
+    }, [isOpen, dispatch]);
+
     if (!isOpen) return null;
 
     return (
@@ -62,6 +80,7 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={handleModalClose}
             >
                 <motion.div
                     className='bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] flex overflow-hidden'
@@ -69,6 +88,7 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     {/* Sidebar */}
                     <div className='w-80 bg-gray-50 border-r overflow-y-auto'>
@@ -142,7 +162,7 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
                                 </p>
                             </div>
                             <button
-                                onClick={onClose}
+                                onClick={handleModalClose}
                                 className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
                             >
                                 <X className='w-6 h-6' />
@@ -267,23 +287,34 @@ const VoiceCommandsManual: React.FC<VoiceCommandsManualProps> = ({
     );
 };
 
-// Example usage component
 const UserManual: React.FC = () => {
+    const dispatch = useDispatch();
     const { data: DbUser, isLoading: dbUserLoading } = useGetCurrentUserQuery();
 
-    const [isManualOpen, setIsManualOpen] = useState<boolean>(
-        DbUser?.isPremium || false
-    );
+    const [isManualOpen, setIsManualOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (DbUser?.isPremium) {
+            setIsManualOpen(true);
+        }
+    }, [DbUser]);
+
+    const handleOpenManual = () => {
+        dispatch(activateGesture());
+        setIsManualOpen(true);
+    };
 
     return (
         <>
-            <button
-                onClick={() => setIsManualOpen(true)}
-                className='bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer'
-            >
-                <Mic className='w-5 h-5' />
-                Open Voice Commands Manual
-            </button>
+            {!!DbUser && (
+                <button
+                    onClick={handleOpenManual}
+                    className='bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer'
+                >
+                    <Mic className='w-5 h-5' />
+                    Open Voice Commands Manual
+                </button>
+            )}
 
             <VoiceCommandsManual
                 isOpen={isManualOpen}
