@@ -8,15 +8,15 @@ const Toaster = ({ position = 'top-center', ...props }: ToasterProps) => {
 
     return (
         <Sonner
-            theme={theme as ToasterProps['theme']}
+            theme='light'
             position={position}
             className='toaster group'
             richColors
             style={
                 {
-                    '--normal-bg': 'var(--popover)',
-                    '--normal-text': 'var(--popover-foreground)',
-                    '--normal-border': 'var(--border)',
+                    '--normal-bg': '#ffffff',
+                    '--normal-text': '#000000',
+                    '--normal-border': '#e0e0e0',
                 } as React.CSSProperties
             }
             {...props}
@@ -25,3 +25,4 @@ const Toaster = ({ position = 'top-center', ...props }: ToasterProps) => {
 };
 
 export { Toaster };
+

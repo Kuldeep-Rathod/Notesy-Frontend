@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const VoiceRouter = dynamic(() => import('@/voice-assistant/VoiceRouter'), {
     ssr: false,
@@ -45,26 +46,34 @@ const ClientOnlyWrapper = () => {
                     setHasPermission(true);
                 })
                 .catch((err) => {
-                    console.error('Microphone permission denied:', err);
+                    console.warn('Microphone permission denied:', err);
                     setHasPermission(false);
 
-                    if (!dismissed) {
+                    toast.error('Microphone access denied', {
+                        description:
+                            'Please allow microphone access for voice features to work.',
+                        duration: Infinity,
+                        action: {
+                            label: 'X',
+                            onClick: () => {
+                                setShowMicAlert(false);
+                            },
+                        },
+                    });
+
+                    if (!dismissed && !showMicAlert) {
                         setShowMicAlert(true);
                     }
                 });
         } else {
             console.warn('getUserMedia not supported in this browser');
             setHasPermission(false);
-            if (!dismissed) {
+
+            if (!dismissed && !showMicAlert) {
                 setShowMicAlert(true);
             }
         }
     }, []);
-
-    const handleCloseAlert = () => {
-        sessionStorage.setItem('micAlertDismissed', 'true');
-        setShowMicAlert(false);
-    };
 
     if (!hasMounted) return null;
 
@@ -106,7 +115,7 @@ const ClientOnlyWrapper = () => {
                             </p>
                         </div>
                         <button
-                            onClick={handleCloseAlert}
+                            // onClick={handleCloseAlert}
                             style={{
                                 marginLeft: '10px',
                                 background: 'transparent',

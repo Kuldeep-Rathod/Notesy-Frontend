@@ -59,8 +59,20 @@ const VoiceRouter = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const { hasUserGesture } = useSelector((state: RootState) => state.gesture);
 
-    const { data: labelsData = [] } = useGetLabelsQuery();
-    const { data: userData } = useGetCurrentUserQuery();
+    const isAuthenticated = !!user;
+
+    const { data: labelsData = [], isLoading: labelsLoading } =
+        useGetLabelsQuery(undefined, {
+            skip: !isAuthenticated,
+        });
+
+    const { data: userData, isLoading: userLoading } = useGetCurrentUserQuery(
+        undefined,
+        {
+            skip: !isAuthenticated,
+        }
+    );
+
     const isPremium = userData?.isPremium;
 
     const [logout] = useLogoutMutation();
@@ -168,6 +180,10 @@ const VoiceRouter = () => {
                         if (isDev) console.warn('Waiting for user interaction');
                         return;
                     }
+                    if (!isAuthenticated) {
+                        speak('Please log in to use voice commands.');
+                        return;
+                    }
                     if (!isPremium) {
                         speak(
                             'This is a premium feature. Please upgrade to use voice commands.'
@@ -254,6 +270,7 @@ const VoiceRouter = () => {
             validRoutes,
             user,
             isPremium,
+            isAuthenticated,
             router,
         ]
     );
@@ -272,6 +289,14 @@ const VoiceRouter = () => {
     useEffect(() => {
         if (!browserSupportsSpeechRecognition) {
             console.warn('Browser does not support speech recognition');
+            return;
+        }
+
+        if (!isAuthenticated) {
+            if (isDev)
+                console.log(
+                    'Waiting for user authentication before starting speech recognition'
+                );
             return;
         }
 
@@ -294,7 +319,12 @@ const VoiceRouter = () => {
             SpeechRecognition.stopListening();
             debouncedRouterPush.cancel();
         };
-    }, [browserSupportsSpeechRecognition, isDev, debouncedRouterPush]);
+    }, [
+        browserSupportsSpeechRecognition,
+        isDev,
+        debouncedRouterPush,
+        isAuthenticated,
+    ]);
 
     // Update interaction time on transcript change
     useEffect(() => {
@@ -322,8 +352,7 @@ const VoiceRouter = () => {
                 console.log('User gesture detected!');
                 dispatch(activateGesture());
 
-                // Force restart speech recognition after user interaction
-                if (browserSupportsSpeechRecognition) {
+                if (browserSupportsSpeechRecognition && isAuthenticated) {
                     SpeechRecognition.startListening({
                         continuous: true,
                         language: 'en-US',
@@ -341,7 +370,12 @@ const VoiceRouter = () => {
             window.removeEventListener('click', handleUserInteraction);
             window.removeEventListener('keydown', handleUserInteraction);
         };
-    }, [hasUserGesture, browserSupportsSpeechRecognition, dispatch]);
+    }, [
+        hasUserGesture,
+        browserSupportsSpeechRecognition,
+        dispatch,
+        isAuthenticated,
+    ]);
 
     // Emit voice assistant state changes
     useEffect(() => {
@@ -379,6 +413,29 @@ const VoiceRouter = () => {
                 </p>
             </div>
         );
+    }
+
+    if (!isAuthenticated && (labelsLoading || userLoading)) {
+        return (
+            <div
+                style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    right: '20px',
+                    padding: '8px 12px',
+                    backgroundColor: '#f1f1f1',
+                    borderRadius: '50px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    fontSize: '14px',
+                }}
+            >
+                Loading voice assistant...
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return null;
     }
 
     return (

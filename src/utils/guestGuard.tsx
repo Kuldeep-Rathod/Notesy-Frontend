@@ -13,8 +13,11 @@ export default function GuestGuard({
 }) {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [hasMounted, setHasMounted] = useState(false);
 
     useEffect(() => {
+        setHasMounted(true);
+
         const auth = getAuth(app);
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
@@ -26,6 +29,9 @@ export default function GuestGuard({
 
         return () => unsubscribe();
     }, [router]);
+
+    // Prevent hydration mismatch
+    if (!hasMounted) return null;
 
     if (loading) return <CircularProgress />;
 
