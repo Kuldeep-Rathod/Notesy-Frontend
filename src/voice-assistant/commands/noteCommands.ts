@@ -415,7 +415,6 @@ export const useNoteCommands = ({
                 }
                 dispatch(setCollaboratorSearchTerm(''));
             },
-            isFuzzyMatch: true,
         },
         {
             command: collabCommandPrefixes.selectUser,

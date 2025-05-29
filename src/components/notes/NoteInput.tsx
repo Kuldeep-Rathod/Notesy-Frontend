@@ -36,6 +36,7 @@ import { NoteInputProps } from '@/types/types';
 import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPin, BsPinFill } from 'react-icons/bs';
@@ -44,17 +45,16 @@ import SpeechRecognition, {
     useSpeechRecognition,
 } from 'react-speech-recognition';
 import { toast } from 'sonner';
-import { CheckboxList } from './input/CheckboxList';
-import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
-import NoteToolbar from './input/NoteToolbar';
-import SpeechControls from './input/SpeechControls';
-import Link from 'next/link';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '../ui/tooltip';
+import { CheckboxList } from './input/CheckboxList';
+import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
+import NoteToolbar from './input/NoteToolbar';
+import SpeechControls from './input/SpeechControls';
 
 export default function NoteInput({
     isEditing = false,
@@ -75,24 +75,15 @@ export default function NoteInput({
     const {
         checklists,
         labels,
-        availableLabels,
         isArchived,
         isTrashed,
         isPinned,
         reminder,
         isCbox,
-        isCboxCompletedListCollapsed,
         isListening,
-        transcript,
         activeField,
         inputLength,
-        tooltips: {
-            moreMenuOpen,
-            colorMenuOpen,
-            collaboratorMenuOpen,
-            reminderMenuOpen,
-            labelMenuOpen,
-        },
+
         searchQuery,
         noteAppearance: { bgColor, bgImage },
         collaborators: { selectedUsers },
@@ -222,25 +213,9 @@ export default function NoteInput({
             if (isEditing) return;
 
             const el = mainRef.current;
-            const isTooltipOpen = document.querySelector(
-                '[data-is-tooltip-open="true"]'
-            );
 
-            // Check if click is on toolbar or its popovers
-            const isToolbarClick =
-                (event.target as Element).closest('.note-input__editor') !==
-                null;
-            const isPopoverClick =
-                (event.target as Element).closest(
-                    '[data-radix-popper-content-wrapper]'
-                ) !== null;
-
-            if (isTooltipOpen !== null) {
-                if (!el?.contains(event.target as Node) && !isPopoverClick) {
-                    // Handle tooltip close if needed
-                }
-            } else if (!el?.contains(event.target as Node) && !isPopoverClick) {
-                closeNote();
+            if (!el?.contains(event.target as Node)) {
+                // closeNote();
             }
         },
         [isEditing]
@@ -987,6 +962,7 @@ export default function NoteInput({
                 </TooltipProvider>
                 {/* Icons */}
                 <NoteToolbar
+                    onDiscardClick={closeNote}
                     onSaveClick={saveNote}
                     isEditing={isEditing}
                     onImageChange={handleImageChange}

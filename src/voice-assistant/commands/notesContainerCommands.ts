@@ -35,7 +35,13 @@ export const getNotesContainerCommands = ({
         isFuzzyMatch: true,
     },
     {
-        command: ['search *', 'find *', 'look for *'],
+        command: [
+            'search notes *',
+            'find notes *',
+            'look notes for *',
+            'search notes with *',
+            'find notes with *',
+        ],
         callback: (query: string) => {
             if (!query?.trim()) return;
 

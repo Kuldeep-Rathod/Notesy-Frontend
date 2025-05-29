@@ -202,23 +202,23 @@ export default function DashboardLayout({
                                 icon={<Trash2 className='w-5 h-5' />}
                             />
 
-                            {DbUser?.isPremium && (
-                                <SidebarLink
-                                    href='/statistics'
-                                    title='Statistics'
-                                    isSidebarOpen={isSidebarOpen}
-                                    icon={<ChartPie className='w-5 h-5' />}
-                                />
-                            )}
+                            <SidebarLink
+                                href='/statistics'
+                                title='Statistics'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<ChartPie className='w-5 h-5' />}
+                                isPremium
+                                disabled={!DbUser?.isPremium}
+                            />
 
-                            {DbUser?.isPremium && (
-                                <SidebarLink
-                                    href='/boards'
-                                    title='Boards'
-                                    isSidebarOpen={isSidebarOpen}
-                                    icon={<MdOutlineDraw className='w-5 h-5' />}
-                                />
-                            )}
+                            <SidebarLink
+                                href='/boards'
+                                title='Boards'
+                                isSidebarOpen={isSidebarOpen}
+                                icon={<MdOutlineDraw className='w-5 h-5' />}
+                                isPremium
+                                disabled={!DbUser?.isPremium}
+                            />
 
                             <SidebarLink
                                 href='/profile'

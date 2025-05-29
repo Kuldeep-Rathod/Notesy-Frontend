@@ -23,8 +23,6 @@ const StatisticsPage = () => {
 
     const stats = statsData?.data;
 
-    console.log('Stats:', stats);
-
     if (userLoading) {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>

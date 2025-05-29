@@ -45,6 +45,7 @@ import LabelMenu from './LabelMenu';
 import { ReminderPicker } from './ReminderPicker';
 
 interface NoteToolbarProps {
+    onDiscardClick: () => void;
     onSaveClick: () => void;
     isEditing?: boolean;
     onImageChange?: (files: File[]) => void;
@@ -52,6 +53,7 @@ interface NoteToolbarProps {
 }
 
 export default function NoteToolbar({
+    onDiscardClick,
     onSaveClick,
     isEditing = false,
     onImageChange,
@@ -541,26 +543,41 @@ export default function NoteToolbar({
                         </TooltipContent>
                     </Tooltip>
                 </div>
-                <Tooltip>
-                    <TooltipTrigger asChild>
+
+                <div className='flex gap-3'>
+                    {!isEditing && (
                         <button
-                            className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-sm font-medium'
+                            className='px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 text-sm font-medium'
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                onSaveClick();
+                                onDiscardClick();
                             }}
                         >
-                            Save
+                            Discard
                         </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                        side='top'
-                        align='center'
-                    >
-                        Save changes
-                    </TooltipContent>
-                </Tooltip>
+                    )}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 text-sm font-medium'
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onSaveClick();
+                                }}
+                            >
+                                Save
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                            side='top'
+                            align='center'
+                        >
+                            Save changes
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
             </div>
         </TooltipProvider>
     );

@@ -18,26 +18,16 @@ import { RootState } from '@/redux/store';
 import { getNotesContainerCommands } from '@/voice-assistant/commands/notesContainerCommands';
 import { useTrashedNotesCommands } from '@/voice-assistant/commands/trashPageCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
-import { Masonry } from '@mui/lab';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-    Bell,
-    X as CloseIcon,
-    Grid,
-    List,
-    Search,
-    Users,
-    X,
-} from 'lucide-react';
-import Image from 'next/image';
+import { Grid, List, Search, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
-import { ImagePreview, ImagePreviewModal } from './input/ImagePreview';
-import NoteCard from './NoteCard';
-import NoteInput from './NoteInput';
+import { ImagePreviewModal } from './input/ImagePreview';
+import NoteModal from './NotesModal';
+import NotesSection from './NotesSection';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -138,7 +128,6 @@ const NotesContainer = ({
         }
 
         // Apply filterType
-        // Apply filterType
         switch (filterType) {
             case 'reminder':
                 filtered = filtered.filter(
@@ -159,7 +148,7 @@ const NotesContainer = ({
                     note.labels?.some((label) => label === filterType)
                 );
                 break;
-            default: // Default view (non-archived, non-trashed notes)
+            default:
                 filtered = filtered.filter(
                     (note: NoteI) => !note.archived && !note.trashed
                 );
@@ -405,30 +394,6 @@ const NotesContainer = ({
         },
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { type: 'spring', stiffness: 300, damping: 24 },
-        },
-        exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
-    };
-
-    const modalVariants = {
-        hidden: { opacity: 0, scale: 0.9 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: { type: 'spring', damping: 25, stiffness: 300 },
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.9,
-            transition: { duration: 0.2 },
-        },
-    };
-
     const pathname = usePathname();
     const path = pathname.slice(1);
 
@@ -589,730 +554,131 @@ const NotesContainer = ({
                         variants={containerVariants}
                         className='space-y-8'
                     >
-                        {pinnedNotes.length > 0 && (
-                            <AnimatePresence>
-                                <motion.section
-                                    variants={itemVariants}
-                                    initial='hidden'
-                                    animate='visible'
-                                    exit='exit'
-                                    className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                                >
-                                    <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                        <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                            <span>📌 Pinned Notes</span>
-                                            <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                                {pinnedNotes.length}
-                                            </span>
-                                        </h3>
-                                    </div>
+                        {/* Use NotesSection components instead of repetitive code */}
+                        <NotesSection
+                            title='Pinned Notes'
+                            icon='📌'
+                            notes={pinnedNotes}
+                            viewType={viewType}
+                            onPinToggle={handlePinToggle}
+                            onArchiveToggle={handleArchiveToggle}
+                            onTrash={handleMoveToTrash}
+                            onEdit={openNote}
+                            onChangeColor={handleChangeColor}
+                            onClone={handleCloneNote}
+                            onRestore={handleRestoreFromTrash}
+                            onDelete={handleDeletePermanently}
+                        />
 
-                                    <div className='p-4'>
-                                        {viewType === 'grid' ? (
-                                            <Masonry
-                                                columns={{
-                                                    xs: 1,
-                                                    sm: 3,
-                                                    md: 4,
-                                                    xl: 5,
-                                                }}
-                                                spacing={2}
-                                            >
-                                                <AnimatePresence mode='popLayout'>
-                                                    {pinnedNotes.map(
-                                                        (note: NoteI) => (
-                                                            <motion.div
-                                                                key={note._id}
-                                                                layout
-                                                                initial='hidden'
-                                                                animate='visible'
-                                                                exit='exit'
-                                                                variants={
-                                                                    itemVariants
-                                                                }
-                                                            >
-                                                                <NoteCard
-                                                                    note={note}
-                                                                    onPinToggle={
-                                                                        handlePinToggle
-                                                                    }
-                                                                    onArchiveToggle={
-                                                                        handleArchiveToggle
-                                                                    }
-                                                                    onTrash={
-                                                                        handleMoveToTrash
-                                                                    }
-                                                                    onEdit={
-                                                                        openNote
-                                                                    }
-                                                                    onChangeColor={
-                                                                        handleChangeColor
-                                                                    }
-                                                                    onClone={
-                                                                        handleCloneNote
-                                                                    }
-                                                                    onRestore={
-                                                                        handleRestoreFromTrash
-                                                                    }
-                                                                    onDelete={
-                                                                        handleDeletePermanently
-                                                                    }
-                                                                />
-                                                            </motion.div>
-                                                        )
-                                                    )}
-                                                </AnimatePresence>
-                                            </Masonry>
-                                        ) : (
-                                            <div className='flex flex-col gap-4'>
-                                                <AnimatePresence mode='popLayout'>
-                                                    {pinnedNotes.map(
-                                                        (note: NoteI) => (
-                                                            <motion.div
-                                                                key={note._id}
-                                                                layout
-                                                                initial='hidden'
-                                                                animate='visible'
-                                                                exit='exit'
-                                                                variants={
-                                                                    itemVariants
-                                                                }
-                                                            >
-                                                                <NoteCard
-                                                                    note={note}
-                                                                    onPinToggle={
-                                                                        handlePinToggle
-                                                                    }
-                                                                    onArchiveToggle={
-                                                                        handleArchiveToggle
-                                                                    }
-                                                                    onTrash={
-                                                                        handleMoveToTrash
-                                                                    }
-                                                                    onEdit={
-                                                                        openNote
-                                                                    }
-                                                                    onChangeColor={
-                                                                        handleChangeColor
-                                                                    }
-                                                                    onClone={
-                                                                        handleCloneNote
-                                                                    }
-                                                                    onRestore={
-                                                                        handleRestoreFromTrash
-                                                                    }
-                                                                    onDelete={
-                                                                        handleDeletePermanently
-                                                                    }
-                                                                />
-                                                            </motion.div>
-                                                        )
-                                                    )}
-                                                </AnimatePresence>
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.section>
-                            </AnimatePresence>
+                        <NotesSection
+                            title='Notes'
+                            icon='📝'
+                            notes={unpinnedNotes}
+                            viewType={viewType}
+                            onPinToggle={handlePinToggle}
+                            onArchiveToggle={handleArchiveToggle}
+                            onTrash={handleMoveToTrash}
+                            onEdit={openNote}
+                            onChangeColor={handleChangeColor}
+                            onClone={handleCloneNote}
+                        />
+
+                        {/* Only show archived notes in search results */}
+                        {searchQuery && (
+                            <NotesSection
+                                title='Archived Notes'
+                                icon='📦'
+                                notes={archivedNotes}
+                                viewType={viewType}
+                                onPinToggle={handlePinToggle}
+                                onArchiveToggle={handleArchiveToggle}
+                                onTrash={handleMoveToTrash}
+                                onEdit={openNote}
+                                onChangeColor={handleChangeColor}
+                                onClone={handleCloneNote}
+                            />
                         )}
 
-                        {unpinnedNotes.length > 0 && (
-                            <AnimatePresence>
-                                <motion.section
-                                    variants={itemVariants}
-                                    initial='hidden'
-                                    animate='visible'
-                                    exit='exit'
-                                    className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                                >
-                                    <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                        <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                            <span>📝 Notes</span>
-                                            <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                                {unpinnedNotes.length}
-                                            </span>
-                                        </h3>
-                                    </div>
-
-                                    <div className='p-4'>
-                                        {viewType === 'grid' ? (
-                                            <Masonry
-                                                columns={{
-                                                    xs: 1,
-                                                    sm: 3,
-                                                    md: 4,
-                                                    xl: 5,
-                                                }}
-                                                spacing={2}
-                                            >
-                                                <AnimatePresence mode='popLayout'>
-                                                    {unpinnedNotes.map(
-                                                        (note: NoteI) => (
-                                                            <motion.div
-                                                                key={note._id}
-                                                                layout
-                                                                initial='hidden'
-                                                                animate='visible'
-                                                                exit='exit'
-                                                                variants={
-                                                                    itemVariants
-                                                                }
-                                                            >
-                                                                <NoteCard
-                                                                    note={note}
-                                                                    onPinToggle={
-                                                                        handlePinToggle
-                                                                    }
-                                                                    onArchiveToggle={
-                                                                        handleArchiveToggle
-                                                                    }
-                                                                    onTrash={
-                                                                        handleMoveToTrash
-                                                                    }
-                                                                    onEdit={
-                                                                        openNote
-                                                                    }
-                                                                    onChangeColor={
-                                                                        handleChangeColor
-                                                                    }
-                                                                    onClone={
-                                                                        handleCloneNote
-                                                                    }
-                                                                />
-                                                            </motion.div>
-                                                        )
-                                                    )}
-                                                </AnimatePresence>
-                                            </Masonry>
-                                        ) : (
-                                            <div className='flex flex-col gap-4'>
-                                                <AnimatePresence mode='popLayout'>
-                                                    {unpinnedNotes.map(
-                                                        (note: NoteI) => (
-                                                            <motion.div
-                                                                key={note._id}
-                                                                layout
-                                                                initial='hidden'
-                                                                animate='visible'
-                                                                exit='exit'
-                                                                variants={
-                                                                    itemVariants
-                                                                }
-                                                            >
-                                                                <NoteCard
-                                                                    note={note}
-                                                                    onPinToggle={
-                                                                        handlePinToggle
-                                                                    }
-                                                                    onArchiveToggle={
-                                                                        handleArchiveToggle
-                                                                    }
-                                                                    onTrash={
-                                                                        handleMoveToTrash
-                                                                    }
-                                                                    onEdit={
-                                                                        openNote
-                                                                    }
-                                                                    onChangeColor={
-                                                                        handleChangeColor
-                                                                    }
-                                                                    onClone={
-                                                                        handleCloneNote
-                                                                    }
-                                                                />
-                                                            </motion.div>
-                                                        )
-                                                    )}
-                                                </AnimatePresence>
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.section>
-                            </AnimatePresence>
-                        )}
-
-                        {archivedNotes.length > 0 && searchQuery && (
-                            <motion.section
-                                variants={itemVariants}
-                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                            >
-                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                        <span>Archived Notes</span>
-                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                            {archivedNotes.length}
-                                        </span>
-                                    </h3>
-                                </div>
-                                <div
-                                    className={`p-4 ${
-                                        viewType === 'grid'
-                                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
-                                            : 'flex flex-col space-y-3'
-                                    }`}
-                                >
-                                    <AnimatePresence>
-                                        {archivedNotes.map((note: NoteI) => (
-                                            <motion.div
-                                                key={note._id}
-                                                variants={itemVariants}
-                                                initial='hidden'
-                                                animate='visible'
-                                                exit='exit'
-                                                layout
-                                            >
-                                                <NoteCard
-                                                    note={note}
-                                                    onPinToggle={
-                                                        handlePinToggle
-                                                    }
-                                                    onArchiveToggle={
-                                                        handleArchiveToggle
-                                                    }
-                                                    onTrash={handleMoveToTrash}
-                                                    onEdit={openNote}
-                                                    onChangeColor={
-                                                        handleChangeColor
-                                                    }
-                                                    onClone={handleCloneNote}
-                                                />
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            </motion.section>
-                        )}
-
-                        {trashedNotes.length > 0 && (
-                            <motion.section
-                                variants={itemVariants}
-                                className='bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden'
-                            >
-                                <div className='flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-3'>
-                                    <h3 className='text-gray-800 dark:text-gray-200 font-medium flex items-center gap-2'>
-                                        <span>Trash</span>
-                                        <span className='bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full'>
-                                            {trashedNotes.length}
-                                        </span>
-                                    </h3>
-                                </div>
-                                <div className='p-4'>
-                                    {viewType === 'grid' ? (
-                                        <Masonry
-                                            columns={{
-                                                xs: 1,
-                                                sm: 3,
-                                                md: 4,
-                                                xl: 5,
-                                            }}
-                                            spacing={2}
-                                        >
-                                            <AnimatePresence mode='popLayout'>
-                                                {trashedNotes.map(
-                                                    (note: NoteI) => (
-                                                        <motion.div
-                                                            key={note._id}
-                                                            layout
-                                                            initial='hidden'
-                                                            animate='visible'
-                                                            exit='exit'
-                                                            variants={
-                                                                itemVariants
-                                                            }
-                                                        >
-                                                            <NoteCard
-                                                                note={note}
-                                                                onPinToggle={
-                                                                    handlePinToggle
-                                                                }
-                                                                onArchiveToggle={
-                                                                    handleArchiveToggle
-                                                                }
-                                                                onTrash={
-                                                                    handleMoveToTrash
-                                                                }
-                                                                onEdit={
-                                                                    openNote
-                                                                }
-                                                                onChangeColor={
-                                                                    handleChangeColor
-                                                                }
-                                                                onClone={
-                                                                    handleCloneNote
-                                                                }
-                                                                onRestore={
-                                                                    handleRestoreFromTrash
-                                                                }
-                                                                onDelete={
-                                                                    handleDeletePermanently
-                                                                }
-                                                            />
-                                                        </motion.div>
-                                                    )
-                                                )}
-                                            </AnimatePresence>
-                                        </Masonry>
-                                    ) : (
-                                        <div className='flex flex-col gap-4'>
-                                            <AnimatePresence mode='popLayout'>
-                                                {trashedNotes.map(
-                                                    (note: NoteI) => (
-                                                        <motion.div
-                                                            key={note._id}
-                                                            layout
-                                                            initial='hidden'
-                                                            animate='visible'
-                                                            exit='exit'
-                                                            variants={
-                                                                itemVariants
-                                                            }
-                                                        >
-                                                            <NoteCard
-                                                                note={note}
-                                                                onPinToggle={
-                                                                    handlePinToggle
-                                                                }
-                                                                onArchiveToggle={
-                                                                    handleArchiveToggle
-                                                                }
-                                                                onTrash={
-                                                                    handleMoveToTrash
-                                                                }
-                                                                onEdit={
-                                                                    openNote
-                                                                }
-                                                                onChangeColor={
-                                                                    handleChangeColor
-                                                                }
-                                                                onClone={
-                                                                    handleCloneNote
-                                                                }
-                                                                onRestore={
-                                                                    handleRestoreFromTrash
-                                                                }
-                                                                onDelete={
-                                                                    handleDeletePermanently
-                                                                }
-                                                            />
-                                                        </motion.div>
-                                                    )
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.section>
-                        )}
+                        <NotesSection
+                            title='Trash'
+                            icon='🗑️'
+                            notes={trashedNotes}
+                            viewType={viewType}
+                            onPinToggle={handlePinToggle}
+                            onArchiveToggle={handleArchiveToggle}
+                            onTrash={handleMoveToTrash}
+                            onEdit={openNote}
+                            onChangeColor={handleChangeColor}
+                            onClone={handleCloneNote}
+                            onRestore={handleRestoreFromTrash}
+                            onDelete={handleDeletePermanently}
+                        />
                     </motion.div>
                 </AnimatePresence>
             )}
 
             {/* Note edit/create modal */}
+            <NoteModal
+                isOpen={isModalOpen}
+                editingNote={editingNote}
+                onClose={closeModal}
+                onRefetch={refetch}
+                onImageRemove={async (index) => {
+                    try {
+                        if (!editingNote) return;
 
-            <AnimatePresence>
-                {isModalOpen && editingNote && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className='fixed inset-0 backdrop-blur-xs flex items-center justify-center p-4 z-50'
-                        onClick={closeModal}
-                    >
-                        <motion.div
-                            variants={modalVariants}
-                            initial='hidden'
-                            animate='visible'
-                            exit='exit'
-                            className='bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-auto'
-                            onClick={(e) => e.stopPropagation()}
-                            style={getModalStyle}
-                        >
-                            <div className=' border-gray-200 dark:border-gray-800 px-2 py-4'>
-                                <div className='flex items-center justify-between'>
-                                    <h2 className='text-xl font-semibold text-gray-800 dark:text-gray-200'>
-                                        {editingNote.pinned ? '📌 ' : ''}Edit
-                                        Note
-                                    </h2>
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200'
-                                        onClick={closeModal}
-                                        aria-label='Close modal'
-                                        title='Close (Esc)'
-                                    >
-                                        <CloseIcon size={20} />
-                                    </motion.button>
-                                </div>
+                        const imageToDelete = editingNote.images?.[index];
 
-                                {editingNote.labels &&
-                                    editingNote.labels.length > 0 && (
-                                        <div className='flex flex-wrap gap-2 mt-3'>
-                                            {editingNote.labels.map(
-                                                (label, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className='bg-green-50 dark:bg-blue-900 text-green-700 dark:text-blue-200 text-sm font-medium px-2.5 py-0.5 rounded-full'
-                                                    >
-                                                        {typeof label ===
-                                                        'string'
-                                                            ? label
-                                                            : label.name}
-                                                    </span>
-                                                )
-                                            )}
-                                        </div>
-                                    )}
-                            </div>
+                        const updatedImages = [...(editingNote.images || [])];
+                        updatedImages.splice(index, 1);
 
-                            {/* Reminder & Collaborators Info Bar */}
-                            {(editingNote.reminder ||
-                                (editingNote.collaborators &&
-                                    editingNote.collaborators.length > 0)) && (
-                                <div className='bg-gray-50 dark:bg-gray-800 px-2 py-2 flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 rounded-full'>
-                                    {editingNote.reminder && (
-                                        <div
-                                            className='flex items-center bg-amber-100 p-2 rounded-full gap-1.5'
-                                            title={`Reminder: ${formatReminderDate(
-                                                editingNote.reminder
-                                            )}`}
-                                        >
-                                            <Bell
-                                                size={14}
-                                                className='text-amber-500'
-                                            />
-                                            <span>
-                                                {formatReminderDate(
-                                                    editingNote.reminder
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
+                        setEditingNote({
+                            ...editingNote,
+                            images: updatedImages,
+                        });
 
-                                    {editingNote.collaborators &&
-                                        editingNote.collaborators.length >
-                                            0 && (
-                                            <div
-                                                className='flex items-center gap-2 bg-blue-100 p-2 rounded-full'
-                                                title={`Shared with ${
-                                                    editingNote.collaborators
-                                                        .length
-                                                } ${
-                                                    editingNote.collaborators
-                                                        .length === 1
-                                                        ? 'person'
-                                                        : 'people'
-                                                }`}
-                                            >
-                                                <Users
-                                                    size={14}
-                                                    className='text-blue-500'
-                                                />
-                                                <span>
-                                                    Shared with{' '}
-                                                    {
-                                                        editingNote
-                                                            .collaborators
-                                                            .length
-                                                    }
-                                                    {editingNote.collaborators
-                                                        .length === 1
-                                                        ? ' person'
-                                                        : ' people'}
-                                                </span>
-                                                <div className='flex -space-x-2 ml-1'>
-                                                    {editingNote.collaborators
-                                                        .slice(0, 3)
-                                                        .map(
-                                                            (
-                                                                collaborator,
-                                                                index
-                                                            ) => (
-                                                                <div
-                                                                    key={
-                                                                        collaborator.firebaseUid ||
-                                                                        index
-                                                                    }
-                                                                    className='w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 ring-2 ring-white dark:ring-gray-900 overflow-hidden'
-                                                                    title={
-                                                                        collaborator.email
-                                                                    }
-                                                                >
-                                                                    {collaborator.photo ? (
-                                                                        <Image
-                                                                            src={
-                                                                                collaborator.photo
-                                                                            }
-                                                                            alt={
-                                                                                collaborator.name ||
-                                                                                collaborator.email ||
-                                                                                'Collaborator'
-                                                                            }
-                                                                            width={
-                                                                                40
-                                                                            }
-                                                                            height={
-                                                                                40
-                                                                            }
-                                                                            className='w-full h-full object-cover'
-                                                                        />
-                                                                    ) : (
-                                                                        getInitials(
-                                                                            collaborator.name ||
-                                                                                collaborator.email ||
-                                                                                ''
-                                                                        )
-                                                                    )}
-                                                                </div>
-                                                            )
-                                                        )}
-                                                    {editingNote.collaborators
-                                                        .length > 3 && (
-                                                        <div className='w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 ring-2 ring-white dark:ring-gray-900'>
-                                                            +
-                                                            {editingNote
-                                                                .collaborators
-                                                                .length - 3}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                </div>
-                            )}
+                        if (editingNote._id) {
+                            let imageUrl = '';
 
-                            <div className='modal-body my-4'>
-                                <NoteInput
-                                    isEditing={true}
-                                    noteToEdit={editingNote}
-                                    onSuccess={() => {
-                                        closeModal();
-                                        refetch();
-                                    }}
-                                />
-                                {/* Image Preview Section - Add this after the labels */}
-                                {editingNote.images &&
-                                    editingNote.images.length > 0 && (
-                                        <div className='px-2 py-2'>
-                                            <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                                                Attached Images
-                                            </h3>
-                                            <ImagePreview
-                                                images={editingNote.images}
-                                                onImageClick={(imageUrl) =>
-                                                    setPreviewImageUrl(imageUrl)
-                                                }
-                                                onImageRemove={async (
-                                                    index
-                                                ) => {
-                                                    try {
-                                                        const imageToDelete =
-                                                            editingNote
-                                                                .images?.[
-                                                                index
-                                                            ];
+                            // Handle different image types
+                            if (typeof imageToDelete === 'string') {
+                                imageUrl = imageToDelete;
+                            } else if (imageToDelete instanceof File) {
+                                imageUrl = imageToDelete.name;
+                            } else {
+                                console.warn(
+                                    'Unknown image type:',
+                                    imageToDelete
+                                );
+                                return;
+                            }
 
-                                                        const updatedImages = [
-                                                            ...(editingNote.images ||
-                                                                []),
-                                                        ];
-                                                        updatedImages.splice(
-                                                            index,
-                                                            1
-                                                        );
+                            console.log('Deleting image:', {
+                                noteId: editingNote._id,
+                                imageUrl,
+                            });
 
-                                                        setEditingNote({
-                                                            ...editingNote,
-                                                            images: updatedImages,
-                                                        });
+                            await deleteSingleImage({
+                                id: editingNote._id,
+                                imageUrl: imageUrl,
+                            }).unwrap();
+                        }
 
-                                                        if (editingNote._id) {
-                                                            let imageUrl = '';
+                        refetch();
+                    } catch (error) {
+                        console.error('Failed to delete image:', error);
+                    }
+                }}
+                onImageClick={(imageUrl) => setPreviewImageUrl(imageUrl)}
+            />
 
-                                                            // Handle different image types
-                                                            if (
-                                                                typeof imageToDelete ===
-                                                                'string'
-                                                            ) {
-                                                                imageUrl =
-                                                                    imageToDelete;
-                                                            } else if (
-                                                                imageToDelete instanceof
-                                                                File
-                                                            ) {
-                                                                imageUrl =
-                                                                    imageToDelete.name;
-                                                            } else {
-                                                                console.warn(
-                                                                    'Unknown image type:',
-                                                                    imageToDelete
-                                                                );
-                                                                return;
-                                                            }
-
-                                                            console.log(
-                                                                'Deleting image:',
-                                                                {
-                                                                    noteId: editingNote._id,
-                                                                    imageUrl,
-                                                                }
-                                                            );
-
-                                                            await deleteSingleImage(
-                                                                {
-                                                                    id: editingNote._id,
-                                                                    imageUrl:
-                                                                        imageUrl,
-                                                                }
-                                                            ).unwrap();
-                                                        }
-
-                                                        refetch();
-                                                    } catch (error) {
-                                                        console.error(
-                                                            'Failed to delete image:',
-                                                            error
-                                                        );
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                            </div>
-
-                            <div className='modal-footer'>
-                                <div className='modal-date pt-4 border-t border-gray-700 px-2 text-sm text-gray-900'>
-                                    {editingNote.updatedAt ? (
-                                        <span>
-                                            Edited{' '}
-                                            {new Date(
-                                                editingNote.updatedAt
-                                            ).toLocaleString()}
-                                        </span>
-                                    ) : (
-                                        <span>
-                                            Created{' '}
-                                            {new Date(
-                                                editingNote.createdAt ||
-                                                    Date.now()
-                                            ).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-
-                {/* Image Preview Modal */}
-                {previewImageUrl && (
-                    <ImagePreviewModal
-                        imageUrl={previewImageUrl}
-                        onClose={() => setPreviewImageUrl(null)}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Image Preview Modal - keep this separate */}
+            {previewImageUrl && (
+                <ImagePreviewModal
+                    imageUrl={previewImageUrl}
+                    onClose={() => setPreviewImageUrl(null)}
+                />
+            )}
         </div>
     );
 };

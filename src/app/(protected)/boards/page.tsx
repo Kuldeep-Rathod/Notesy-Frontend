@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Pencil, Trash2, Plus, RefreshCw, Calendar, Eye } from 'lucide-react';
 import BoardPreview from '@/components/boards/BoardPreview';
+import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
+import { CircularProgress } from '@mui/material';
 
 const BoardsListPage = () => {
     const {
@@ -22,12 +24,32 @@ const BoardsListPage = () => {
     });
 
     const [deleteBoard, { isLoading: isDeleting }] = useDeleteBoardMutation();
+    const { data: userData, isLoading: userLoading } = useGetCurrentUserQuery();
+    const isPremium = userData?.isPremium;
+
     const router = useRouter();
 
     // Fetch boards on component mount
     useEffect(() => {
         refetch();
     }, [refetch]);
+
+    if (userLoading) {
+        return (
+            <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
+                <div className='text-xl font-medium text-primary animate-pulse'>
+                    <div className='flex justify-center items-center h-screen'>
+                        <CircularProgress />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isPremium) {
+        toast.error('Upgrade to premium to access whiteboard');
+        return router.push('/dashboard');
+    }
 
     const handleCreateNew = () => {
         router.push('/boards/edit');
