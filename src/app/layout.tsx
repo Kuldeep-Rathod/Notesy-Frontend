@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: 'Notesy',
+    icons: {
+        icon: '/favicon.svg',
+    },
     description:
         'Notesy – A voice-controlled app to create and organize notes with text, images, and labels',
 };
@@ -41,4 +44,3 @@ export default function RootLayout({
         </html>
     );
 }
-

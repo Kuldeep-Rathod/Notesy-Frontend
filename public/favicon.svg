@@ -1,0 +1,19 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rectangle -->
+  <rect width="40" height="40" rx="8" fill="#4F46E5" filter="url(#shadow)" />
+
+  <!-- Microphone icon centered and scaled -->
+  <g transform="translate(20 20) scale(1.5) translate(-20 -20)">
+    <path d="M20 12C18.3431 12 17 13.3431 17 15V22C17 23.6569 18.3431 25 20 25C21.6569 25 23 23.6569 23 22V15C23 13.3431 21.6569 12 20 12Z" fill="white" />
+    <path d="M27 20V22C27 25.3137 24.3137 28 21 28H19C15.6863 28 13 25.3137 13 22V20" stroke="white" stroke-width="2" />
+    <line x1="20" y1="29" x2="20" y2="32" stroke="white" stroke-width="2" stroke-linecap="round" />
+    <line x1="16" y1="32" x2="24" y2="32" stroke="white" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- Shadow filter -->
+  <defs>
+    <filter id="shadow" x="0" y="0" width="40" height="40">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.1)" />
+    </filter>
+  </defs>
+</svg>
