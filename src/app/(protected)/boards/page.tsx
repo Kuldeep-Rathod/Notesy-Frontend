@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
-import {
-    useGetBoardsQuery,
-    useDeleteBoardMutation,
-} from '@/redux/api/boardsAPI';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, RefreshCw, Calendar, Eye } from 'lucide-react';
 import BoardPreview from '@/components/boards/BoardPreview';
+import { Button } from '@/components/ui/button';
+import {
+    useDeleteBoardMutation,
+    useGetBoardsQuery,
+} from '@/redux/api/boardsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { CircularProgress } from '@mui/material';
+import { Calendar, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 const BoardsListPage = () => {
     const {
@@ -143,7 +143,7 @@ const BoardsListPage = () => {
                     </Button>
                     <Button
                         onClick={handleCreateNew}
-                        className='flex items-center gap-2'
+                        className='flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600'
                     >
                         <Plus className='h-4 w-4' />
                         Create New Board
@@ -185,21 +185,6 @@ const BoardsListPage = () => {
                                     appState={board.data.appState}
                                     files={board.data.files}
                                 />
-
-                                {/* Hover overlay for quick view */}
-                                {/* <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center'>
-                                    <Button
-                                        variant='secondary'
-                                        size='sm'
-                                        onClick={() =>
-                                            handleViewBoard(board._id)
-                                        }
-                                        className='opacity-0 group-hover:opacity-100 transition-opacity duration-200'
-                                    >
-                                        <Eye className='h-4 w-4 mr-1' />
-                                        Quick View
-                                    </Button>
-                                </div> */}
                             </div>
 
                             {/* Content Section */}
@@ -234,7 +219,7 @@ const BoardsListPage = () => {
                                         onClick={() =>
                                             handleEditBoard(board._id)
                                         }
-                                        className='flex-1'
+                                        className='flex-1 bg-indigo-500 hover:bg-indigo-600'
                                     >
                                         <Pencil className='h-3 w-3 mr-1' />
                                         Edit

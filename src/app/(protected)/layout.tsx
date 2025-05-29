@@ -1,6 +1,7 @@
 'use client';
 
 import SidebarLink from '@/components/SidebarLink';
+import TrialStatus from '@/components/TrialStatus';
 import { Button } from '@/components/ui/button';
 import UserMenu from '@/components/UserMenu';
 import { cn } from '@/lib/utils';
@@ -8,7 +9,7 @@ import { useGetLabelsQuery } from '@/redux/api/labelsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import AuthGuard from '@/utils/authGuard';
 import { axiosInstance } from '@/utils/axiosInstance';
-import UserManual from '@/voice-assistant/components/UserManual';
+import UserManual from '@/voice-assistant/components/userManual/UserManual';
 import CircularProgress from '@mui/material/CircularProgress';
 import { getAuth } from 'firebase/auth';
 import {
@@ -27,11 +28,10 @@ import {
     X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import TrialStatus from '@/components/TrialStatus';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { MdOutlineDraw } from 'react-icons/md';
+import { toast } from 'sonner';
 
 export default function DashboardLayout({
     children,
@@ -183,7 +183,7 @@ export default function DashboardLayout({
 
                             <SidebarLink
                                 href='/labels'
-                                title='Edit labels'
+                                title='Labels'
                                 isSidebarOpen={isSidebarOpen}
                                 icon={<Pencil className='w-5 h-5' />}
                             />

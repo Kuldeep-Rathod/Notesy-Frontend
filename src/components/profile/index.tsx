@@ -159,9 +159,7 @@ const Profile: React.FC = () => {
 
         try {
             const updatedUser = await updateUserProfile(formData).unwrap();
-            console.log('Profile updated:', updatedUser);
 
-            // Refetch user data to ensure UI is up to date
             await refetch();
 
             if (isPhotoUpdate) {

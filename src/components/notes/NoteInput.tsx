@@ -308,8 +308,6 @@ export default function NoteInput({
             });
         }
 
-        console.log('FormData:', formData);
-
         if (
             noteObj.noteTitle?.length ||
             noteObj.noteBody?.length ||

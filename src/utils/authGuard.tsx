@@ -2,6 +2,7 @@
 
 import { app } from '@/lib/firebase';
 import { setUser } from '@/redux/reducer/authReducer';
+import { CircularProgress } from '@mui/material';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -10,13 +11,11 @@ import { useDispatch } from 'react-redux';
 interface AuthGuardProps {
     children: React.ReactNode;
     loginPath?: string;
-    loadingComponent?: React.ReactNode;
 }
 
 export default function AuthGuard({
     children,
     loginPath = '/login',
-    loadingComponent = <div>Loading...</div>,
 }: AuthGuardProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -48,7 +47,12 @@ export default function AuthGuard({
         return () => unsubscribe();
     }, [dispatch, router, loginPath, pathname]);
 
-    if (loading) return loadingComponent;
+    if (loading)
+        return (
+            <div className='flex justify-center items-center h-screen'>
+                <CircularProgress />
+            </div>
+        );
 
     return <>{children}</>;
 }

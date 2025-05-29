@@ -15,6 +15,44 @@ import SpeechRecognition, {
 } from 'react-speech-recognition';
 import { toast } from 'sonner';
 
+export const speak = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+        console.error('Speech synthesis not supported');
+        return;
+    }
+
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices();
+
+    // Try to find Google UK English Female
+    const selectedVoice = voices.find(
+        (voice) => voice.name === 'Google UK English Female'
+    );
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    } else {
+        console.warn('Preferred voice not found, using default voice.');
+    }
+
+    utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+    };
+
+    utterance.onend = () => {
+        console.log('Speech synthesis completed');
+    };
+
+    try {
+        synth.speak(utterance);
+        console.log('Speaking:', text);
+    } catch (error) {
+        console.error('Failed to speak:', error);
+    }
+};
+
 const VoiceRouter = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const { data: labelsData = [] } = useGetLabelsQuery();
@@ -56,44 +94,6 @@ const VoiceRouter = () => {
         () => debounce((route: string) => router.push(route), 500),
         [router]
     );
-
-    const speak = (text: string) => {
-        if (!('speechSynthesis' in window)) {
-            console.error('Speech synthesis not supported');
-            return;
-        }
-
-        const synth = window.speechSynthesis;
-        const voices = synth.getVoices();
-
-        // Try to find Google UK English Female
-        const selectedVoice = voices.find(
-            (voice) => voice.name === 'Google UK English Female'
-        );
-
-        const utterance = new SpeechSynthesisUtterance(text);
-
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-        } else {
-            console.warn('Preferred voice not found, using default voice.');
-        }
-
-        utterance.onerror = (event) => {
-            console.error('Speech synthesis error:', event);
-        };
-
-        utterance.onend = () => {
-            if (isDev) console.log('Speech synthesis completed');
-        };
-
-        try {
-            synth.speak(utterance);
-            if (isDev) console.log('Speaking:', text);
-        } catch (error) {
-            console.error('Failed to speak:', error);
-        }
-    };
 
     useEffect(() => {
         if ('speechSynthesis' in window) {
@@ -151,7 +151,16 @@ const VoiceRouter = () => {
     const commands = useMemo(
         () => [
             {
-                command: ['hey assistant', 'hey notsy'],
+                command: [
+                    'hey assistant',
+                    'hey notsy',
+                    'hey notesy',
+                    'hey app',
+                    'hello assistant',
+                    'hello notsy',
+                    'hello notesy',
+                    'hello app',
+                ],
                 callback: () => {
                     if (!hasUserGesture) {
                         if (isDev) console.warn('Waiting for user interaction');
@@ -178,7 +187,6 @@ const VoiceRouter = () => {
                     );
                 },
                 isFuzzyMatch: true,
-                fuzzyMatchingThreshold: 0.5,
             },
             {
                 command: ['go to *', 'navigate to *', 'hey app go to *'],
