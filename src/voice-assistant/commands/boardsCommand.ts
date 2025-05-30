@@ -1,4 +1,5 @@
 import { Board } from '@/redux/api/boardsAPI';
+import { speak } from '../VoiceRouter';
 
 interface BoardsContainerCommandsParams {
     handlers: {
@@ -18,6 +19,7 @@ export const getBoardsContainerCommands = ({
         command: ['create new board', 'new board', 'add board'],
         callback: () => {
             handlers.handleCreateNew();
+            speak('Creating a new board.');
         },
         isFuzzyMatch: true,
     },
@@ -25,10 +27,10 @@ export const getBoardsContainerCommands = ({
         command: ['refresh boards', 'reload boards', 'update boards'],
         callback: () => {
             handlers.handleRefresh();
+            speak('Refreshing boards.');
         },
         isFuzzyMatch: true,
     },
-
     {
         command: ['edit board *', 'modify board *'],
         callback: (title: string) => {
@@ -42,6 +44,7 @@ export const getBoardsContainerCommands = ({
             if (matchingBoard && matchingBoard._id) {
                 handlers.handleEditBoard(matchingBoard._id);
             }
+            speak(`Editing board: ${matchingBoard?.title || 'Untitled board'}`);
         },
         isFuzzyMatch: false,
         matchInterim: false,
@@ -59,6 +62,9 @@ export const getBoardsContainerCommands = ({
             if (matchingBoard && matchingBoard._id) {
                 handlers.handleDeleteBoard(matchingBoard._id);
             }
+            speak(
+                `Deleting board: ${matchingBoard?.title || 'Untitled board'}`
+            );
         },
         isFuzzyMatch: false,
         matchInterim: false,

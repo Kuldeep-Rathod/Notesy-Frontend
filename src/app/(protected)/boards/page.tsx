@@ -9,6 +9,7 @@ import {
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { getBoardsContainerCommands } from '@/voice-assistant/commands/boardsCommand';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import VoiceTranscriptOverlay from '@/voice-assistant/hooks/VoiceTranscriptOverlay';
 import { Calendar, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -156,7 +157,6 @@ const BoardsListPage = () => {
                     </Button>
                 </div>
             </div>
-
             {boards?.length === 0 ? (
                 <div className='text-center py-16'>
                     <div className='w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -246,7 +246,8 @@ const BoardsListPage = () => {
                         </div>
                     ))}
                 </div>
-            )}
+            )}{' '}
+            <VoiceTranscriptOverlay pageCommands={getBoardsContainerCommands} />
         </div>
     );
 };

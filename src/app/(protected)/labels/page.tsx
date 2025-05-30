@@ -9,6 +9,7 @@ import {
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
 import { useLabelPageCommands } from '@/voice-assistant/commands/label/labelPageCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import VoiceTranscriptOverlay from '@/voice-assistant/hooks/VoiceTranscriptOverlay';
 import { ArrowLeft, CirclePlus, Mic, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -316,6 +317,7 @@ const EditLabelsPage = () => {
                     </div>
                 )}
             </div>
+            <VoiceTranscriptOverlay pageCommands={useLabelPageCommands} />
         </div>
     );
 };

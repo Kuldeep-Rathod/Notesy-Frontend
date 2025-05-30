@@ -22,6 +22,7 @@ import {
     updateChecklist,
 } from '@/redux/reducer/noteInputReducer';
 import { useDispatch, useSelector } from 'react-redux';
+import { speak } from '../VoiceRouter';
 
 interface NoteCommandsParams {
     refs: {
@@ -144,6 +145,8 @@ export const useNoteCommands = ({
                         const len = inputEl.value.length;
                         inputEl.setSelectionRange(len, len); // Move cursor to end
                     }
+
+                    speak('Focused on note title.');
                 }
             },
             isFuzzyMatch: true,
@@ -186,6 +189,8 @@ export const useNoteCommands = ({
                         const len = bodyEl.value.length;
                         bodyEl.setSelectionRange(len, len);
                     }
+
+                    speak('Focused on note content.');
                 }
             },
             isFuzzyMatch: true,
@@ -205,6 +210,7 @@ export const useNoteCommands = ({
                     inputEl.innerHTML = title;
                     const event = new Event('input', { bubbles: true });
                     inputEl.dispatchEvent(event);
+                    speak(`Title set to: ${title}`);
                 }
             },
             isFuzzyMatch: false,
@@ -225,6 +231,7 @@ export const useNoteCommands = ({
                     bodyEl.innerHTML = content;
                     const event = new Event('input', { bubbles: true });
                     bodyEl.dispatchEvent(event);
+                    speak('Note content updated.');
                 }
             },
             isFuzzyMatch: false,
@@ -243,6 +250,7 @@ export const useNoteCommands = ({
                     bodyEl.innerHTML = bodyEl.innerHTML + ' ' + content;
                     const event = new Event('input', { bubbles: true });
                     bodyEl.dispatchEvent(event);
+                    speak('Content added to note.');
                 }
             },
             isFuzzyMatch: false,
@@ -259,6 +267,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(togglePinned());
+                speak('Note pin toggled.');
             },
             isFuzzyMatch: true,
         },
@@ -268,6 +277,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 handlers.saveNote();
+                speak('Note saved successfully.');
             },
             isFuzzyMatch: true,
         },
@@ -277,6 +287,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 handlers.closeNote();
+                speak('Note closed.');
             },
             isFuzzyMatch: true,
         },
@@ -287,6 +298,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleReminderMenu());
+                speak('Reminder menu opened.');
             },
             isFuzzyMatch: true,
         },
@@ -300,6 +312,7 @@ export const useNoteCommands = ({
             callback: () => {
                 if (!reminderMenuOpen) {
                     dispatch(toggleReminderMenu());
+                    speak('Setting reminder for later today.');
                     return;
                 }
                 const reminder = quickOptions.find(
@@ -309,6 +322,7 @@ export const useNoteCommands = ({
                     const selectedDate = reminder.time();
                     dispatch(setReminder(selectedDate.toISOString()));
                     dispatch(closeReminderMenu());
+                    speak('Reminder set for later today.');
                 }
             },
             isFuzzyMatch: true,
@@ -322,6 +336,7 @@ export const useNoteCommands = ({
             callback: () => {
                 if (!reminderMenuOpen) {
                     dispatch(toggleReminderMenu());
+                    speak('Setting reminder for tomorrow.');
                     return;
                 }
 
@@ -332,6 +347,7 @@ export const useNoteCommands = ({
                     const selectedDate = reminder.time();
                     dispatch(setReminder(selectedDate.toISOString()));
                     dispatch(closeReminderMenu());
+                    speak('Reminder set for tomorrow.');
                 }
             },
             isFuzzyMatch: true,
@@ -345,6 +361,7 @@ export const useNoteCommands = ({
             callback: () => {
                 if (!reminderMenuOpen) {
                     dispatch(toggleReminderMenu());
+                    speak('Setting reminder for next week.');
                     return;
                 }
 
@@ -355,6 +372,7 @@ export const useNoteCommands = ({
                     const selectedDate = reminder.time();
                     dispatch(setReminder(selectedDate.toISOString()));
                     dispatch(closeReminderMenu());
+                    speak('Reminder set for next week.');
                 }
             },
             isFuzzyMatch: true,
@@ -364,11 +382,13 @@ export const useNoteCommands = ({
             callback: () => {
                 if (!reminderMenuOpen) {
                     dispatch(toggleReminderMenu());
+                    speak('Removing reminder.');
                     return;
                 }
 
                 dispatch(setReminder(null));
                 dispatch(closeReminderMenu());
+                speak('Reminder removed.');
             },
         },
 
@@ -383,6 +403,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleCollaboratorMenu());
+                speak('Collaborator menu opened.');
             },
             isFuzzyMatch: true,
         },
@@ -400,6 +421,7 @@ export const useNoteCommands = ({
                 );
 
                 dispatch(setCollaboratorSearchTerm(cleanUserName));
+                speak(`Searching for user: ${cleanUserName}`);
             },
         },
         {
@@ -414,6 +436,7 @@ export const useNoteCommands = ({
                     dispatch(toggleCollaboratorMenu());
                 }
                 dispatch(setCollaboratorSearchTerm(''));
+                speak('User search cleared.');
             },
         },
         {
@@ -439,6 +462,9 @@ export const useNoteCommands = ({
                             name: user.name || user.email,
                         })
                     );
+                    speak(`Added ${user.name || user.email} as collaborator.`);
+                } else {
+                    speak(`User ${cleanUserName} not found.`);
                 }
             },
         },
@@ -458,6 +484,11 @@ export const useNoteCommands = ({
 
                 if (user) {
                     dispatch(removeCollaborator(user.firebaseUid));
+                    speak(
+                        `Removed ${user.name || user.email} from collaborators.`
+                    );
+                } else {
+                    speak(`User ${cleanUserName} not found.`);
                 }
             },
         },
@@ -474,11 +505,17 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleLabelMenu());
+                speak('Label menu opened.');
             },
             isFuzzyMatch: true,
         },
         {
-            command: ['take search *', 'tag search *', 'label find *', 'look for label *'],
+            command: [
+                'take search *',
+                'tag search *',
+                'label find *',
+                'look for label *',
+            ],
             callback: (labelName: string) => {
                 if (!labelMenuOpen) {
                     closeAllMenus();
@@ -487,6 +524,7 @@ export const useNoteCommands = ({
                 if (refs.labelSearchRef.current) {
                     refs.labelSearchRef.current.value = labelName;
                     dispatch(setSearchQuery(labelName));
+                    speak(`Searching for label: ${labelName}`);
                 }
             },
         },
@@ -503,6 +541,7 @@ export const useNoteCommands = ({
                     dispatch(toggleLabelMenu());
                 }
                 dispatch(setSearchQuery(''));
+                speak('Label search cleared.');
             },
             isFuzzyMatch: true,
         },
@@ -514,6 +553,7 @@ export const useNoteCommands = ({
                     dispatch(toggleLabelMenu());
                 }
                 handlers.onAddLabel();
+                speak('Creating new label.');
             },
             isFuzzyMatch: true,
         },
@@ -538,6 +578,7 @@ export const useNoteCommands = ({
 
                 if (cleanLabelName) {
                     handlers.handleToggleLabel(cleanLabelName);
+                    speak(`Label "${cleanLabelName}" toggled.`);
                 }
             },
         },
@@ -548,6 +589,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleCbox());
+                speak('Checklist view toggled.');
             },
             isFuzzyMatch: true,
         },
@@ -570,6 +612,7 @@ export const useNoteCommands = ({
                         checked: false,
                     })
                 );
+                speak(`Added checklist item: ${cleanText}`);
             },
         },
         {
@@ -595,17 +638,25 @@ export const useNoteCommands = ({
                 );
 
                 if (task) {
+                    const isCurrentlyChecked = checklists.find(
+                        (cb) => cb.id === task.id || cb._id === task.id
+                    )?.checked;
+
                     dispatch(
                         updateChecklist({
                             id: task.id ?? '',
                             updates: {
-                                checked: !checklists.find(
-                                    (cb) =>
-                                        cb.id === task.id || cb._id === task.id
-                                )?.checked,
+                                checked: !isCurrentlyChecked,
                             },
                         })
                     );
+
+                    const action = !isCurrentlyChecked
+                        ? 'completed'
+                        : 'unchecked';
+                    speak(`Task "${task.text}" ${action}.`);
+                } else {
+                    speak(`Task "${cleanTaskText}" not found.`);
                 }
             },
         },
@@ -621,6 +672,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleColorMenu());
+                speak('Color menu toggled.');
             },
             isFuzzyMatch: true,
         },
@@ -639,7 +691,9 @@ export const useNoteCommands = ({
                         bgColors[spokenColor as keyof typeof bgColors];
                     dispatch(setBgColor(hexColor));
                     dispatch(toggleColorMenu());
+                    speak(`Background color changed to ${spokenColor}.`);
                 } else {
+                    speak(`Color "${spokenColor}" not available.`);
                     console.warn(`Unknown color: ${spokenColor}`);
                 }
             },
@@ -654,6 +708,7 @@ export const useNoteCommands = ({
             callback: () => {
                 closeAllMenus();
                 dispatch(toggleArchive());
+                speak('Note archived.');
             },
             isFuzzyMatch: true,
         },

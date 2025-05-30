@@ -4,6 +4,7 @@ import NoteInput from '@/components/notes/NoteInput';
 import NotesContainer from '@/components/notes/NotesContainer';
 import { getDashboardCommands } from '@/voice-assistant/commands/dashboardCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import VoiceTranscriptOverlay from '@/voice-assistant/hooks/VoiceTranscriptOverlay';
 import { useEffect, useRef, useState } from 'react';
 
 function Page() {
@@ -75,6 +76,7 @@ function Page() {
                     onModalStateChange={handleModalStateChange}
                 />
             </div>
+            <VoiceTranscriptOverlay pageCommands={getDashboardCommands} />
 
             {isActive && (
                 <div

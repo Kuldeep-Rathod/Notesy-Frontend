@@ -1,4 +1,5 @@
 import { NoteI } from '@/interfaces/notes';
+import { speak } from '../VoiceRouter';
 
 interface TrashedNotesCommandsParams {
     handlers: {
@@ -38,6 +39,7 @@ export const useTrashedNotesCommands = ({
             if (matchingNote && matchingNote._id) {
                 handlers.handleRestoreFromTrash(matchingNote._id);
             }
+            speak(`Restoring note: ${matchingNote?.noteTitle || 'Untitled'}`);
         },
         isFuzzyMatch: false,
         matchInterim: true,
@@ -62,6 +64,11 @@ export const useTrashedNotesCommands = ({
             if (matchingNote && matchingNote._id) {
                 handlers.handleDeletePermanently(matchingNote._id);
             }
+            speak(
+                `Permanently deleting note: ${
+                    matchingNote?.noteTitle || 'Untitled'
+                }`
+            );
         },
         isFuzzyMatch: false,
         matchInterim: true,

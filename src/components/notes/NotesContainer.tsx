@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { ImagePreviewModal } from './input/ImagePreview';
 import NoteModal from './NotesModal';
 import NotesSection from './NotesSection';
+import VoiceTranscriptOverlay from '@/voice-assistant/hooks/VoiceTranscriptOverlay';
 
 interface NotesContainerProps {
     initialViewType?: 'grid' | 'list';
@@ -679,6 +680,7 @@ const NotesContainer = ({
                     onClose={() => setPreviewImageUrl(null)}
                 />
             )}
+            <VoiceTranscriptOverlay pageCommands={notesContainerCommands} />
         </div>
     );
 };

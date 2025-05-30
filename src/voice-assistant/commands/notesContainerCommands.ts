@@ -1,5 +1,6 @@
 import { NoteI } from '@/interfaces/notes';
 import { RefObject } from 'react';
+import { speak } from '../VoiceRouter';
 
 interface NotesContainerCommandsParams {
     refs: {
@@ -31,6 +32,7 @@ export const getNotesContainerCommands = ({
         command: ['close note', 'discard changes'],
         callback: () => {
             handlers.closeModal();
+            speak('Note closed.');
         },
         isFuzzyMatch: true,
     },
@@ -43,7 +45,10 @@ export const getNotesContainerCommands = ({
             'find notes with *',
         ],
         callback: (query: string) => {
-            if (!query?.trim()) return;
+            if (!query?.trim()) {
+                speak('Please provide a search term.');
+                return;
+            }
 
             setters.setSearchQuery(query);
 
@@ -59,6 +64,8 @@ export const getNotesContainerCommands = ({
 
                 inputEl.focus();
             }
+
+            speak(`Searching for notes with: ${query}`);
         },
         isFuzzyMatch: false,
         matchInterim: true,
@@ -78,6 +85,7 @@ export const getNotesContainerCommands = ({
                 const changeEvent = new Event('change', { bubbles: true });
                 refs.searchInputRef.current.dispatchEvent(changeEvent);
             }
+            speak('Search cleared.');
         },
         isFuzzyMatch: true,
         fuzzyMatchingThreshold: 0.7,
@@ -93,6 +101,7 @@ export const getNotesContainerCommands = ({
         ],
         callback: () => {
             setters.setViewType('grid');
+            speak('Switched to grid view.');
         },
         isFuzzyMatch: true,
         fuzzyMatchingThreshold: 0.7,
@@ -101,6 +110,7 @@ export const getNotesContainerCommands = ({
         command: ['list view', 'switch to list', 'show list'],
         callback: () => {
             setters.setViewType('list');
+            speak('Switched to list view.');
         },
         isFuzzyMatch: true,
         fuzzyMatchingThreshold: 0.7,
@@ -113,7 +123,15 @@ export const getNotesContainerCommands = ({
             'edit the note *',
         ],
         callback: (title: string) => {
-            if (!title?.trim() || !notes?.length) return;
+            if (!title?.trim()) {
+                speak('Please specify a note title to open.');
+                return;
+            }
+
+            if (!notes?.length) {
+                speak('No notes available to open.');
+                return;
+            }
 
             console.log('title', title);
 
@@ -124,6 +142,9 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote) {
                 openNote(matchingNote);
+                speak(`Opening note: ${matchingNote.noteTitle || 'Untitled'}`);
+            } else {
+                speak(`Note with title "${title}" not found.`);
             }
         },
         isFuzzyMatch: false,
@@ -133,7 +154,15 @@ export const getNotesContainerCommands = ({
     {
         command: ['delete note *', 'delete not *', 'delete the note *'],
         callback: (title: string) => {
-            if (!title?.trim() || !notes?.length) return;
+            if (!title?.trim()) {
+                speak('Please specify a note title to delete.');
+                return;
+            }
+
+            if (!notes?.length) {
+                speak('No notes available to delete.');
+                return;
+            }
 
             console.log('title', title);
 
@@ -144,6 +173,13 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote && matchingNote._id) {
                 handlers.handleMoveToTrash(matchingNote._id);
+                speak(
+                    `Note "${
+                        matchingNote.noteTitle || 'Untitled'
+                    }" moved to trash.`
+                );
+            } else {
+                speak(`Note with title "${title}" not found.`);
             }
         },
         isFuzzyMatch: false,
@@ -159,7 +195,15 @@ export const getNotesContainerCommands = ({
             'toggle archive note',
         ],
         callback: (title: string) => {
-            if (!title?.trim() || !notes?.length) return;
+            if (!title?.trim()) {
+                speak('Please specify a note title to archive.');
+                return;
+            }
+
+            if (!notes?.length) {
+                speak('No notes available to archive.');
+                return;
+            }
 
             console.log('title', title);
 
@@ -170,6 +214,14 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote && matchingNote._id) {
                 handlers.handleArchiveToggle(matchingNote._id);
+                const action = matchingNote.archived
+                    ? 'unarchived'
+                    : 'archived';
+                speak(
+                    `Note "${matchingNote.noteTitle || 'Untitled'}" ${action}.`
+                );
+            } else {
+                speak(`Note with title "${title}" not found.`);
             }
         },
         isFuzzyMatch: false,
@@ -179,7 +231,15 @@ export const getNotesContainerCommands = ({
     {
         command: ['copy not *', 'clone not *', 'clone the note *'],
         callback: (title: string) => {
-            if (!title?.trim() || !notes?.length) return;
+            if (!title?.trim()) {
+                speak('Please specify a note title to clone.');
+                return;
+            }
+
+            if (!notes?.length) {
+                speak('No notes available to clone.');
+                return;
+            }
 
             console.log('title', title);
 
@@ -190,6 +250,13 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote && matchingNote._id) {
                 handlers.handleCloneNote(matchingNote._id);
+                speak(
+                    `Note "${
+                        matchingNote.noteTitle || 'Untitled'
+                    }" cloned successfully.`
+                );
+            } else {
+                speak(`Note with title "${title}" not found.`);
             }
         },
         isFuzzyMatch: false,
@@ -199,7 +266,15 @@ export const getNotesContainerCommands = ({
     {
         command: ['pin the note *', 'pin not *', 'pin a note *'],
         callback: (title: string) => {
-            if (!title?.trim() || !notes?.length) return;
+            if (!title?.trim()) {
+                speak('Please specify a note title to pin.');
+                return;
+            }
+
+            if (!notes?.length) {
+                speak('No notes available to pin.');
+                return;
+            }
 
             console.log('title', title);
 
@@ -210,6 +285,12 @@ export const getNotesContainerCommands = ({
 
             if (matchingNote && matchingNote._id) {
                 handlers.handlePinToggle(matchingNote._id);
+                const action = matchingNote.pinned ? 'unpinned' : 'pinned';
+                speak(
+                    `Note "${matchingNote.noteTitle || 'Untitled'}" ${action}.`
+                );
+            } else {
+                speak(`Note with title "${title}" not found.`);
             }
         },
         isFuzzyMatch: false,

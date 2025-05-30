@@ -35,6 +35,7 @@ import '@/styles/components/notes/_noteInput.scss';
 import { NoteInputProps } from '@/types/types';
 import { useNoteCommands } from '@/voice-assistant/commands/noteCommands';
 import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
+import VoiceTranscriptOverlay from '@/voice-assistant/hooks/VoiceTranscriptOverlay';
 import { BookImage, Brush, SquareCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -666,10 +667,10 @@ export default function NoteInput({
             const currentContent = fieldRef.current.textContent || '';
             // Only append the new part of the transcript
             const newContent = currentContent + ' ' + speechTranscript;
-            
+
             // Update the field with appended content
             fieldRef.current.textContent = newContent;
-            
+
             // Update input length
             dispatch(
                 updateInputLength({
@@ -684,7 +685,7 @@ export default function NoteInput({
             range.collapse(false);
             sel?.removeAllRanges();
             sel?.addRange(range);
-            
+
             // Reset transcript after appending
             resetTranscript();
         }
@@ -988,24 +989,29 @@ export default function NoteInput({
 
             {/* Voice Control Status Indicator */}
             {isNoteVoiceActive && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        bottom: 80,
-                        right: 20,
-                        backgroundColor: isListening ? '#4CAF50' : '#2196F3',
-                        color: 'white',
-                        padding: '8px 12px',
-                        borderRadius: '20px',
-                        fontSize: '0.8rem',
-                        zIndex: 100,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                    }}
-                >
-                    🎙️ Note Voice Commands Active
-                </div>
+                <>
+                    <div
+                        style={{
+                            position: 'fixed',
+                            bottom: 80,
+                            right: 20,
+                            backgroundColor: isListening
+                                ? '#4CAF50'
+                                : '#2196F3',
+                            color: 'white',
+                            padding: '8px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.8rem',
+                            zIndex: 100,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                        }}
+                    >
+                        🎙️ Note Voice Commands Active
+                    </div>
+                    <VoiceTranscriptOverlay pageCommands={commonNoteCommands} />
+                </>
             )}
         </div>
     );
