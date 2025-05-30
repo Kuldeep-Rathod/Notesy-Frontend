@@ -7,7 +7,8 @@ import {
     useGetBoardsQuery,
 } from '@/redux/api/boardsAPI';
 import { useGetCurrentUserQuery } from '@/redux/api/userAPI';
-import { CircularProgress } from '@mui/material';
+import { getBoardsContainerCommands } from '@/voice-assistant/commands/boardsCommand';
+import usePageVoiceCommands from '@/voice-assistant/hooks/usePageVoiceCommands';
 import { Calendar, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -34,33 +35,12 @@ const BoardsListPage = () => {
         refetch();
     }, [refetch]);
 
-    if (userLoading) {
-        return (
-            <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white'>
-                <div className='text-xl font-medium text-primary animate-pulse'>
-                    <div className='flex justify-center items-center h-screen'>
-                        <CircularProgress />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!isPremium) {
-        toast.error('Upgrade to premium to access whiteboard');
-        return router.push('/dashboard');
-    }
-
     const handleCreateNew = () => {
         router.push('/boards/edit');
     };
 
     const handleEditBoard = (id: string) => {
         router.push(`/boards/edit?id=${id}`);
-    };
-
-    const handleViewBoard = (id: string) => {
-        router.push(`/boards/adit?id=${id}&view=true`);
     };
 
     const handleDeleteBoard = async (id: string) => {
@@ -104,7 +84,33 @@ const BoardsListPage = () => {
         return elements.length;
     };
 
-    if (isLoading) {
+    const boardsContainerCommands = getBoardsContainerCommands({
+        handlers: {
+            handleCreateNew,
+            handleEditBoard,
+            handleDeleteBoard,
+            handleRefresh,
+        },
+        boards: boards || [],
+    });
+
+    // Voice command integration
+    usePageVoiceCommands(
+        {
+            '/boards': boardsContainerCommands,
+        },
+        {
+            debug: true,
+            requireWakeWord: true,
+        }
+    );
+
+    if (!isPremium) {
+        toast.error('Upgrade to premium to access whiteboard');
+        return router.push('/dashboard');
+    }
+
+    if (isLoading || userLoading) {
         return (
             <div className='flex justify-center items-center h-80'>
                 <div className='text-center'>

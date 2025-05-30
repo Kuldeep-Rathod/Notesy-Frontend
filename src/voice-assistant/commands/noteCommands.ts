@@ -478,7 +478,7 @@ export const useNoteCommands = ({
             isFuzzyMatch: true,
         },
         {
-            command: ['take search *', 'label find *', 'look for label *'],
+            command: ['take search *', 'tag search *', 'label find *', 'look for label *'],
             callback: (labelName: string) => {
                 if (!labelMenuOpen) {
                     closeAllMenus();

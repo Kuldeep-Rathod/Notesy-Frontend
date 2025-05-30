@@ -77,6 +77,7 @@ const usePageVoiceCommands = (
             const isArchive = pathname.startsWith('/archive');
             const isLabels = pathname.startsWith('/labels');
             const isTrash = pathname.startsWith('/trash');
+            const isBoards = pathname.startsWith('/boards');
             const isLabelPage = labelNames.includes(cleanPath);
 
             const shouldActivate =
@@ -87,7 +88,8 @@ const usePageVoiceCommands = (
                     isReminder ||
                     isLabelPage ||
                     isLabels ||
-                    isTrash);
+                    isTrash ||
+                    isBoards);
 
             setIsActive(shouldActivate);
 
@@ -110,6 +112,7 @@ const usePageVoiceCommands = (
         const isArchiveNow = pathname.startsWith('/archive');
         const isLabelsNow = pathname.startsWith('/labels');
         const isTrashNow = pathname.startsWith('/trash');
+        const isBoardsNow = pathname.startsWith('/boards');
         const isLabelPageNow = labelNames.includes(cleanPathNow);
 
         const shouldActivateNow =
@@ -119,7 +122,8 @@ const usePageVoiceCommands = (
                 isReminderNow ||
                 isLabelPageNow ||
                 isLabelsNow ||
-                isTrashNow);
+                isTrashNow ||
+                isBoardsNow);
 
         setIsActive(shouldActivateNow);
 

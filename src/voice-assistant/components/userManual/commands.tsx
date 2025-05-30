@@ -11,6 +11,7 @@ import {
     Users,
 } from 'lucide-react';
 import React from 'react';
+import { MdOutlineDraw } from 'react-icons/md';
 
 interface CommandItemProps {
     primary: string;
@@ -509,10 +510,15 @@ export const commandSections: Record<string, CommandSectionProps> = {
                 category: 'Search & Navigation',
                 items: [
                     {
-                        primary: 'Search *',
-                        alternatives: ['Find *', 'Look for *'],
+                        primary: 'search notes *',
+                        alternatives: [
+                            'find notes *',
+                            'look notes for *',
+                            'search notes with *',
+                            'find notes with *',
+                        ],
                         description: 'Search for notes by content or title',
-                        example: 'Search meeting notes',
+                        example: 'Search notes meeting',
                     },
                     {
                         primary: 'Clear Search',
@@ -573,6 +579,43 @@ export const commandSections: Record<string, CommandSectionProps> = {
                         ],
                         description: 'Archive the currently open note',
                         example: 'Archive current note',
+                    },
+                ],
+            },
+        ],
+    },
+    'board-management': {
+        title: 'Board Management',
+        icon: <MdOutlineDraw className='w-10 h-10' />,
+        description:
+            'Manage your boards such as creating, editing, and deleting them',
+        commands: [
+            {
+                category: 'Board Actions',
+                items: [
+                    {
+                        primary: 'Create New Board',
+                        alternatives: ['new board', 'add board'],
+                        description: 'Create a new board',
+                        example: 'Create new board project ideas',
+                    },
+                    {
+                        primary: 'Edit Board *',
+                        alternatives: ['modify board *'],
+                        description: 'Edit an existing board',
+                        example: 'Edit board project ideas',
+                    },
+                    {
+                        primary: 'Delete Board *',
+                        alternatives: ['remove board *'],
+                        description: 'Delete an existing board',
+                        example: 'Delete board project ideas',
+                    },
+                    {
+                        primary: 'Refresh Boards',
+                        alternatives: ['reload boards', 'update boards'],
+                        description: 'Refresh your board list',
+                        example: 'Refresh boards',
                     },
                 ],
             },

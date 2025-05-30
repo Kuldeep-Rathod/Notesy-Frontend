@@ -660,24 +660,35 @@ export default function NoteInput({
         const fieldRef = activeField === 'title' ? noteTitleRef : noteBodyRef;
         if (!fieldRef.current) return;
 
-        // Update the field with current transcript
-        fieldRef.current.textContent = speechTranscript;
+        // Instead of replacing content, append the new transcript
+        if (speechTranscript && speechTranscript.trim() !== '') {
+            // Get current content
+            const currentContent = fieldRef.current.textContent || '';
+            // Only append the new part of the transcript
+            const newContent = currentContent + ' ' + speechTranscript;
+            
+            // Update the field with appended content
+            fieldRef.current.textContent = newContent;
+            
+            // Update input length
+            dispatch(
+                updateInputLength({
+                    [activeField]: newContent.length,
+                })
+            );
 
-        // Update input length
-        dispatch(
-            updateInputLength({
-                [activeField]: fieldRef.current.textContent.length,
-            })
-        );
-
-        // Place cursor at end
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(fieldRef.current);
-        range.collapse(false);
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-    }, [speechTranscript, isListening, activeField, dispatch]);
+            // Place cursor at end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(fieldRef.current);
+            range.collapse(false);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+            
+            // Reset transcript after appending
+            resetTranscript();
+        }
+    }, [speechTranscript, isListening, activeField, dispatch, resetTranscript]);
 
     // Cleanup speech recognition on unmount
     useEffect(() => {

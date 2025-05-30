@@ -89,6 +89,7 @@ const VoiceRouter = () => {
         'labels',
         'reminders',
         'statistics',
+        'boards',
     ];
 
     // Merge labels into routes
@@ -334,17 +335,17 @@ const VoiceRouter = () => {
     }, [transcript]);
 
     // Auto-deactivate voice assistant after 60s of inactivity
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (isActive && Date.now() - lastInteractionTime > 60000 * 2) {
-                setIsActive(false);
-                speak('Voice control deactivated due to inactivity');
-                if (isDev) console.log('Auto-deactivated due to inactivity');
-            }
-        }, 5000); // check every 5s
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         if (isActive && Date.now() - lastInteractionTime > 60000 * 2) {
+    //             setIsActive(false);
+    //             speak('Voice control deactivated due to inactivity');
+    //             if (isDev) console.log('Auto-deactivated due to inactivity');
+    //         }
+    //     }, 5000); // check every 5s
 
-        return () => clearInterval(interval);
-    }, [isActive, lastInteractionTime, isDev]);
+    //     return () => clearInterval(interval);
+    // }, [isActive, lastInteractionTime, isDev]);
 
     useEffect(() => {
         const handleUserInteraction = () => {
