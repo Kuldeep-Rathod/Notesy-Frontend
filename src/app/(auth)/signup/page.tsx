@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { auth, googleProvider } from '@/lib/firebase';
-import GuestGuard from '@/utils/guestGuard';
 import { axiosInstance } from '@/utils/axiosInstance';
+import GuestGuard from '@/utils/guestGuard';
 import axios from 'axios';
 import {
     createUserWithEmailAndPassword,
+    sendEmailVerification,
     signInWithPopup,
     updateProfile,
 } from 'firebase/auth';
@@ -73,8 +74,15 @@ export default function Signup() {
                 photoURL: null,
             });
 
-            await createMongoUser(userCredential.user, data.name);
-            router.push('/dashboard');
+            // Send verification email
+            await sendEmailVerification(userCredential.user, {
+                url: `${window.location.origin}/verify-email`,
+            });
+
+            // Redirect to verify-email page
+            router.push(
+                `/verify-email?email=${encodeURIComponent(data.email)}`
+            );
         } catch (error: any) {
             setFirebaseError(getFirebaseErrorMessage(error.code));
         } finally {
@@ -94,6 +102,7 @@ export default function Signup() {
 
             try {
                 await axiosInstance.get(`/auth/check?email=${email}`);
+                router.push('/dashboard');
             } catch (err) {
                 if (axios.isAxiosError(err) && err.response?.status === 404) {
                     await createMongoUser(
@@ -101,12 +110,11 @@ export default function Signup() {
                         userCredential.user.displayName || undefined,
                         userCredential.user.photoURL || undefined
                     );
+                    router.push('/dashboard');
                 } else {
                     throw err;
                 }
             }
-
-            await router.push('/dashboard');
         } catch (error: any) {
             setFirebaseError(getFirebaseErrorMessage(error.code));
         } finally {
@@ -134,10 +142,7 @@ export default function Signup() {
             <div className='min-h-screen bg-slate-50 flex items-center justify-center p-6'>
                 <div className='w-full max-w-md'>
                     <div className='flex justify-center mb-8'>
-                        <Link
-                            href='/'
-                            className='flex items-center space-x-2'
-                        >
+                        <Link href='/' className='flex items-center space-x-2'>
                             <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
                                 <Mic className='w-6 h-6 text-white' />
                             </div>
@@ -341,12 +346,7 @@ export default function Signup() {
 }
 
 const GoogleIcon = () => (
-    <svg
-        className='w-5 h-5'
-        viewBox='0 0 24 24'
-        width='20'
-        height='20'
-    >
+    <svg className='w-5 h-5' viewBox='0 0 24 24' width='20' height='20'>
         <path
             d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
             fill='#4285F4'
