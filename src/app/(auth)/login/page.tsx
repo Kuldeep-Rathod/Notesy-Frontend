@@ -3,10 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { createMongoUser } from '@/lib/createMongoUser';
 import { auth, googleProvider } from '@/lib/firebase';
-import {
-    useLoginWithEmailMutation
-} from '@/redux/api/authAPI';
+import { useLoginWithEmailMutation } from '@/redux/api/authAPI';
 import { axiosInstance } from '@/utils/axiosInstance';
 import GuestGuard from '@/utils/guestGuard';
 import axios from 'axios';
@@ -16,7 +15,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { createMongoUser } from '../verify-email/page';
 
 type LoginFormData = {
     email: string;
