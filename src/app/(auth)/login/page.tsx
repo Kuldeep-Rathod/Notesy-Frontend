@@ -3,11 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { auth } from '@/lib/firebase';
 import {
     useLoginWithEmailMutation,
     useLoginWithGoogleMutation,
 } from '@/redux/api/authAPI';
 import GuestGuard from '@/utils/guestGuard';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { ArrowRight, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -62,6 +64,16 @@ export default function Login() {
         }
     };
 
+    const forgotPassword = async (email: string) => {
+        try {
+            await sendPasswordResetEmail(auth, email);
+            alert('Password reset email sent!');
+        } catch (error: any) {
+            console.error('Error sending password reset email:', error.message);
+            alert('Failed to send password reset email: ' + error.message);
+        }
+    };
+
     const getFirebaseErrorMessage = (code: string) => {
         switch (code) {
             case 'auth/email-already-in-use':
@@ -86,10 +98,7 @@ export default function Login() {
             <div className='min-h-screen bg-slate-50 flex items-center justify-center p-6'>
                 <div className='w-full max-w-md'>
                     <div className='flex justify-center mb-8'>
-                        <Link
-                            href='/'
-                            className='flex items-center space-x-2'
-                        >
+                        <Link href='/' className='flex items-center space-x-2'>
                             <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center'>
                                 <Mic className='w-6 h-6 text-white' />
                             </div>
@@ -156,12 +165,6 @@ export default function Login() {
                                     >
                                         Password
                                     </Label>
-                                    <Link
-                                        href='/forgot-password'
-                                        className='text-sm text-indigo-600 hover:text-indigo-500'
-                                    >
-                                        Forgot password?
-                                    </Link>
                                 </div>
                                 <Input
                                     id='password'
@@ -179,6 +182,26 @@ export default function Login() {
                                         {errors.password.message as string}
                                     </p>
                                 )}
+                                <span
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        const email = (
+                                            document.getElementById(
+                                                'email'
+                                            ) as HTMLInputElement
+                                        )?.value;
+                                        if (email) {
+                                            forgotPassword(email);
+                                        } else {
+                                            alert(
+                                                'Please enter your email address above first.'
+                                            );
+                                        }
+                                    }}
+                                    className='text-sm text-indigo-600 hover:text-indigo-500 flex justify-end mt-2 cursor-pointer'
+                                >
+                                    Forgot password?
+                                </span>
                             </div>
 
                             <Button
@@ -233,12 +256,7 @@ export default function Login() {
 }
 
 const GoogleIcon = () => (
-    <svg
-        className='w-5 h-5'
-        viewBox='0 0 24 24'
-        width='20'
-        height='20'
-    >
+    <svg className='w-5 h-5' viewBox='0 0 24 24' width='20' height='20'>
         <path
             d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
             fill='#4285F4'
