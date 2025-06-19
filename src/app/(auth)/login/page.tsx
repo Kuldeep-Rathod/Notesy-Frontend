@@ -3,18 +3,20 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { auth } from '@/lib/firebase';
+import { auth, googleProvider } from '@/lib/firebase';
 import {
-    useLoginWithEmailMutation,
-    useLoginWithGoogleMutation,
+    useLoginWithEmailMutation
 } from '@/redux/api/authAPI';
+import { axiosInstance } from '@/utils/axiosInstance';
 import GuestGuard from '@/utils/guestGuard';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import axios from 'axios';
+import { sendPasswordResetEmail, signInWithPopup } from 'firebase/auth';
 import { ArrowRight, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { createMongoUser } from '../verify-email/page';
 
 type LoginFormData = {
     email: string;
@@ -25,7 +27,6 @@ export default function Login() {
     const router = useRouter();
     const [firebaseError, setFirebaseError] = useState<string>('');
     const [loginWithEmail, { isLoading }] = useLoginWithEmailMutation();
-    const [loginWithGoogle] = useLoginWithGoogleMutation();
 
     const {
         register,
@@ -51,14 +52,35 @@ export default function Login() {
 
     const signInWithGoogle = async () => {
         try {
-            await loginWithGoogle().unwrap();
+            // Firebase login
+            const userCredential = await signInWithPopup(auth, googleProvider);
+            const user = userCredential.user;
+
+            if (!user.email)
+                throw new Error("Google account doesn't have an email");
+
+            // 1. Check if user exists in MongoDB
+            try {
+                await axiosInstance.get(`/auth/check?email=${user.email}`);
+                console.log('User already exists, redirecting...');
+            } catch (err: any) {
+                if (axios.isAxiosError(err) && err.response?.status === 404) {
+                    console.log('User not found, creating in MongoDB...');
+                    await createMongoUser(user);
+                    console.log('User created successfully');
+                } else {
+                    throw err;
+                }
+            }
+
             router.push('/dashboard');
         } catch (err: any) {
+            console.error('signInWithGoogle error:', err);
             if (err?.code) {
                 setFirebaseError(getFirebaseErrorMessage(err.code));
             } else {
                 setFirebaseError(
-                    'An unknown error occurred during Google login.'
+                    err?.message || 'Unknown error during Google login'
                 );
             }
         }
