@@ -369,7 +369,7 @@ The application follows a modular architecture with clear separation of concerns
 
 ## 🆘 Support
 
--   **Documentation**: Check the [VOICE-COMMANDS.md](notesy-frontend/VOICE-COMMANDS.md) for detailed voice command reference
+-   **Documentation**: Check the [VOICE-COMMANDS.md](/VOICE-COMMANDS.md) for detailed voice command reference
 -   **Issues**: Report bugs and feature requests via GitHub Issues
 -   **Discussions**: Join community discussions for help and ideas
 
